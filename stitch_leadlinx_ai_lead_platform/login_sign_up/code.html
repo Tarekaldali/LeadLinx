@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LeadLinx | Intelligence Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed-dim": "#98da27",
+                      "on-error-container": "#ffdad6",
+                      "on-secondary-fixed": "#001f25",
+                      "secondary-container": "#00cbe6",
+                      "background": "#10131a",
+                      "surface-container": "#1d2027",
+                      "error": "#ffb4ab",
+                      "on-surface-variant": "#c2c6d6",
+                      "on-surface": "#e1e2ec",
+                      "secondary-fixed-dim": "#2fd9f4",
+                      "surface-dim": "#10131a",
+                      "tertiary": "#98da27",
+                      "primary-fixed": "#d8e2ff",
+                      "on-tertiary": "#213600",
+                      "on-error": "#690005",
+                      "on-secondary-fixed-variant": "#004e5a",
+                      "on-secondary-container": "#00515d",
+                      "surface-container-high": "#272a31",
+                      "on-secondary": "#00363e",
+                      "on-primary-container": "#00285d",
+                      "on-tertiary-fixed": "#121f00",
+                      "error-container": "#93000a",
+                      "surface-container-low": "#191b23",
+                      "secondary-fixed": "#a2eeff",
+                      "on-tertiary-fixed-variant": "#334f00",
+                      "outline": "#8c909f",
+                      "inverse-primary": "#005ac2",
+                      "surface-container-highest": "#32353c",
+                      "primary-container": "#4d8eff",
+                      "surface": "#10131a",
+                      "inverse-surface": "#e1e2ec",
+                      "inverse-on-surface": "#2e3038",
+                      "on-primary": "#002e6a",
+                      "on-background": "#e1e2ec",
+                      "on-primary-fixed": "#001a42",
+                      "tertiary-fixed": "#b2f746",
+                      "tertiary-container": "#6ba000",
+                      "on-tertiary-container": "#1c2f00",
+                      "surface-container-lowest": "#0b0e15",
+                      "surface-variant": "#32353c",
+                      "secondary": "#5de6ff",
+                      "outline-variant": "#424754",
+                      "surface-bright": "#363941",
+                      "primary": "#adc6ff",
+                      "primary-fixed-dim": "#adc6ff",
+                      "on-primary-fixed-variant": "#004395",
+                      "surface-tint": "#adc6ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "margin": "24px",
+                      "container-padding": "20px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "body-main": ["Inter"],
+                      "data-value": ["JetBrains Mono"],
+                      "data-label": ["JetBrains Mono"],
+                      "headline-md": ["Inter"],
+                      "display-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-main": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                      "data-value": ["14px", {"lineHeight": "1.2", "letterSpacing": "0", "fontWeight": "600"}],
+                      "data-label": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0a0f1d;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(220,100%,10%,1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(210,100%,15%,1) 0px, transparent 50%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid #1e293b;
+        }
+        .inner-glow:focus-within {
+            box-shadow: 0 0 15px -5px rgba(93, 230, 255, 0.4);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="font-body-main text-on-background min-h-screen flex flex-col">
+<!-- Navigation Shell Suppressed for Login Intent -->
+<main class="flex-grow flex items-center justify-center px-6 py-12 relative overflow-hidden">
+<!-- Background Bloom Decoration -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-secondary/5 blur-[120px] rounded-full pointer-events-none"></div>
+<div class="w-full max-w-[440px] z-10">
+<!-- Brand Header -->
+<div class="text-center mb-10">
+<div class="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-surface-container-highest border border-outline-variant mb-6 shadow-2xl">
+<span class="material-symbols-outlined text-secondary text-4xl" data-icon="bolt">bolt</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-white mb-2">LeadLinx</h1>
+<p class="font-body-main text-on-surface-variant">Command your sales intelligence ecosystem.</p>
+</div>
+<!-- Auth Bento Card -->
+<div class="glass-card rounded-xl p-8 shadow-2xl">
+<div class="space-y-6">
+<!-- Primary Action: Magic Link -->
+<div class="space-y-4">
+<div class="space-y-1.5">
+<label class="font-data-label text-data-label text-on-surface-variant ml-1" for="email">WORK EMAIL</label>
+<div class="relative inner-glow group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-secondary transition-colors" data-icon="mail">mail</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-outline focus:outline-none focus:border-secondary transition-all font-body-main" id="email" placeholder="name@company.com" type="email"/>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary font-headline-md text-body-main py-3.5 rounded-lg transition-all active:scale-[0.98] shadow-lg shadow-primary/10">
+                            Email me a Magic Link
+                        </button>
+</div>
+<!-- Divider -->
+<div class="flex items-center gap-4 py-2">
+<div class="h-[1px] flex-grow bg-outline-variant"></div>
+<span class="font-data-label text-data-label text-outline uppercase tracking-widest">or continue with</span>
+<div class="h-[1px] flex-grow bg-outline-variant"></div>
+</div>
+<!-- Secondary Actions: Social -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 border border-outline-variant rounded-lg py-3 px-4 hover:bg-surface-container-high transition-colors active:scale-95 group">
+<img alt="Google Logo" class="w-5 h-5 grayscale group-hover:grayscale-0 transition-all" data-alt="The official Google 'G' icon with its distinct four-color pattern of blue, red, yellow, and green, rendered in a crisp vector format. The logo is centered on a transparent background, maintaining its iconic minimalist aesthetic for a professional authentication interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLPKCl2fwSp7xke3XXUr28hBNfL1360k_2SZMjgK4uUXRHZCl0zLrBbjN8qw9n8MoWLb8WFXFoUhl_gWm3Ot8i-LPrP1BHEM5a5vY9yD9oiKA2m43Zah9A16Ao8Kob6I8jOKBWHX3G7J_ICDqtd6F5ps8uAuE3HYBAPZG3k4tfOFsr67M4keMqWKtNPgRXQRL-wH99SKS_8qhLi3MpRWa9Ev0QfneFQyF1r1krp4Xv3wetGP2OSfwD-qAEopiK4Lqjz5tujxVJN1s"/>
+<span class="font-data-label text-data-label text-on-surface">Google</span>
+</button>
+<button class="flex items-center justify-center gap-2 border border-outline-variant rounded-lg py-3 px-4 hover:bg-surface-container-high transition-colors active:scale-95 group">
+<span class="material-symbols-outlined text-on-surface text-xl" data-icon="code">code</span>
+<span class="font-data-label text-data-label text-on-surface">GitHub</span>
+</button>
+</div>
+</div>
+<!-- Assistance Link -->
+<div class="mt-8 text-center">
+<p class="font-data-label text-data-label text-outline">
+                        New to LeadLinx? <a class="text-secondary hover:text-secondary-fixed transition-colors font-semibold" href="#">Request Access</a>
+</p>
+</div>
+</div>
+<!-- Trust Badge / Status -->
+<div class="mt-8 flex items-center justify-center gap-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_rgba(152,218,39,0.6)] animate-pulse"></div>
+<span class="font-data-label text-[10px] text-tertiary-fixed-dim uppercase tracking-tighter">System Live</span>
+</div>
+<div class="flex items-center gap-2 opacity-50">
+<span class="material-symbols-outlined text-[14px]" data-icon="lock" data-weight="fill" style="font-variation-settings: 'FILL' 1;">lock</span>
+<span class="font-data-label text-[10px] text-on-surface-variant uppercase tracking-tighter">AES-256 Encrypted</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Shared Footer -->
+<footer class="w-full py-8 mt-auto border-t border-[#1e293b] bg-[#050811]">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 max-w-7xl mx-auto space-y-4 md:space-y-0">
+<div class="text-sm font-bold text-slate-300">LeadLinx</div>
+<p class="font-inter text-xs text-slate-500">© 2024 LeadLinx Intelligence. All rights reserved.</p>
+<div class="flex gap-6">
+<a class="font-inter text-xs text-slate-500 hover:text-cyan-400 transition-colors" href="#">Privacy Policy</a>
+<a class="font-inter text-xs text-slate-500 hover:text-cyan-400 transition-colors" href="#">Terms of Service</a>
+<a class="font-inter text-xs text-slate-500 hover:text-cyan-400 transition-colors" href="#">Status</a>
+<a class="font-inter text-xs text-slate-500 hover:text-cyan-400 transition-colors" href="#">Contact</a>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,88 @@
+1. Prompt محرك السحب (JSON Fetcher)
+"Write a clean Node.js function that fetches data from Reddit subreddits using the .json extension (e.g., https://www.reddit.com/r/SaaS/new.json). The function should:
+
+Take a list of keywords and subreddits as input.
+
+Fetch the latest posts and filter them by the keywords in the title or body.
+
+Avoid using any heavy libraries like Playwright or Cheerio; use only axios or fetch.
+
+Include a random 'User-Agent' string in the headers to prevent 429 errors.
+
+Output a clean array of objects: {id, title, text, link, author}."
+
+2. Prompt تصميم الواجهة (The Ultra-Minimal Dashboard)
+"Generate a React component using Next.js and Tailwind CSS for a 'One-Page Dashboard'. The design must be extremely simple to avoid overwhelming the user:
+
+A single input field at the top: 'What are you looking for? (e.g., people complaining about slow websites)'.
+
+One prominent 'Find Leads' button.
+
+A simple 'Credits' badge in the corner (e.g., '10 Credits Left').
+
+A clean vertical list of results. Each result is a card showing only: the Post Title, a 10/10 AI Intent Score (highlighted), and a 'View on Reddit' button.
+
+No complex menus or sidebars. Maximum simplicity."
+
+3. Prompt لفلترة الذكاء الاصطناعي (Minimalist AI Logic)
+"Create a prompt for Gemini/OpenAI API that takes a list of Reddit posts (from the JSON fetcher) and the user's product description. The AI should:
+
+Analyze if the post is a potential lead or just noise.
+
+Return ONLY a JSON array of the top 5 most relevant posts.
+
+For each post, provide a 'Score' (1-10) and a very short 'Reason' (max 10 words).
+
+Exclude any posts that are ads, spam, or irrelevant."
+
+
+
+
+
+Create a polished, modern, and beautiful interface for a Micro-SaaS platform, strictly following the layout defined in image_4.png. The design must be clean and minimal, using a soft teal and modern purple accent color palette on a pure white background for a premium feel. The full-height sidebar on the far left, labeled 'A sidebar' and showing navigation icons (Home, Search, analytics), must have the distinct 'account details' section at its very bottom with a profile avatar and placeholder text. The top central area must contain the distinct text box from image_4.png, styled with a modern purple border and containing text: 'Discover Reddit LeadLinx: Your smart AI-powered radar for genuine buying intent. Stop searching, start closing.' In the top-right corner, a well-designed circular indicator must show a stylized 'Credits: 125' display, matching the layout from image_4.png. Below the descriptive box, the horizontal input bar, distinct with a purple accent and the arrow graphic from image_4.png integrated into its end, must be a clean form field with a soft purple shadow and cursor, containing the placeholder: 'e.g., "alternatives to Salesforce" to identify intent'. Below this input field, four distinct, rounded-corner card modules must be arranged horizontally, matching the layout and rounded nature from image_4.png. Each card has a clean header with a feature icon and label (e.g., 'Intent Score', 'Thread Analysis', 'Direct View', 'Dashboard View'), and a stylized badge labeled 'feature'. The overall composition is clean, modern, and legible, with balanced spacing and professional typography.
+
+
+
+
+
+
+i have a project idea.txt file read it then make our website use react dont use nextjs and for database use mongo atlas
+Install your driver
+npm install mongodb
+connection string
+mongodb+srv://tarekaldali1234_db_user_LIU_32230767:RvaDceIllGY8LbS7@cluster0.dkxv0or.mongodb.net/?appName=Cluster0
+for sure make login and register page and pricing page dont make nav bar because i want side bar 
+make .env file and put this api key : 
+OPENROUTER_API_KEY=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
+ايضا قم ب اضافه هذه الميز :
+
+
+1. ميزة "التنبيهات الذكية" (Smart Alerts)
+المستخدم لن يفتح موقعك كل ساعة ليبحث يدوياً.
+
+الإضافة: زر صغير "Notify Me".
+
+الوظيفة: عندما يجد الرادار منشوراً يتجاوز تقييمه 9/10 (High Intent) بكلمة مفتاحية معينة، يرسل إشعارا فورياً للمستخدم (على الإيميل أو Telegram). هذه هي الميزة التي تجعل الناس يدفعون اشتراكاً شهرياً.
+
+2. قائمة "الكلمات السلبية" (Negative Keywords)
+المشكلة: إذا كان المستخدم يبيع "أدوات تنظيف منازل"، وبحث عن "cleaning"، قد تظهر له نتائج عن "cleaning my laptop".
+
+الإضافة: صندوق لإضافة كلمات لا يريدها (مثل: laptop, software, code). هذا يزيد من دقة الذكاء الاصطناعي ويجعل العميل يثق في نتائجك.
+
+3. صفحة "سجل النتائج" (History / Saved Leads)
+الإضافة: قسم في الـ Sidebar لحفظ المنشورات التي أعجبت المستخدم.
+
+الفائدة: لكي لا يضطر المستخدم للبحث عن الرابط مرة أخرى في Reddit. يمكنه حفظ "الليد" والتواصل معه لاحقاً.
+
+4. حماية من "حظر Reddit" (Educational Guide)
+الإضافة: نافذة صغيرة (Popup) أو تلميح (Tooltip) يظهر للمستخدم عند الضغط على "View on Reddit".
+
+النصيحة: "لا تضع رابط موقعك فوراً! ابدأ بتقديم نصيحة أولاً ثم اقترح منتجك."
+
+لماذا؟: إذا تم حظر حسابات عملائك على Reddit، سيتوقفون عن استخدام موقعك. حمايتهم هي حماية لمشروعك.
+
+5. زر "توليد رد" (AI Reply Draft)
+لقد ظهر في التصميم السابق، وهي ميزة ذهبية!
+
+الوظيفة: زر يولد "مسودة رد" (Draft) بناءً على محتوى المنشور. المستخدم ينسخه، يعدله قليلاً، وينشره. هذا يقلل المجهود من 10 دقائق إلى 10 ثوانٍ.
+

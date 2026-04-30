@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#98da27",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed": "#001f25",
+                        "secondary-container": "#00cbe6",
+                        "background": "#10131a",
+                        "surface-container": "#1d2027",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#c2c6d6",
+                        "on-surface": "#e1e2ec",
+                        "secondary-fixed-dim": "#2fd9f4",
+                        "surface-dim": "#10131a",
+                        "tertiary": "#98da27",
+                        "primary-fixed": "#d8e2ff",
+                        "on-tertiary": "#213600",
+                        "on-error": "#690005",
+                        "on-secondary-fixed-variant": "#004e5a",
+                        "on-secondary-container": "#00515d",
+                        "surface-container-high": "#272a31",
+                        "on-secondary": "#00363e",
+                        "on-primary-container": "#00285d",
+                        "on-tertiary-fixed": "#121f00",
+                        "error-container": "#93000a",
+                        "surface-container-low": "#191b23",
+                        "secondary-fixed": "#a2eeff",
+                        "on-tertiary-fixed-variant": "#334f00",
+                        "outline": "#8c909f",
+                        "inverse-primary": "#005ac2",
+                        "surface-container-highest": "#32353c",
+                        "primary-container": "#4d8eff",
+                        "surface": "#10131a",
+                        "inverse-surface": "#e1e2ec",
+                        "inverse-on-surface": "#2e3038",
+                        "on-primary": "#002e6a",
+                        "on-background": "#e1e2ec",
+                        "on-primary-fixed": "#001a42",
+                        "tertiary-fixed": "#b2f746",
+                        "tertiary-container": "#6ba000",
+                        "on-tertiary-container": "#1c2f00",
+                        "surface-container-lowest": "#0b0e15",
+                        "surface-variant": "#32353c",
+                        "secondary": "#5de6ff",
+                        "outline-variant": "#424754",
+                        "surface-bright": "#363941",
+                        "primary": "#adc6ff",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-primary-fixed-variant": "#004395",
+                        "surface-tint": "#adc6ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin": "24px",
+                        "container-padding": "20px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-main": ["Inter"],
+                        "data-value": ["JetBrains Mono"],
+                        "data-label": ["JetBrains Mono"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-main": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                        "data-value": ["14px", {"lineHeight": "1.2", "letterSpacing": "0", "fontWeight": "600"}],
+                        "data-label": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid #1e293b;
+        }
+        .glow-accent {
+            box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-main antialiased min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="bg-[#0a0f1d]/80 backdrop-blur-xl border-b border-[#1e293b] docked full-width top-0 sticky z-50">
+<nav class="flex justify-between items-center w-full px-6 py-3 max-w-[1920px] mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-white">LeadLinx</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-slate-400 hover:text-cyan-400 transition-colors font-body-main" href="#">Platform</a>
+<a class="text-slate-400 hover:text-cyan-400 transition-colors font-body-main" href="#">Solutions</a>
+<a class="text-slate-400 hover:text-cyan-400 transition-colors font-body-main" href="#">Resources</a>
+<a class="text-blue-400 border-b-2 border-blue-500 pb-1 font-body-main" href="#">Pricing</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-400 hover:text-white transition-colors" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-slate-400 hover:text-white transition-colors" data-icon="settings">settings</button>
+<button class="bg-primary text-on-primary-container px-6 py-2 rounded-lg font-semibold active:scale-95 transition-all">Get Started</button>
+</div>
+</nav>
+</header>
+<main class="flex-grow">
+<!-- Hero Section -->
+<section class="relative overflow-hidden pt-24 pb-12 px-6">
+<div class="max-w-4xl mx-auto text-center relative z-10">
+<h1 class="font-display-lg text-display-lg mb-6 text-white tracking-tight">Scale Your Revenue Intelligence</h1>
+<p class="text-on-surface-variant text-body-main max-w-2xl mx-auto mb-12">
+                    Predictive lead scoring and automated outreach powered by LeadLinx. Choose the plan that aligns with your growth targets.
+                </p>
+<!-- Pricing Toggle -->
+<div class="flex items-center justify-center gap-4 mb-16">
+<span class="text-sm font-medium text-slate-400">Monthly</span>
+<button class="w-12 h-6 bg-surface-container-highest rounded-full relative flex items-center px-1">
+<div class="w-4 h-4 bg-primary rounded-full"></div>
+</button>
+<span class="text-sm font-medium text-white flex items-center gap-2">
+                        Yearly 
+                        <span class="bg-tertiary-fixed-dim text-on-tertiary-fixed px-2 py-0.5 rounded-full text-[10px] font-bold">SAVE 20%</span>
+</span>
+</div>
+</div>
+<!-- Background Decorative Element -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 blur-[120px] rounded-full -z-10"></div>
+</section>
+<!-- Pricing Bento Grid -->
+<section class="max-w-7xl mx-auto px-6 pb-24">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Starter Plan -->
+<div class="glass-card p-8 rounded-xl flex flex-col">
+<div class="mb-8">
+<h3 class="text-white font-headline-md text-headline-md mb-2">Starter</h3>
+<p class="text-slate-400 text-sm mb-6">Ideal for solo founders and small sales teams.</p>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-bold text-white tracking-tight">$49</span>
+<span class="text-slate-500 font-data-label text-data-label">/MONTH</span>
+</div>
+</div>
+<div class="flex flex-col gap-4 mb-10 flex-grow">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-300 text-sm font-data-value">500 Credits / month</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-300 text-sm">Basic AI Lead Scoring</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-300 text-sm">Email Automation (1 Seq)</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-300 text-sm">CRM Integration (Zapier)</span>
+</div>
+</div>
+<button class="w-full py-4 rounded-lg border border-[#1e293b] text-white font-semibold hover:bg-white/5 transition-all">Start 14-day Trial</button>
+</div>
+<!-- Growth Plan (Highlighted) -->
+<div class="glass-card p-8 rounded-xl flex flex-col relative border-primary glow-accent">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-on-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Most Popular</div>
+<div class="mb-8">
+<h3 class="text-white font-headline-md text-headline-md mb-2">Growth</h3>
+<p class="text-slate-400 text-sm mb-6">Perfect for scaling agencies and sales squads.</p>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-bold text-white tracking-tight">$149</span>
+<span class="text-slate-500 font-data-label text-data-label">/MONTH</span>
+</div>
+</div>
+<div class="flex flex-col gap-4 mb-10 flex-grow">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-white text-sm font-data-value">2500 Credits / month</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-200 text-sm">Advanced Intent Analysis</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-200 text-sm">Unlimited Email Sequences</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-200 text-sm">Priority Support (Slack)</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-200 text-sm">Team Collaboration (3 seats)</span>
+</div>
+</div>
+<button class="w-full py-4 rounded-lg bg-primary text-on-primary-container font-bold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all">Upgrade to Growth</button>
+</div>
+<!-- Enterprise Plan -->
+<div class="glass-card p-8 rounded-xl flex flex-col">
+<div class="mb-8">
+<h3 class="text-white font-headline-md text-headline-md mb-2">Enterprise</h3>
+<p class="text-slate-400 text-sm mb-6">High-volume intelligence for large corporations.</p>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-bold text-white tracking-tight">Custom</span>
+</div>
+</div>
+<div class="flex flex-col gap-4 mb-10 flex-grow">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-300 text-sm font-data-value">Unlimited Credits</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-300 text-sm">Full API Data Access</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-300 text-sm">White-labeled Intelligence</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-slate-300 text-sm">Dedicated Success Manager</span>
+</div>
+</div>
+<button class="w-full py-4 rounded-lg border border-cyan-500/50 text-cyan-400 font-semibold hover:bg-cyan-500/10 transition-all">Contact Sales</button>
+</div>
+</div>
+</section>
+<!-- Comparison Table Section (High-Density) -->
+<section class="max-w-5xl mx-auto px-6 pb-24">
+<h2 class="text-center font-headline-md text-headline-md text-white mb-12">Compare All Features</h2>
+<div class="glass-card rounded-xl overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-[#1e293b] bg-white/5">
+<th class="p-5 text-slate-400 font-data-label text-data-label">FEATURE</th>
+<th class="p-5 text-white font-data-label text-data-label">STARTER</th>
+<th class="p-5 text-white font-data-label text-data-label">GROWTH</th>
+<th class="p-5 text-white font-data-label text-data-label">ENTERPRISE</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#1e293b]">
+<tr>
+<td class="p-5 text-slate-300 text-sm">Monthly Verified Leads</td>
+<td class="p-5 font-data-value text-data-value text-white">500</td>
+<td class="p-5 font-data-value text-data-value text-white">2,500</td>
+<td class="p-5 font-data-value text-data-value text-white">Unlimited</td>
+</tr>
+<tr>
+<td class="p-5 text-slate-300 text-sm">AI Scoring Logic</td>
+<td class="p-5 text-slate-400 text-sm">Standard</td>
+<td class="p-5 text-slate-200 text-sm">Custom Weights</td>
+<td class="p-5 text-slate-200 text-sm">Proprietary Training</td>
+</tr>
+<tr>
+<td class="p-5 text-slate-300 text-sm">Signal Sources</td>
+<td class="p-5 text-slate-400 text-sm">3 Channels</td>
+<td class="p-5 text-slate-200 text-sm">12+ Channels</td>
+<td class="p-5 text-slate-200 text-sm">Real-time Webhook</td>
+</tr>
+<tr>
+<td class="p-5 text-slate-300 text-sm">Data Export</td>
+<td class="p-5 text-slate-400 text-sm">CSV Only</td>
+<td class="p-5 text-slate-200 text-sm">Direct CRM Push</td>
+<td class="p-5 text-slate-200 text-sm">Automated SFDC/Hubspot</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Trust Logos / Visual Break -->
+<section class="max-w-7xl mx-auto px-6 py-20 border-t border-[#1e293b]">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div>
+<h3 class="text-white font-headline-md text-headline-md mb-4">Intelligence used by industry leaders</h3>
+<p class="text-slate-400 mb-8">Join over 1,500 sales teams who use LeadLinx to automate their pipeline growth and focus on closing.</p>
+<div class="flex flex-wrap gap-8 opacity-40 grayscale">
+<span class="font-bold text-2xl">TECHFLOW</span>
+<span class="font-bold text-2xl">SYNERGY</span>
+<span class="font-bold text-2xl">VERTEX</span>
+<span class="font-bold text-2xl">ORBIT</span>
+</div>
+</div>
+<div class="relative group">
+<img alt="Data Dashboard" class="rounded-xl glass-card w-full shadow-2xl" data-alt="A sophisticated dark-themed data analytics dashboard displaying complex lead generation metrics and 3D glowing charts. The interface features a glassmorphism aesthetic with frosted panels and cyan accent lighting. The background is a deep navy tech-inspired space, and the overall mood is high-tech, professional, and data-dense, aligning with a Clean Tech sales intelligence command center." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAStuexUSWhBGsu6cT1KJ5cuVQi3E8nN50IwhhsDx4nUN9jvuYVMIWRuUGwd8JaH7mgDZpsLeJYSjEI1fDebfhMgYQOrxxR6kieyvGDrlFHiqTTMsGKnETMe1eC_1xSqaWZBM57g1IGceg62qlZDdqDJldknvmvS9RhgiaLIDKKZTYmzDRxBLy0MNgpN92WoxKPKZkA5bhJyr60pGgsdn7X0EwacKwF_5aj1YacBGhv28pxRwIKa-wuTo22egkKm7Egkd_NKF1_x0"/>
+<div class="absolute -bottom-4 -right-4 bg-[#0a0f1d] p-4 border border-[#1e293b] rounded-lg">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-tertiary rounded-full animate-pulse"></div>
+<span class="text-[10px] font-bold text-slate-300 tracking-widest uppercase">Live Pulse Active</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-8 mt-auto border-t border-[#1e293b] bg-[#050811]">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 max-w-7xl mx-auto gap-4">
+<div class="flex flex-col gap-1 items-center md:items-start">
+<span class="text-sm font-bold text-slate-300">LeadLinx</span>
+<p class="font-inter text-xs text-slate-500">© 2024 LeadLinx Intelligence. All rights reserved.</p>
+</div>
+<div class="flex gap-6">
+<a class="font-inter text-xs text-slate-500 hover:text-cyan-400 transition-colors" href="#">Privacy Policy</a>
+<a class="font-inter text-xs text-slate-500 hover:text-cyan-400 transition-colors" href="#">Terms of Service</a>
+<a class="font-inter text-xs text-slate-500 hover:text-cyan-400 transition-colors" href="#">Status</a>
+<a class="font-inter text-xs text-slate-500 hover:text-cyan-400 transition-colors" href="#">Contact</a>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#98da27",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed": "#001f25",
+                        "secondary-container": "#00cbe6",
+                        "background": "#10131a",
+                        "surface-container": "#1d2027",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#c2c6d6",
+                        "on-surface": "#e1e2ec",
+                        "secondary-fixed-dim": "#2fd9f4",
+                        "surface-dim": "#10131a",
+                        "tertiary": "#98da27",
+                        "primary-fixed": "#d8e2ff",
+                        "on-tertiary": "#213600",
+                        "on-error": "#690005",
+                        "on-secondary-fixed-variant": "#004e5a",
+                        "on-secondary-container": "#00515d",
+                        "surface-container-high": "#272a31",
+                        "on-secondary": "#00363e",
+                        "on-primary-container": "#00285d",
+                        "on-tertiary-fixed": "#121f00",
+                        "error-container": "#93000a",
+                        "surface-container-low": "#191b23",
+                        "secondary-fixed": "#a2eeff",
+                        "on-tertiary-fixed-variant": "#334f00",
+                        "outline": "#8c909f",
+                        "inverse-primary": "#005ac2",
+                        "surface-container-highest": "#32353c",
+                        "primary-container": "#4d8eff",
+                        "surface": "#10131a",
+                        "inverse-surface": "#e1e2ec",
+                        "inverse-on-surface": "#2e3038",
+                        "on-primary": "#002e6a",
+                        "on-background": "#e1e2ec",
+                        "on-primary-fixed": "#001a42",
+                        "tertiary-fixed": "#b2f746",
+                        "tertiary-container": "#6ba000",
+                        "on-tertiary-container": "#1c2f00",
+                        "surface-container-lowest": "#0b0e15",
+                        "surface-variant": "#32353c",
+                        "secondary": "#5de6ff",
+                        "outline-variant": "#424754",
+                        "surface-bright": "#363941",
+                        "primary": "#adc6ff",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-primary-fixed-variant": "#004395",
+                        "surface-tint": "#adc6ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin": "24px",
+                        "container-padding": "20px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-main": ["Inter"],
+                        "data-value": ["JetBrains Mono"],
+                        "data-label": ["JetBrains Mono"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-main": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                        "data-value": ["14px", {"lineHeight": "1.2", "letterSpacing": "0", "fontWeight": "600"}],
+                        "data-label": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bento-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid #1e293b;
+        }
+        .ai-glow {
+            box-shadow: 0 0 15px -5px rgba(163, 230, 53, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-main selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Bar -->
+<nav class="bg-[#0a0f1d]/80 backdrop-blur-xl border-b border-[#1e293b] docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-6 py-3 max-w-[1920px] mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-white font-headline-md">LeadLinx</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-blue-400 border-b-2 border-blue-500 pb-1 font-body-main text-sm" href="#">Platform</a>
+<a class="text-slate-400 hover:text-cyan-400 transition-colors font-body-main text-sm" href="#">Solutions</a>
+<a class="text-slate-400 hover:text-cyan-400 transition-colors font-body-main text-sm" href="#">Resources</a>
+<a class="text-slate-400 hover:text-cyan-400 transition-colors font-body-main text-sm" href="#">Pricing</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 mr-4">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white transition-all" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white transition-all" data-icon="settings">settings</span>
+</div>
+<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-lg font-bold active:scale-95 transition-all text-sm">Get Started</button>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 py-12 space-y-24">
+<!-- Hero Section -->
+<section class="relative overflow-hidden rounded-[2rem] p-12 md:p-24 flex flex-col items-center text-center">
+<!-- Decorative Background Element -->
+<div class="absolute inset-0 -z-10 bg-gradient-to-b from-primary/10 to-transparent opacity-50"></div>
+<div class="absolute -top-24 -left-24 w-96 h-96 bg-secondary/10 blur-[120px] rounded-full"></div>
+<div class="absolute -bottom-24 -right-24 w-96 h-96 bg-tertiary/10 blur-[120px] rounded-full"></div>
+<h1 class="font-display-lg text-display-lg max-w-4xl leading-tight mb-6">
+                Reddit Leads, <span class="text-secondary">Found by AI</span>
+</h1>
+<p class="font-body-main text-on-surface-variant max-w-2xl text-xl mb-10">
+                Transform casual Reddit conversations into your highest-converting sales pipeline. Our neural network scans millions of posts in real-time to identify users with urgent buying intent.
+            </p>
+<div class="flex flex-col sm:flex-row gap-4">
+<button class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-lg hover:brightness-110 active:scale-95 transition-all flex items-center gap-2">
+                    Start Free Trial
+                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="border border-outline-variant text-on-surface px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/5 active:scale-95 transition-all">
+                    Watch Demo
+                </button>
+</div>
+</section>
+<!-- Search / App State Command Center -->
+<section class="space-y-8">
+<div class="bento-card p-8 rounded-3xl shadow-2xl relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-r from-secondary/5 to-transparent pointer-events-none"></div>
+<div class="flex flex-col gap-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="bolt">bolt</span>
+<span class="font-data-label text-data-label uppercase tracking-widest text-secondary">AI Search Engine</span>
+</div>
+<div class="flex gap-2">
+<span class="px-3 py-1 rounded-full bg-white/5 text-xs font-data-label text-slate-400 border border-white/10">Real-time Indexing</span>
+<span class="px-3 py-1 rounded-full bg-white/5 text-xs font-data-label text-slate-400 border border-white/10">248 Subreddits Monitored</span>
+</div>
+</div>
+<div class="relative">
+<div class="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-500" data-icon="search">search</span>
+</div>
+<input class="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-2xl py-6 pl-14 pr-32 focus:border-secondary focus:ring-0 text-xl font-body-main placeholder:text-slate-600 transition-all focus:shadow-[0_0_20px_-5px_rgba(93,230,255,0.4)]" placeholder="Describe your target customer..." type="text"/>
+<button class="absolute right-3 top-3 bottom-3 bg-secondary text-on-secondary px-6 rounded-xl font-bold flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
+                            Scan
+                        </button>
+</div>
+<div class="flex flex-wrap gap-3">
+<span class="text-sm text-slate-500 font-body-main">Try searching:</span>
+<button class="text-xs font-data-label px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant transition-colors">"Founders looking for CRM alternatives"</button>
+<button class="text-xs font-data-label px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant transition-colors">"Users complaining about high AWS costs"</button>
+<button class="text-xs font-data-label px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant transition-colors">"Creative agencies needing video editors"</button>
+</div>
+</div>
+</div>
+<!-- Leads Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Lead Card 1 -->
+<div class="bento-card p-6 rounded-2xl hover:border-secondary/50 transition-all group flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="text-orange-500 font-bold text-xs">r/</span>
+</div>
+<span class="font-data-value text-data-value text-on-surface">SaaS</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="bg-tertiary-fixed-dim/20 text-tertiary-fixed-dim px-2.5 py-1 rounded-lg font-data-value text-sm ai-glow border border-tertiary/30">
+                                    98% Intent
+                                </span>
+<span class="text-[10px] font-data-label text-slate-500 mt-1 uppercase">Critical Priority</span>
+</div>
+</div>
+<p class="font-body-main text-on-surface mb-6 line-clamp-3 italic">
+                            "We are currently scaling our sales team and our current outreach tool is constantly hitting daily limits. Looking for a high-volume alternative that integrates with Salesforce..."
+                        </p>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant">
+<span class="text-xs font-data-label text-slate-500">Posted 14m ago</span>
+<button class="text-secondary hover:text-secondary-fixed flex items-center gap-1 font-data-value text-sm">
+                            View Thread
+                            <span class="material-symbols-outlined text-sm" data-icon="open_in_new">open_in_new</span>
+</button>
+</div>
+</div>
+<!-- Lead Card 2 -->
+<div class="bento-card p-6 rounded-2xl hover:border-secondary/50 transition-all group flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="text-orange-500 font-bold text-xs">r/</span>
+</div>
+<span class="font-data-value text-data-value text-on-surface">entrepreneur</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="bg-secondary-container/20 text-secondary-container px-2.5 py-1 rounded-lg font-data-value text-sm border border-secondary/30">
+                                    85% Intent
+                                </span>
+<span class="text-[10px] font-data-label text-slate-500 mt-1 uppercase">Warm Lead</span>
+</div>
+</div>
+<p class="font-body-main text-on-surface mb-6 line-clamp-3 italic">
+                            "Does anyone have recommendations for lead gen services that actually work for B2B? Tried cold email but getting zero responses lately. Need something more targeted..."
+                        </p>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant">
+<span class="text-xs font-data-label text-slate-500">Posted 2h ago</span>
+<button class="text-secondary hover:text-secondary-fixed flex items-center gap-1 font-data-value text-sm">
+                            View Thread
+                            <span class="material-symbols-outlined text-sm" data-icon="open_in_new">open_in_new</span>
+</button>
+</div>
+</div>
+<!-- Lead Card 3 -->
+<div class="bento-card p-6 rounded-2xl hover:border-secondary/50 transition-all group flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="text-orange-500 font-bold text-xs">r/</span>
+</div>
+<span class="font-data-value text-data-value text-on-surface">marketing</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="bg-tertiary-fixed-dim/20 text-tertiary-fixed-dim px-2.5 py-1 rounded-lg font-data-value text-sm ai-glow border border-tertiary/30">
+                                    92% Intent
+                                </span>
+<span class="text-[10px] font-data-label text-slate-500 mt-1 uppercase">High Signal</span>
+</div>
+</div>
+<p class="font-body-main text-on-surface mb-6 line-clamp-3 italic">
+                            "Budget of $2k/mo for a tool that can help identify prospects on niche forums. Any specialized software out there that isn't just another generic LinkedIn scraper?"
+                        </p>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant">
+<span class="text-xs font-data-label text-slate-500">Posted 47m ago</span>
+<button class="text-secondary hover:text-secondary-fixed flex items-center gap-1 font-data-value text-sm">
+                            View Thread
+                            <span class="material-symbols-outlined text-sm" data-icon="open_in_new">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bento Stats Section -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="bento-card p-6 rounded-2xl md:col-span-2 relative overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover opacity-20 -z-10" data-alt="A clean, dark-themed data visualization dashboard featuring glowing cyan line charts and vibrant lime green bar graphs. The interface has a futuristic glassmorphism style with blurred backgrounds and high-contrast numerical data in JetBrains Mono. The overall mood is high-tech, professional, and data-dense, illuminated by soft blue luminescence." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBENFNPQP6Kgn2Rvf_a_E-IU_tO9paEicnJRi2_Vyalzz7d_zleMTOp2RPCRRhf072FbikJTS43BaE6S32KhhdTrI9utnNMQUaxKYm8IrN6goOg5NR6ym1oGcKeP0lh_v2PuzghXz-tkCKLKzYy1YjmlSiv4U3vnTzlcyjn4JVsfqnYUhzgFtxoH7ncGTMxYrtRx8jN64P7ZB5vwsoHwBv3WCLmXyXqp3ndAj2U8l6aEtnuVmJZnVoKx5g_wAbDfS_pNzKXUwmKzZw"/>
+<h3 class="font-headline-md text-headline-md mb-2">Network Expansion</h3>
+<p class="font-body-main text-on-surface-variant mb-6">Our AI is learning from 10k+ new threads every hour to refine your targeting.</p>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-4xl text-secondary">1.2M</span>
+<span class="font-data-label text-xs uppercase text-slate-400">Posts Scanned Today</span>
+</div>
+</div>
+<div class="bento-card p-6 rounded-2xl flex flex-col justify-between border-tertiary/20">
+<span class="material-symbols-outlined text-tertiary text-3xl" data-icon="auto_awesome">auto_awesome</span>
+<div>
+<div class="font-data-value text-2xl text-on-surface">Auto-Reply</div>
+<p class="text-xs text-on-surface-variant">Draft personalized responses using AI context.</p>
+</div>
+</div>
+<div class="bento-card p-6 rounded-2xl flex flex-col justify-between">
+<span class="material-symbols-outlined text-secondary text-3xl" data-icon="hub">hub</span>
+<div>
+<div class="font-data-value text-2xl text-on-surface">Integrations</div>
+<p class="text-xs text-on-surface-variant">Sync leads directly to Slack, HubSpot, or CRM.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="bg-surface-container-high rounded-[2.5rem] p-12 text-center space-y-6 border border-white/5 relative overflow-hidden">
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-secondary/10 via-transparent to-transparent"></div>
+<h2 class="font-headline-md text-3xl relative z-10">Ready to stop searching and start closing?</h2>
+<p class="font-body-main text-on-surface-variant max-w-xl mx-auto relative z-10">Join 500+ sales teams using LeadLinx to automate their Reddit prospecting.</p>
+<div class="relative z-10">
+<button class="bg-white text-background px-10 py-4 rounded-xl font-bold text-lg hover:bg-slate-200 transition-colors">Create Free Account</button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#050811] w-full py-8 mt-auto border-t border-[#1e293b]">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 max-w-7xl mx-auto">
+<div class="flex flex-col items-center md:items-start gap-2">
+<span class="text-sm font-bold text-slate-300">LeadLinx</span>
+<span class="text-xs text-slate-500 font-inter">© 2024 LeadLinx Intelligence. All rights reserved.</span>
+</div>
+<div class="flex gap-6 mt-6 md:mt-0">
+<a class="text-slate-500 hover:text-cyan-400 transition-colors text-xs font-inter" href="#">Privacy Policy</a>
+<a class="text-slate-500 hover:text-cyan-400 transition-colors text-xs font-inter" href="#">Terms of Service</a>
+<a class="text-slate-500 hover:text-cyan-400 transition-colors text-xs font-inter" href="#">Status</a>
+<a class="text-slate-500 hover:text-cyan-400 transition-colors text-xs font-inter" href="#">Contact</a>
+</div>
+</div>
+</footer>
+<!-- Floating Action Button -->
+<div class="fixed bottom-8 right-8 z-50">
+<button class="w-14 h-14 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all group">
+<span class="material-symbols-outlined" data-icon="bolt" data-weight="fill" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="absolute right-full mr-4 bg-surface-container border border-outline-variant px-3 py-1.5 rounded-lg text-xs font-data-label whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Quick Search</span>
+</button>
+</div>
+</body></html>
