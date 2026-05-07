@@ -1,0 +1,161 @@
+/* 
+ * LeadLinx Admin Dashboard Design
+ * Theme: Cyber-Telemetry & Professional Oversight
+ */
+
+.admin-container {
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  background: var(--color-surface-dim);
+}
+
+.admin-header {
+  margin-bottom: 2.5rem;
+}
+
+.admin-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--color-on-surface) 0%, rgba(0,0,0,0.6) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* --- Telemetry Cards --- */
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.telemetry-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border-glass);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+}
+
+.telemetry-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+  border-color: var(--color-primary-container);
+}
+
+.telemetry-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-on-surface-variant);
+  margin-bottom: 0.5rem;
+}
+
+.telemetry-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-on-surface);
+  font-family: var(--font-display);
+}
+
+.telemetry-trend {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.telemetry-trend.up { color: var(--color-success); }
+.telemetry-trend.down { color: var(--color-error); }
+
+/* --- Analytics Sections --- */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .analytics-grid {
+    grid-template-columns: 3fr 2fr;
+  }
+}
+
+.chart-section {
+  background: #ffffff;
+  border: 1px solid var(--color-border-glass);
+  border-radius: 2rem;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+}
+
+.health-section {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 2rem;
+  padding: 2rem;
+  color: #f8fafc;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.2);
+}
+
+.health-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.25rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+
+.health-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.status-dot.active {
+  background: #22c55e;
+  color: rgba(34, 197, 94, 0.4);
+}
+
+.status-dot.warning {
+  background: #f59e0b;
+  color: rgba(245, 158, 11, 0.4);
+}
+
+/* --- Recharts Overrides --- */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: #f1f5f9;
+}
+
+.recharts-default-tooltip {
+  border: none !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+  padding: 1rem !important;
+}
