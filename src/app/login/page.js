@@ -1,35 +1,43 @@
 'use client';
+
 import { useState } from 'react';
-import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleGoogleLogin = async () => {
+    try {
+      await signIn('google', { callbackUrl: '/dashboard' });
+    } catch (err) {
+      setError('Failed to connect to Google. Please try again.');
+    }
+  };
+
+  const handleSendCode = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/send-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
-      
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      
-      if (data.user.role === 'admin') {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
-      }
+      if (!res.ok) throw new Error(data.error || 'Failed to send code');
+
+      setCodeSent(true);
+      // Redirect to verify page with email in query param
+      router.push(`/verify?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -38,71 +46,84 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-dim flex flex-col justify-center items-center p-6">
-      <div className="w-full max-w-md space-y-4">
-        <Link href="/" className="inline-flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary transition-colors">
-          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          Back to Home
-        </Link>
-        <div className="bento-card p-8 space-y-8">
-          <div className="text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl gradient-purple mb-4">
-            <span className="material-symbols-outlined text-white text-2xl">bolt</span>
-          </div>
-          <h1 className="text-2xl font-headline font-bold text-on-surface">Welcome back</h1>
-          <p className="text-on-surface-variant font-body mt-2">Log in to your LeadLinx dashboard.</p>
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
+      <div className="w-full max-w-[440px] space-y-8">
+        {/* Logo & Header */}
+        <div className="text-center space-y-2">
+          <Link href="/" className="inline-flex items-center gap-2 group">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-primary/20">
+              <span className="material-symbols-outlined text-white text-2xl">bolt</span>
+            </div>
+            <span className="text-2xl font-bold text-white tracking-tight">LeadLinx</span>
+          </Link>
+          <h1 className="text-3xl font-bold text-white mt-6 tracking-tight">Welcome back</h1>
+          <p className="text-on-surface-variant">Choose your preferred login method</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-[#121212] border border-white/5 rounded-[2.5rem] p-8 shadow-2xl space-y-6">
           {error && (
-            <div className="p-3 rounded-lg bg-error-container border border-error/20 text-error text-sm text-center">
+            <div className="p-4 bg-error/10 border border-error/20 rounded-2xl flex items-center gap-3 text-error text-sm animate-shake">
+              <span className="material-symbols-outlined text-xl">error</span>
               {error}
             </div>
           )}
-          
-          <div className="space-y-2">
-            <label className="text-xs font-data-label text-on-surface-variant uppercase">Work Email</label>
-            <input 
-              type="email" 
-              className="input-field" 
-              placeholder="name@company.com" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <label className="text-xs font-data-label text-on-surface-variant uppercase">Password</label>
-              <Link href="#" className="text-xs text-primary hover:underline">Forgot?</Link>
-            </div>
-            <input 
-              type="password" 
-              className="input-field" 
-              placeholder="••••••••" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
-          </div>
 
-          <button type="submit" disabled={loading} className="btn-primary w-full text-center">
-            {loading ? 'Authenticating...' : 'Sign In'}
+          {/* Google Login */}
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full h-14 bg-white hover:bg-white/90 text-black rounded-2xl font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-lg shadow-black/20"
+          >
+            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+            Continue with Google
           </button>
-        </form>
 
-        <div className="text-center pt-4 border-t border-border-glass">
-          <p className="text-sm text-on-surface-variant">
-            New to LeadLinx? <Link href="/signup" className="text-primary font-medium hover:underline">Create Account</Link>
-          </p>
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/5"></div>
+            </div>
+            <span className="relative px-4 bg-[#121212] text-xs font-bold text-white/20 uppercase tracking-[0.2em]">or use email</span>
+          </div>
+
+          {/* Email Login */}
+          <form onSubmit={handleSendCode} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-white/60 ml-4">Email Address</label>
+              <div className="relative group">
+                <span className="absolute left-5 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/20 group-focus-within:text-primary transition-colors">mail</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-5 text-white placeholder:text-white/20 focus:border-primary/50 focus:bg-primary/5 outline-none transition-all"
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  Send Verification Code 
+                  <span className="material-symbols-outlined text-xl">arrow_forward</span>
+                </>
+              )}
+            </button>
+          </form>
         </div>
-        </div>
-      </div>
-      
-      <div className="mt-8 flex items-center gap-2 text-xs font-data-label text-lime-green/70">
-        <span className="w-2 h-2 rounded-full bg-lime-green animate-pulse"></span>
-        SYSTEM LIVE
+
+        <p className="text-center text-white/40 text-sm">
+          By continuing, you agree to our{' '}
+          <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>
+          {' '}and{' '}
+          <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
+        </p>
       </div>
     </div>
   );
