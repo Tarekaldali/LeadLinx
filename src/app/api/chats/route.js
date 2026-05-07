@@ -10,7 +10,7 @@ export async function GET(request) {
 
   try {
     const db = await getDb();
-    const userId = new ObjectId(authResult.user.userId);
+    const userId = new ObjectId(authResult.user.id);
 
     const chats = await db.collection('chats')
       .find({ userId }, { projection: { messages: 0 } }) // exclude messages for list view
@@ -32,7 +32,7 @@ export async function POST(request) {
 
   try {
     const db = await getDb();
-    const userId = new ObjectId(authResult.user.userId);
+    const userId = new ObjectId(authResult.user.id);
 
     const chat = {
       userId,
