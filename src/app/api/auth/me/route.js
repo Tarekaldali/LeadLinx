@@ -12,7 +12,7 @@ export async function GET(request) {
   try {
     const db = await getDb();
     const user = await db.collection('users').findOne(
-      { _id: new ObjectId(authResult.user.userId) },
+      { _id: new ObjectId(authResult.user.id) },
       { projection: { password: 0 } }
     );
 
