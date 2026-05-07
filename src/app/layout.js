@@ -27,6 +27,8 @@ export const metadata = {
   },
 };
 
+import GoogleProviderWrapper from '@/components/GoogleProviderWrapper';
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -57,7 +59,9 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="antialiased">
-        {children}
+        <GoogleProviderWrapper>
+          {children}
+        </GoogleProviderWrapper>
       </body>
     </html>
   );
