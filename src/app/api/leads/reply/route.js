@@ -18,7 +18,7 @@ export async function POST(request) {
     }
 
     const db = await getDb();
-    const userId = new ObjectId(authResult.user.userId);
+    const userId = new ObjectId(authResult.user.id);
 
     // Atomically check and deduct credit
     const creditResult = await db.collection('users').findOneAndUpdate(
@@ -54,7 +54,7 @@ export async function POST(request) {
         type: 'error',
         action: 'reply_generation',
         error: error.message,
-        userId: authResult.user.userId,
+        userId: authResult.user.id,
         timestamp: new Date(),
       });
     } catch { /* silent */ }
