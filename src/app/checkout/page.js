@@ -1,181 +1,169 @@
 'use client';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, Suspense, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+
+import './checkout.css';
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
-  const preselected = searchParams.get('plan') || 'starter';
-  const [selectedPlan, setSelectedPlan] = useState(preselected);
+  const router = useRouter();
+  const { data: session } = useSession();
+  const planName = searchParams.get('plan') || 'Starter';
+  
+  const [formData, setFormData] = useState({
+    email: session?.user?.email || '',
+    name: session?.user?.name || '',
+    address: '',
+    city: '',
+    zip: '',
+    country: 'United States'
+  });
 
-  const plans = [
-    {
-      id: 'free',
-      name: 'Free',
-      price: '$0',
-      interval: '/month',
-      description: 'Get started with AI-powered lead discovery.',
-      features: [
-        '400 Credits/mo',
-        'Basic AI Lead Scoring',
-        'Reply Generation (5/day)',
-        'CSV Export'
-      ],
-      buttonText: 'Current Plan',
-      isPopular: false,
-    },
-    {
-      id: 'Plus',
-      name: 'Plus',
-      price: '$3.99',
-      interval: '/month',
-      description: 'Perfect for solo founders and small teams.',
-      features: [
-        '1000 Credits/mo',
-        'Advanced AI Lead Scoring',
-        'Unlimited Reply Generation',
-        'Negative Keyword Filters',
-        'Priority Support'
-      ],
-      buttonText: 'Upgrade to Plus',
-      isPopular: false,
-    },
-    {
-      id: 'premium',
-      name: 'Pro',
-      price: '$7.99',
-      interval: '/month',
-      description: 'For growing sales teams who need more volume.',
-      features: [
-        '2000 Credits/mo',
-        'Advanced Intent Analysis',
-        'Unlimited Reply Generation',
-        'Email Alerts for Hot Leads',
-        'Team Collaboration (3 seats)',
-        'Priority Support (Slack)'
-      ],
-      buttonText: 'Upgrade to Pro',
-      isPopular: true,
-    },
-        {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: '$19.99',
-      interval: '/month',
-      description: 'Perfect for solo founders and small teams.',
-      features: [
-        '5000 Credits/mo',
-        'Advanced AI Lead Scoring',
-        'Unlimited Reply Generation',
-        'Negative Keyword Filters',
-        'Priority Support'
-      ],
-      buttonText: 'Upgrade to Plus',
-      isPopular: false,
-    },
-  ];
+  const [loading, setLoading] = useState(false);
 
-  const handleCheckout = (planId) => {
-    setSelectedPlan(planId);
-    if (planId === 'free') return;
-    // Stripe checkout would be integrated here
-    alert(`Stripe checkout for ${planId} plan would open here.\n\nThis will be connected to Stripe once you provide your Stripe API keys.`);
+  const plansData = {
+    starter: { price: '$0', credits: 400 },
+    plus: { price: '$3.99', credits: 1000 },
+    pro: { price: '$7.99', credits: 2000 },
+    enterprise: { price: '$19.99', credits: 5000 }
+  };
+
+  const plan = plansData[planName.toLowerCase()] || plansData.starter;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => {
+      alert('Stripe Checkout session would be created now.');
+      setLoading(false);
+    }, 1500);
   };
 
   return (
-    <div className="min-h-screen bg-white text-on-surface pb-24">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-xl border-b border-border-glass w-full sticky top-0 z-50">
-        <div className="flex justify-between items-center w-full px-6 py-3 max-w-[1920px] mx-auto">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg gradient-purple flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-sm">bolt</span>
-            </div>
-            <span className="text-lg font-bold tracking-tight text-on-surface">LeadLinx</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-on-surface-variant hover:text-on-surface text-sm font-medium transition-colors">
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* Header */}
-      <div className="max-w-7xl mx-auto px-6 mt-16 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-container/50 border border-primary/10 text-xs font-data-label text-primary mb-6">
-          <span className="material-symbols-outlined text-sm">workspace_premium</span>
-          UPGRADE YOUR PLAN
-        </div>
-        <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">Choose your growth engine</h1>
-        <p className="text-xl text-on-surface-variant max-w-2xl mx-auto">
-          Scale your lead generation with transparent pricing. No hidden fees. Cancel anytime.
-        </p>
-      </div>
-
-      {/* Pricing Cards */}
-      <div className="max-w-7xl mx-auto px-6 mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-        {plans.map((plan) => (
-          <div 
-            key={plan.id} 
-            className={`relative bento-card p-8 rounded-3xl flex flex-col transition-all ${
-              plan.isPopular ? 'border-2 border-primary shadow-xl shadow-primary/10 scale-105 z-10' : 'border border-border-glass'
-            } ${selectedPlan === plan.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-          >
-            {plan.isPopular && (
-              <div className="absolute -top-4 left-0 right-0 flex justify-center">
-                <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                  Most Popular
-                </span>
-              </div>
-            )}
-            
-            <div className="mb-6">
-              <h3 className="text-xl font-bold text-on-surface mb-2">{plan.name}</h3>
-              <p className="text-sm text-on-surface-variant h-10">{plan.description}</p>
-            </div>
-            
-            <div className="mb-8">
-              <span className="text-4xl font-display font-bold text-on-surface">{plan.price}</span>
-              <span className="text-on-surface-variant">{plan.interval}</span>
-            </div>
-            
-            <button 
-              className={`w-full py-3 rounded-xl font-bold text-sm mb-8 transition-all active:scale-95 cursor-pointer ${
-                plan.isPopular || selectedPlan === plan.id
-                  ? 'btn-primary' 
-                  : 'bg-surface-container-low hover:bg-surface-container-high text-on-surface border border-border-glass'
-              } ${plan.id === 'free' ? 'opacity-60 cursor-default' : ''}`}
-              onClick={() => handleCheckout(plan.id)}
-              disabled={plan.id === 'free'}
-            >
-              {plan.id === 'free' ? 'Free Plan' : plan.buttonText}
-            </button>
-            
-            <div className="flex-1 space-y-4">
-              <p className="text-xs font-bold text-on-surface uppercase tracking-wider mb-4">What&apos;s included</p>
-              {plan.features.map((feature, j) => (
-                <div key={j} className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-lime-green text-sm mt-0.5">check_circle</span>
-                  <span className="text-sm text-on-surface-variant">{feature}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {/* FAQ / Trust */}
-      <div className="max-w-3xl mx-auto px-6 mt-24 text-center">
-        <h3 className="text-2xl font-headline mb-6">Need a custom plan?</h3>
-        <p className="text-on-surface-variant mb-6">
-          If you have specific requirements or want to discuss enterprise licensing, we&apos;re here to help.
-        </p>
-        <Link href="mailto:tarekaldali1@gmail.com" className="text-primary font-medium hover:underline inline-flex items-center gap-1">
-          Contact our team
-          <span className="material-symbols-outlined text-sm">arrow_forward</span>
+    <div className="checkout-page">
+      <header className="checkout-header">
+        <Link href="/" className="checkout-brand">
+          <div className="checkout-brand-icon" />
+          LeadLinx
         </Link>
-      </div>
+        <Link href="/pricing" className="text-sm font-semibold text-gray-500 hover:text-black">
+          Cancel
+        </Link>
+      </header>
+
+      <main className="checkout-content">
+        {/* Billing Column */}
+        <form onSubmit={handleSubmit} className="billing-form">
+          <div className="mb-10">
+            <h1 className="text-3xl font-bold tracking-tight mb-2">Upgrade to {planName}</h1>
+            <p className="text-gray-500 font-medium">Complete your details to access premium features.</p>
+          </div>
+
+          <div className="space-y-10">
+            <section>
+              <h3 className="form-section-title">Personal Information</h3>
+              <div className="input-row">
+                <div className="input-group">
+                  <label className="input-label">Full Name</label>
+                  <input 
+                    type="text" className="custom-input" required 
+                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Email Address</label>
+                  <input 
+                    type="email" className="custom-input" required
+                    value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="form-section-title">Billing Address</h3>
+              <div className="input-group">
+                <label className="input-label">Street Address</label>
+                <input 
+                  type="text" className="custom-input" required
+                  value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="input-group">
+                  <label className="input-label">City</label>
+                  <input 
+                    type="text" className="custom-input" required
+                    value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})}
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Postal Code</label>
+                  <input 
+                    type="text" className="custom-input" required
+                    value={formData.zip} onChange={e => setFormData({...formData, zip: e.target.value})}
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Country</label>
+                  <select 
+                    className="custom-input"
+                    value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})}
+                  >
+                    <option>United States</option>
+                    <option>United Kingdom</option>
+                    <option>Canada</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+          </div>
+        </form>
+
+        {/* Summary Column */}
+        <aside className="p-4 lg:p-0">
+          <div className="order-panel">
+            <h2 className="order-title">Order Summary</h2>
+            
+            <div className="space-y-4">
+              <div className="item-row">
+                <span className="item-label">LeadLinx {planName}</span>
+                <span className="item-value">{plan.price}</span>
+              </div>
+              <div className="item-row">
+                <span className="item-label">Credits ({plan.credits}/mo)</span>
+                <span className="item-value">Included</span>
+              </div>
+              <div className="item-row">
+                <span className="item-label">AI Analysis Engine</span>
+                <span className="item-value">Active</span>
+              </div>
+            </div>
+
+            <div className="divider" />
+
+            <div className="total-row">
+              <span className="total-label">Total due</span>
+              <span className="total-price">{plan.price}</span>
+            </div>
+
+            <button 
+              onClick={handleSubmit}
+              disabled={loading}
+              className="pay-button"
+            >
+              {loading ? "Processing..." : `Upgrade to ${planName}`}
+            </button>
+
+            <div className="secure-badge">
+              <span className="material-symbols-outlined text-[14px]">lock</span>
+              Secure, encrypted payment via Stripe
+            </div>
+          </div>
+        </aside>
+      </main>
     </div>
   );
 }
@@ -183,11 +171,15 @@ function CheckoutContent() {
 export default function CheckoutPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-surface-dim flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-sm text-on-surface-variant font-medium">Preparing checkout...</span>
+        </div>
       </div>
     }>
       <CheckoutContent />
     </Suspense>
   );
 }
+
