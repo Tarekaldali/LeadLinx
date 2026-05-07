@@ -51,3 +51,64 @@ export async function sendLeadAlert(userEmail, lead) {
     console.error('Failed to send email alert:', error);
   }
 }
+
+export async function sendVerificationCode(email, code) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('Email credentials not configured. Skipping verification email.');
+    return;
+  }
+
+  const mailOptions = {
+    from: `"LeadLinx Security" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `${code} is your LeadLinx verification code`,
+    html: `
+      <div style="font-family: sans-serif; max-w: 500px; margin: 0 auto; border: 1px solid #e5e7eb; padding: 32px; border-radius: 12px;">
+        <h2 style="color: #7c3aed; margin-top: 0;">Verification Code</h2>
+        <p style="color: #4b5563; font-size: 16px;">Enter the following code to sign in to your LeadLinx account:</p>
+        <div style="background-color: #f3f4f6; padding: 24px; border-radius: 8px; text-align: center; margin: 24px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827;">${code}</span>
+        </div>
+        <p style="color: #9ca3af; font-size: 14px;">This code will expire in 5 minutes. If you didn't request this code, you can safely ignore this email.</p>
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+        <p style="color: #9ca3af; font-size: 12px; text-align: center;">© 2024 LeadLinx. All rights reserved.</p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Verification email sent to ${email}`);
+  } catch (error) {
+    console.error('Failed to send verification email:', error);
+    throw new Error('Failed to send email');
+  }
+}
+export async function sendSearchCompletionEmail(email, leadCount, query) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+
+  const mailOptions = {
+    from: `"LeadLinx AI" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `✅ Scanning Finished: ${leadCount} High-Intent Leads Found`,
+    html: `
+      <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #7c3aed;">Great news!</h2>
+        <p>LeadLinx has finished scanning Reddit for: <strong>"${query}"</strong>.</p>
+        <p>We found <strong>${leadCount}</strong> high-intent leads that match your criteria.</p>
+        <div style="margin: 30px 0;">
+          <a href="${process.env.NEXTAUTH_URL}/dashboard" style="background-color: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+            View Leads in Dashboard
+          </a>
+        </div>
+        <p style="color: #6b7280; font-size: 14px;">Happy prospecting,<br/>The LeadLinx Team</p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Failed to send completion email:', error);
+  }
+}
