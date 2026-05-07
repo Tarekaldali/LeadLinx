@@ -9,7 +9,7 @@ export async function GET(request) {
   // Admin only
   const db = await getDb();
   const { ObjectId } = await import('mongodb');
-  const user = await db.collection('users').findOne({ _id: new ObjectId(authResult.user.userId) }, { projection: { role: 1 } });
+  const user = await db.collection('users').findOne({ _id: new ObjectId(authResult.user.id) }, { projection: { role: 1 } });
   if (user?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   try {
@@ -31,8 +31,10 @@ export async function GET(request) {
           creditsCharged: { $sum: '$creditsCharged' },
           totalLeads:     { $sum: '$leadsReturned' },
           postsAnalyzed:  { $sum: '$postsAnalyzed' },
+          promptTokens:   { $sum: '$totalUsage.prompt_tokens' },
+          completionTokens: { $sum: '$totalUsage.completion_tokens' },
           lastSearch:     { $max: '$timestamp' },
-        }
+        } 
       },
       { $sort: { totalCost: -1 } },
       { $limit: 100 },

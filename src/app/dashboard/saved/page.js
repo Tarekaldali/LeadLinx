@@ -1,10 +1,18 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 export default function SavedLeadsPage() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const fetchSaved = async () => {
     try {
@@ -18,15 +26,18 @@ export default function SavedLeadsPage() {
 
   useEffect(() => { fetchSaved(); }, []);
 
-  const removeLead = async (postId) => {
-    if (!confirm('Remove this lead from your saved list?')) return;
+  const confirmRemove = async () => {
+    const postId = showConfirmDelete;
     try {
       const res = await fetch(`/api/leads/saved?postId=${postId}`, { method: 'DELETE' });
       if (res.ok) {
         setLeads(prev => prev.filter(l => l.postId !== postId));
+        showToast('Lead removed from saved list');
+      } else {
+        throw new Error('Failed to remove lead');
       }
-    } catch {
-      alert('Failed to remove lead');
+    } catch (err) {
+      showToast(err.message, 'error');
     }
   };
 
@@ -143,7 +154,7 @@ export default function SavedLeadsPage() {
                 </span>
                 <div className="flex items-center gap-3">
                   <button 
-                    onClick={() => removeLead(lead.postId)} 
+                    onClick={() => setShowConfirmDelete(lead.postId)} 
                     className="p-2 text-on-surface-variant hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                     title="Remove"
                   >
@@ -162,6 +173,22 @@ export default function SavedLeadsPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      <ConfirmationModal 
+        isOpen={!!showConfirmDelete}
+        onClose={() => setShowConfirmDelete(null)}
+        onConfirm={confirmRemove}
+        title="Remove Lead"
+        message="Are you sure you want to remove this lead from your saved list?"
+        confirmText="Remove"
+        type="danger"
+      />
+
+      {toast && (
+        <div className={`toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>
+          {toast.message}
         </div>
       )}
     </div>

@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import ConfirmationModal from '@/components/ConfirmationModal';
+import Modal from '@/components/Modal';
 
 const DashboardContext = createContext(null);
 export function useDashboard() { return useContext(DashboardContext); }
@@ -20,70 +22,70 @@ const PROMPT_LIBRARY = [
 
 const PROMPT_CATEGORIES = ['All', 'Find Buyers', 'Pain Points', 'High Intent'];
 
+import { PRICING_CONFIG, getTierConfig } from '@/lib/pricingConfig';
+import { useSession, signOut } from "next-auth/react";
+
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data: session, status, update } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chats, setChats] = useState([]);
   const [promptLibraryOpen, setPromptLibraryOpen] = useState(false);
   const [promptFilter, setPromptFilter] = useState('All');
-  const [chatsCollapsed, setChatsCollapsed] = useState(true);
+  const [chatsCollapsed, setChatsCollapsed] = useState(false);
 
-  const refreshUser = useCallback(async () => {
-    try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.user) setUser(data.user);
-    } catch { /* silent */ }
-  }, []);
+  const user = session?.user;
+  const loading = status === "loading";
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then(r => r.json())
-      .then(data => {
-        if (!data.user) { router.push('/login'); return; }
-        setUser(data.user);
-        setLoading(false);
-      })
-      .catch(() => router.push('/login'));
-  }, [router]);
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  const refreshUser = useCallback(async () => {
+    await update();
+  }, [update]);
 
   // Load chat list for sidebar
   useEffect(() => {
-    if (loading) return;
+    if (loading || !session) return;
     fetch('/api/chats')
       .then(r => r.json())
       .then(d => setChats(d.chats || []))
       .catch(() => {});
-  }, [loading]);
+  }, [loading, session]);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/';
+    await signOut({ callbackUrl: '/' });
   };
 
-  const updateCredits = useCallback((newCredits) => {
-    setUser(prev => prev ? { ...prev, credits: newCredits } : prev);
-  }, []);
+  const updateCredits = useCallback(async (newCredits) => {
+    // Update the session data locally and on the server
+    await update({ 
+      ...session,
+      user: {
+        ...session?.user,
+        credits: newCredits
+      }
+    });
+  }, [session, update]);
 
   const addChat = useCallback((chat) => {
     setChats(prev => [chat, ...prev.filter(c => c._id !== chat._id)]);
   }, []);
 
-  const handleDeleteChat = async (e, chatId) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this chat?')) return;
-    
+  const [showConfirmDelete, setShowConfirmDelete] = useState(null);
+
+  const handleDeleteChat = async (chatId) => {
     try {
       const res = await fetch(`/api/chats/${chatId}`, { method: 'DELETE' });
       if (res.ok) {
         setChats(prev => prev.filter(c => c._id !== chatId));
-        // If we are currently in this chat, we might want to redirect to /dashboard
-        // but since the chat logic is mostly handled via events in this specific layout, 
-        // we'll just remove it from the list.
+        // If we are currently in this chat, navigate to a new chat state
+        window.dispatchEvent(new CustomEvent('newChat'));
+        router.push('/dashboard');
       }
     } catch (err) {
       console.error('Delete failed:', err);
@@ -101,7 +103,8 @@ export default function DashboardLayout({ children }) {
     );
   }
 
-  const maxCredits = { free: 400, starter: 2000, growth: 2000, pro: 5000, premium: 5000, enterprise: 10000 }[user?.plan] || 400;
+  const tierConfig = getTierConfig(user?.plan);
+  const maxCredits = tierConfig.maxCredits;
   const creditsPercent = Math.min(100, Math.round((user?.credits / maxCredits) * 100));
   const filteredPrompts = promptFilter === 'All' ? PROMPT_LIBRARY : PROMPT_LIBRARY.filter(p => p.category === promptFilter);
 
@@ -109,12 +112,14 @@ export default function DashboardLayout({ children }) {
     <aside className="w-72 h-full bg-sidebar flex flex-col border-r border-sidebar-border overflow-hidden">
       {/* Logo + collapse */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-sidebar-border shrink-0">
-        <div className="flex items-center gap-2.5">
+        <a href="/">
+        <div className="flex items-center gap-2.5" >
           <div className="w-7 h-7 rounded-lg gradient-purple flex items-center justify-center">
             <span className="material-symbols-outlined text-white text-sm">bolt</span>
           </div>
           <span className="font-bold text-sidebar-fg text-base tracking-tight">LeadLinx</span>
         </div>
+        </a>
         <button onClick={() => setSidebarOpen(false)} className="md:hidden text-sidebar-muted hover:text-sidebar-fg transition-colors">
           <span className="material-symbols-outlined text-sm">close</span>
         </button>
@@ -127,7 +132,7 @@ export default function DashboardLayout({ children }) {
         <Link
           href="/dashboard"
           id="new-chat-btn"
-          onClick={() => { setSidebarOpen(false); setChats([]); window.dispatchEvent(new CustomEvent('newChat')); }}
+          onClick={() => { setSidebarOpen(false); window.dispatchEvent(new CustomEvent('newChat')); }}
           className="sidebar-item sidebar-item-action w-full flex items-center gap-2.5 mb-3"
         >
           <span className="material-symbols-outlined text-[18px] text-primary">add_circle</span>
@@ -155,13 +160,13 @@ export default function DashboardLayout({ children }) {
                     <Link
                       href="/dashboard"
                       onClick={() => { setSidebarOpen(false); window.dispatchEvent(new CustomEvent('loadChat', { detail: { chatId: chat._id } })); }}
-                      className={`sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg text-sm truncate pr-8 ${pathname === '/dashboard' ? 'text-sidebar-fg hover:bg-sidebar-hover' : 'text-sidebar-muted hover:text-sidebar-fg hover:bg-sidebar-hover'}`}
+                      className={`sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg text-sm pr-10 ${pathname === '/dashboard' ? 'text-sidebar-fg hover:bg-sidebar-hover' : 'text-sidebar-muted hover:text-sidebar-fg hover:bg-sidebar-hover'}`}
                     >
-                      <span className="material-symbols-outlined text-[14px] shrink-0 opacity-50">chat_bubble</span>
-                      <span className="truncate text-xs">{chat.title || 'New Chat'}</span>
+                      <span className="material-symbols-outlined text-[16px] shrink-0 opacity-50">chat_bubble</span>
+                      <span className="truncate text-xs flex-1 min-w-0">{chat.title || 'New Chat'}</span>
                     </Link>
                     <button 
-                      onClick={(e) => handleDeleteChat(e, chat._id)}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowConfirmDelete(chat._id); }}
                       className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 text-sidebar-muted hover:text-red-400 transition-all rounded-md hover:bg-red-400/10"
                       title="Delete chat"
                     >
@@ -219,7 +224,7 @@ export default function DashboardLayout({ children }) {
         <div className="sidebar-divider" />
 
         {/* Upgrade */}
-        <Link href="/checkout" className="sidebar-item flex items-center gap-2.5 text-secondary hover:text-secondary">
+        <Link href="/pricing" className="sidebar-item flex items-center gap-2.5 text-secondary hover:text-secondary">
           <span className="material-symbols-outlined text-[18px]">upgrade</span>
           <span className="text-sm">Upgrade Plan</span>
         </Link>
@@ -231,7 +236,7 @@ export default function DashboardLayout({ children }) {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs text-sidebar-muted">Credits remaining</span>
-            <Link href="/checkout" className="text-xs text-primary font-medium hover:underline">Upgrade</Link>
+            <Link href="/pricing" className="text-xs text-primary font-medium hover:underline">Upgrade</Link>
           </div>
           <div className="text-lg font-bold text-sidebar-fg mb-1.5">
             {user?.credits?.toLocaleString() || 0}
@@ -268,7 +273,7 @@ export default function DashboardLayout({ children }) {
   );
 
   return (
-    <DashboardContext.Provider value={{ user, setUser, refreshUser, updateCredits, addChat }}>
+    <DashboardContext.Provider value={{ user, refreshUser, updateCredits, addChat }}>
       <div className="flex h-screen overflow-hidden bg-surface-dim">
         {/* Mobile overlay */}
         {sidebarOpen && (
@@ -359,6 +364,16 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
       )}
+      {/* Confirmation Modals */}
+      <ConfirmationModal 
+        isOpen={!!showConfirmDelete}
+        onClose={() => setShowConfirmDelete(null)}
+        onConfirm={() => handleDeleteChat(showConfirmDelete)}
+        title="Delete Chat"
+        message="Are you sure you want to delete this chat history? This cannot be undone."
+        confirmText="Delete"
+        type="danger"
+      />
     </DashboardContext.Provider>
   );
 }

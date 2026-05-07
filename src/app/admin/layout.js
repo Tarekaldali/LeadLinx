@@ -3,26 +3,24 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
+import { useSession } from "next-auth/react";
+
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const user = session?.user;
+  const loading = status === "loading";
+
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then(res => res.json())
-      .then(data => {
-        if (!data.user || data.user.role !== 'admin') {
-          router.push('/dashboard');
-        } else {
-          setUser(data.user);
-          setLoading(false);
-        }
-      })
-      .catch(() => router.push('/login'));
-  }, [router]);
+    if (status === "unauthenticated") {
+      router.push("/login");
+    } else if (status === "authenticated" && user?.role !== 'admin') {
+      router.push("/dashboard");
+    }
+  }, [status, user, router]);
 
   if (loading) {
     return (
@@ -58,6 +56,7 @@ export default function AdminLayout({ children }) {
       label: 'Content',
       items: [
         { href: '/admin/blog',     icon: 'edit_note',             label: 'Blog Manager' },
+        { href: '/admin/pricing',  icon: 'sell',                  label: 'Pricing Plans' },
         { href: '/admin/insights', icon: 'lightbulb',             label: 'Opportunity Insights' },
       ],
     },

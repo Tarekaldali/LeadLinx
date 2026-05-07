@@ -1,0 +1,109 @@
+/* Modal Centering - Professional & Refined */
+.modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(15, 23, 42, 0.3); /* Much lighter, cleaner overlay */
+  backdrop-filter: blur(2px); /* Subtle, high-end blur instead of muddy heavy blur */
+  display: table;
+  transition: opacity 0.2s ease;
+}
+
+.modal-wrapper {
+  display: table-cell;
+  vertical-align: middle;
+  padding: 16px;
+}
+
+.modal-container {
+  width: 100%;
+  max-width: 640px; /* Reduced from 800px for better focus */
+  margin: 0px auto;
+  background-color: #ffffff;
+  border-radius: 1.25rem; /* More professional, less "bubbly" */
+  box-shadow: 
+    0 1px 3px 0 rgba(0, 0, 0, 0.1), 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+  border: 1px solid #e2e8f0;
+  animation: modal-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-confirm-container {
+  max-width: 400px;
+  border-radius: 1rem;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Scrollable Body */
+.modal-body-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+  background-color: #ffffff;
+}
+
+/* Custom Scrollbar */
+.modal-body-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.modal-body-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.modal-body-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+}
+
+/* Refined Header */
+.modal-refined-header {
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  z-index: 10;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.close-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.2s;
+  background: #f8fafc;
+}
+
+.close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}

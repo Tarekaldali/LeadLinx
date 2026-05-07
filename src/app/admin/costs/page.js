@@ -77,7 +77,7 @@ export default function AdminCostsPage() {
             <table className="w-full text-sm">
               <thead className="bg-surface-container-low">
                 <tr>
-                  {['User', 'Plan', 'Searches', 'AI Cost', 'Revenue', 'Profit', 'Leads'].map(h => (
+                  {['User', 'Plan', 'Searches', 'AI Cost', 'Revenue', 'Profit', 'Profit %', 'Leads'].map(h => (
                     <th key={h} className="text-left px-4 py-3 font-data-label text-on-surface-variant text-xs">{h}</th>
                   ))}
                 </tr>
@@ -88,9 +88,12 @@ export default function AdminCostsPage() {
                     <td className="px-4 py-3 text-on-surface font-medium">{u.user?.email || u._id?.substring(0, 8) + '...'}</td>
                     <td className="px-4 py-3"><span className="badge badge-growth capitalize">{u.user?.plan || 'free'}</span></td>
                     <td className="px-4 py-3 font-data-value">{u.searches}</td>
-                    <td className="px-4 py-3 text-error font-data-value">${(u.rawCost || 0).toFixed(5)}</td>
-                    <td className="px-4 py-3 text-primary font-data-value">${(u.revenue || 0).toFixed(5)}</td>
-                    <td className="px-4 py-3 text-lime-green font-data-value">${(u.profit || 0).toFixed(5)}</td>
+                    <td className="px-4 py-3 text-error font-data-value">${(u.rawCost || 0).toFixed(4)}</td>
+                    <td className="px-4 py-3 text-primary font-data-value">${(u.revenue || 0).toFixed(4)}</td>
+                    <td className="px-4 py-3 text-lime-green font-data-value">${(u.profit || 0).toFixed(4)}</td>
+                    <td className="px-4 py-3 font-data-value text-xs text-on-surface-variant">
+                      {u.revenue > 0 ? ((u.profit / u.revenue) * 100).toFixed(1) : 0}%
+                    </td>
                     <td className="px-4 py-3 font-data-value">{u.leads}</td>
                   </tr>
                 ))}
@@ -112,7 +115,7 @@ export default function AdminCostsPage() {
             <table className="w-full text-sm">
               <thead className="bg-surface-container-low">
                 <tr>
-                  {['Chat ID', 'Searches', 'Posts Analyzed', 'AI Cost', 'Revenue', 'Profit', 'Credits', 'Leads'].map(h => (
+                  {['Chat ID', 'Searches', 'Tokens (In/Out)', 'AI Cost', 'Revenue', 'Profit', 'Credits', 'Leads'].map(h => (
                     <th key={h} className="text-left px-4 py-3 font-data-label text-on-surface-variant text-xs">{h}</th>
                   ))}
                 </tr>
@@ -124,7 +127,9 @@ export default function AdminCostsPage() {
                     <tr key={i} className="hover:bg-surface-container-low transition-colors">
                       <td className="px-4 py-3 font-data-value text-on-surface-variant text-xs">{(s._id || 'direct').substring(0, 12)}…</td>
                       <td className="px-4 py-3 font-data-value">{s.searches}</td>
-                      <td className="px-4 py-3 font-data-value">{s.postsAnalyzed || 0}</td>
+                      <td className="px-4 py-3 font-data-value text-xs text-on-surface-variant">
+                        {s.promptTokens?.toLocaleString()} / {s.completionTokens?.toLocaleString()}
+                      </td>
                       <td className="px-4 py-3 text-error font-data-value">${(s.totalRawCost || 0).toFixed(5)}</td>
                       <td className="px-4 py-3 text-primary font-data-value">${(s.totalCost || 0).toFixed(5)}</td>
                       <td className={`px-4 py-3 font-data-value ${profit >= 0 ? 'text-lime-green' : 'text-error'}`}>${profit.toFixed(5)}</td>

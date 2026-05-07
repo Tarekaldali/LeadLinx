@@ -1,0 +1,218 @@
+/* 
+ * LeadLinx "Human-Crafted" Checkout
+ * Aesthetic: Minimalist, Precision-Engineered, High-Trust
+ * Inspired by Linear and Stripe's refined simplicity.
+ */
+
+:root {
+  --ch-bg: #ffffff;
+  --ch-text: #0a0a0a;
+  --ch-muted: #666666;
+  --ch-accent: #7c3aed;
+  --ch-border: #eeeeee;
+  --ch-input-bg: #f9f9f9;
+}
+
+.checkout-page {
+  background-color: var(--ch-bg);
+  color: var(--ch-text);
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.checkout-header {
+  padding: 2rem 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--ch-border);
+}
+
+.checkout-brand {
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkout-brand-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--ch-accent);
+  border-radius: 6px;
+}
+
+.checkout-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .checkout-content {
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 4rem;
+    padding: 4rem 2rem;
+  }
+}
+
+/* --- Billing Form --- */
+.billing-form {
+  padding: 2rem;
+}
+
+.form-section-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ch-muted);
+  margin-bottom: 1.5rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.input-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.custom-input {
+  background: var(--ch-input-bg);
+  border: 1px solid var(--ch-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--ch-text);
+}
+
+.custom-input:focus {
+  outline: none;
+  border-color: var(--ch-accent);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* --- Order Summary (The "Receipt" Feel) --- */
+.order-panel {
+  background: #fcfcfc;
+  border: 1px solid var(--ch-border);
+  border-radius: 16px;
+  padding: 2.5rem;
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+.order-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+}
+
+.item-label {
+  color: var(--ch-muted);
+}
+
+.item-value {
+  font-weight: 600;
+}
+
+.divider {
+  height: 1px;
+  background: var(--ch-border);
+  margin: 1.5rem 0;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 1rem;
+}
+
+.total-label {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.total-price {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.pay-button {
+  width: 100%;
+  background: var(--ch-text);
+  color: white;
+  border: none;
+  padding: 1.125rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-top: 2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pay-button:hover {
+  background: #222;
+  transform: translateY(-1px);
+}
+
+.pay-button:active {
+  transform: translateY(0);
+}
+
+.secure-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--ch-muted);
+  margin-top: 1.25rem;
+  font-weight: 500;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 1023px) {
+  .checkout-content {
+    padding: 2rem 1rem;
+  }
+  .order-panel {
+    margin-top: 2rem;
+  }
+}

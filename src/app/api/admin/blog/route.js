@@ -78,7 +78,7 @@ export async function POST(request) {
       date: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      authorId: authResult.user.userId,
+      authorId: authResult.user.id,
     };
 
     const result = await db.collection('blog').insertOne(post);

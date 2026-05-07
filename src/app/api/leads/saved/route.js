@@ -11,7 +11,7 @@ export async function GET(request) {
 
   try {
     const db = await getDb();
-    const userId = new ObjectId(authResult.user.userId);
+    const userId = new ObjectId(authResult.user.id);
     const saved = await db.collection('saved_leads')
       .find({ userId })
       .sort({ savedAt: -1 })
@@ -34,7 +34,7 @@ export async function POST(request) {
   try {
     const lead = await request.json();
     const db = await getDb();
-    const userId = new ObjectId(authResult.user.userId);
+    const userId = new ObjectId(authResult.user.id);
 
     // Check if already saved
     const existing = await db.collection('saved_leads').findOne({
@@ -81,7 +81,7 @@ export async function DELETE(request) {
     }
 
     const db = await getDb();
-    const userId = new ObjectId(authResult.user.userId);
+    const userId = new ObjectId(authResult.user.id);
 
     await db.collection('saved_leads').deleteOne({ userId, postId });
 

@@ -1,11 +1,14 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import Modal from '@/components/Modal';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 export default function AdminBlogPage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -67,11 +70,9 @@ export default function AdminBlogPage() {
     }
   };
 
-  const handleDelete = async (postId) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
-
+  const confirmDelete = async () => {
     try {
-      const res = await fetch(`/api/admin/blog/${postId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/blog/${showConfirmDelete}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       showToast('Post deleted');
       fetchPosts();
@@ -104,11 +105,11 @@ export default function AdminBlogPage() {
       slug: post.slug,
       category: post.category || 'Strategy',
     });
-    setShowForm(true);
+    setShowModal(true);
   };
 
   const resetForm = () => {
-    setShowForm(false);
+    setShowModal(false);
     setEditingPost(null);
     setFormData({ title: '', content: '', image: '', slug: '', category: 'Strategy' });
   };
@@ -117,7 +118,6 @@ export default function AdminBlogPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Convert to base64 data URL for simple storage
     const reader = new FileReader();
     reader.onload = (event) => {
       setFormData(prev => ({ ...prev, image: event.target.result }));
@@ -135,11 +135,11 @@ export default function AdminBlogPage() {
           <p className="text-on-surface-variant font-body">Create, edit, and manage blog posts.</p>
         </div>
         <button
-          onClick={() => { resetForm(); setShowForm(true); }}
+          onClick={() => { resetForm(); setShowModal(true); }}
           className="btn-primary flex items-center gap-2"
         >
           <span className="material-symbols-outlined text-sm">add</span>
-          Create Blog Post
+          New Blog Post
         </button>
       </header>
 
@@ -163,122 +163,123 @@ export default function AdminBlogPage() {
         </div>
       </div>
 
-      {/* Create/Edit Form */}
-      {showForm && (
-        <div className="bento-card p-6 md:p-8 animate-fade-in">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-headline text-xl text-on-surface">
-              {editingPost ? 'Edit Post' : 'Create New Post'}
-            </h2>
-            <button onClick={resetForm} className="text-on-surface-variant hover:text-on-surface">
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-data-label text-on-surface-variant">TITLE</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="Blog post title"
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-data-label text-on-surface-variant">SLUG (AUTO-GENERATED IF EMPTY)</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="my-blog-post-title"
-                  value={formData.slug}
-                  onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-data-label text-on-surface-variant">CATEGORY</label>
-                <select
-                  className="input-field"
-                  value={formData.category}
-                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                >
-                  <option>Strategy</option>
-                  <option>Tools</option>
-                  <option>Growth</option>
-                  <option>Tutorial</option>
-                  <option>General</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-data-label text-on-surface-variant">IMAGE</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    className="input-field flex-1"
-                    placeholder="Image URL or upload file"
-                    value={formData.image}
-                    onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="btn-ghost px-3 shrink-0"
-                    title="Upload image"
-                  >
-                    <span className="material-symbols-outlined text-sm">upload</span>
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageUpload}
-                  />
-                </div>
-                {formData.image && (
-                  <div className="w-full h-32 rounded-lg overflow-hidden bg-surface-container-low mt-2">
-                    <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-data-label text-on-surface-variant">CONTENT</label>
-              <textarea
-                className="input-field min-h-[300px] resize-y font-mono text-sm"
-                placeholder="Write your blog post content here..."
-                value={formData.content}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+      {/* Modal Form */}
+      <Modal 
+        isOpen={showModal} 
+        onClose={resetForm} 
+        title={editingPost ? 'Edit Blog Post' : 'Create New Post'}
+      >
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            <div className="space-y-1.5 col-span-2">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Article Title</label>
+              <input
+                type="text"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400"
+                placeholder="e.g. How to scale your Reddit leads"
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 required
               />
             </div>
 
-            <div className="flex gap-3 justify-end">
-              <button type="button" onClick={resetForm} className="btn-ghost">Cancel</button>
-              <button type="submit" disabled={saving} className="btn-primary flex items-center gap-2">
-                {saving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-sm">{editingPost ? 'save' : 'add'}</span>
-                    {editingPost ? 'Update Post' : 'Publish Post'}
-                  </>
-                )}
-              </button>
+            <div className="space-y-1.5 col-span-2 md:col-span-1">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">URL Slug</label>
+              <input
+                type="text"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400"
+                placeholder="how-to-scale-leads"
+                value={formData.slug}
+                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+              />
             </div>
-          </form>
-        </div>
-      )}
+
+            <div className="space-y-1.5 col-span-2 md:col-span-1">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Category</label>
+              <select
+                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 bg-white"
+                value={formData.category}
+                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              >
+                <option>Strategy</option>
+                <option>Tools</option>
+                <option>Growth</option>
+                <option>Tutorial</option>
+                <option>General</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5 col-span-2">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Featured Image</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400"
+                  placeholder="https://images.unsplash.com/..."
+                  value={formData.image}
+                  onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all text-slate-600 flex items-center gap-2 text-xs font-semibold"
+                >
+                  <span className="material-symbols-outlined text-[18px]">upload</span>
+                  Upload
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center px-0.5">
+               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Content Editor</label>
+               <span className="text-[10px] text-slate-400 font-medium italic">Markdown supported</span>
+            </div>
+            <textarea
+              className="w-full px-3.5 py-3 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 min-h-[300px] font-mono leading-relaxed"
+              placeholder="Write your article content here..."
+              value={formData.content}
+              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              required
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+            <button type="button" onClick={resetForm} className="px-5 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancel</button>
+            <button type="submit" disabled={saving} className="px-6 py-2 rounded-lg text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-sm flex items-center gap-2">
+              {saving ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">{editingPost ? 'done_all' : 'publish'}</span>
+                  {editingPost ? 'Save Changes' : 'Publish Article'}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal 
+        isOpen={!!showConfirmDelete}
+        onClose={() => setShowConfirmDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Blog Post"
+        message="Are you sure you want to delete this blog post? This action cannot be undone."
+        confirmText="Delete Post"
+        type="danger"
+      />
 
       {/* Posts Table */}
       <div className="bento-card overflow-hidden">
@@ -297,17 +298,7 @@ export default function AdminBlogPage() {
               {posts.map((post) => (
                 <tr key={post._id}>
                   <td>
-                    <div className="flex items-center gap-3">
-                      {post.image && (
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container-low shrink-0">
-                          <img src={post.image} alt="" className="w-full h-full object-cover" />
-                        </div>
-                      )}
-                      <div>
-                        <div className="font-medium text-on-surface text-sm">{post.title}</div>
-                        <div className="text-xs text-on-surface-variant font-data-label">/blog/{post.slug}</div>
-                      </div>
-                    </div>
+                    <div className="font-medium text-on-surface text-sm">{post.title}</div>
                   </td>
                   <td>
                     <span className="badge badge-growth">{post.category}</span>
@@ -325,38 +316,17 @@ export default function AdminBlogPage() {
                   </td>
                   <td>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(post)}
-                        className="btn-ghost text-xs py-1 px-2"
-                        title="Edit"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">edit</span>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(post._id)}
-                        className="btn-ghost text-xs py-1 px-2 text-hot-pink hover:text-hot-pink"
-                        title="Delete"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">delete</span>
-                      </button>
+                      <button onClick={() => handleEdit(post)} className="btn-ghost text-xs py-1 px-2"><span className="material-symbols-outlined text-[16px]">edit</span></button>
+                      <button onClick={() => setShowConfirmDelete(post._id)} className="btn-ghost text-xs py-1 px-2 text-hot-pink"><span className="material-symbols-outlined text-[16px]">delete</span></button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {posts.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="text-center py-12 text-on-surface-variant">
-                    <span className="material-symbols-outlined text-3xl block mb-2">article</span>
-                    No blog posts yet. Create your first one!
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Toast */}
       {toast && (
         <div className={`toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>
           {toast.message}

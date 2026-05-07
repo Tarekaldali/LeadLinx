@@ -1,173 +1,132 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { getDb } from '@/lib/mongodb';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-config';
 
-export const metadata = {
-  title: 'Pricing — Affordable AI Lead Generation',
-  description: 'Choose the LeadLinx plan that fits your growth stage. Start free, upgrade anytime. Plans from $0 to $7.99/month.',
-};
+export default async function PricingPage() {
+  const session = await getServerSession(authOptions);
+  const isLoggedIn = !!session;
 
-const plans = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: '/month',
-    description: 'Get started with AI-powered lead discovery.',
-    features: [
-      '400 Credits / month',
-      'Basic AI Lead Scoring',
-      'Reply Generation (5/day)',
-      'CSV Export',
-    ],
-    cta: 'Get Started Free',
-    ctaHref: '/signup',
-    highlight: false,
-    badge: null,
-  },
-  {
-    name: 'Plus',
-    price: '$3.99',
-    period: '/month',
-    description: 'Ideal for solo founders and small sales teams.',
-    features: [
-      '2000 Credits / month',
-      'Advanced AI Lead Scoring',
-      'Unlimited Reply Generation',
-      'Priority Support',
-      'Negative Keyword Filters',
-    ],
-    cta: 'Upgrade to Plus',
-    ctaHref: '/checkout?plan=plus',
-    highlight: false,
-    badge: null,
-  },
-  {
-    name: 'Pro',
-    price: '$7.99',
-    period: '/month',
-    description: 'Perfect for scaling agencies and sales squads.',
-    features: [
-      '2000 Credits / month',
-      'Advanced Intent Analysis',
-      'Unlimited Reply Generation',
-      'Priority Support (Slack)',
-      'Email Alerts for Hot Leads',
-      'Team Collaboration (3 seats)',
-    ],
-    cta: 'Upgrade to Pro',
-    ctaHref: '/checkout?plan=pro',
-    highlight: true,
-    badge: 'MOST POPULAR',
-  },
-      {
-    name: 'Enterprise',
-    price: '$19.99',
-    period: '/month',
-    description: 'Perfect for scaling agencies and sales squads.',
-    features: [
-      '5000 Credits / month',
-      'Advanced Intent Analysis',
-      'Unlimited Reply Generation',
-      'Priority Support (Slack)',
-      'Email Alerts for Hot Leads',
-      'Team Collaboration (10 seats)',
-    ],
-    cta: 'Upgrade to Enterprise',
-    ctaHref: '/checkout?plan=enterprise',
-    highlight: true,
-    badge: 'MOST POPULAR',
-  },
-];
+  let plans = [];
+  try {
+    const db = await getDb();
+    plans = await db.collection('plans').find({}).toArray();
+  } catch (error) {
+    console.error('Failed to fetch plans:', error);
+  }
 
-export default function PricingPage() {
   return (
-    <div className="bg-white text-on-surface min-h-screen">
+    <div className="min-h-screen bg-white text-on-surface flex flex-col">
       <Navbar activePage="pricing" />
-
-      <main className="max-w-7xl mx-auto px-6 py-16 space-y-16">
-        {/* Header */}
-        <section className="text-center space-y-4 relative">
-          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
-          <h1 className="font-display text-4xl md:text-5xl relative z-10 text-on-surface">Affordable AI Lead Generation</h1>
-          <p className="text-on-surface-variant text-xl max-w-2xl mx-auto relative z-10">
-            AI-powered lead scoring and automated outreach. Choose the plan that fits your budget.
+      
+      <main className="flex-1 pb-24">
+        {/* Header Section */}
+        <div className="max-w-7xl mx-auto px-6 mt-24 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-container/50 border border-primary/10 text-xs font-data-label text-primary mb-6 animate-fade-in">
+            <span className="material-symbols-outlined text-sm">workspace_premium</span>
+            PREMIUM PLANS
+          </div>
+          <h1 className="text-4xl md:text-6xl font-display font-bold mb-6 tracking-tight animate-fade-in">
+            Choose your <span className="text-primary">growth</span> engine
+          </h1>
+          <p className="text-xl text-on-surface-variant max-w-2xl mx-auto font-body animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            Scale your lead generation with transparent pricing. No hidden fees. Cancel anytime.
           </p>
-        </section>
-
-        {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {plans.map((plan) => (
-            <div key={plan.name} className={`bento-card p-8 rounded-2xl flex flex-col justify-between relative ${plan.highlight ? 'border-primary/30 shadow-lg shadow-primary/5' : ''}`}>
-              {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-white rounded-full text-[10px] font-data-label font-bold tracking-widest">
-                  {plan.badge}
-                </div>
-              )}
-              
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-headline text-2xl mb-1 text-on-surface">{plan.name}</h3>
-                  <p className="text-sm text-on-surface-variant">{plan.description}</p>
-                </div>
-                
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-on-surface">{plan.price}</span>
-                  <span className="font-data-label text-on-surface-variant">{plan.period}</span>
-                </div>
-                
-                <ul className="space-y-3">
-                  {plan.features.map((feat, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-on-surface-variant">
-                      <span className="material-symbols-outlined text-lime-green text-sm">check_circle</span>
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <Link
-                href={plan.ctaHref}
-                className={`mt-8 text-center py-3 rounded-xl font-bold transition-all hover:brightness-110 active:scale-95 block ${
-                  plan.highlight
-                    ? 'btn-primary'
-                    : 'border border-outline-variant text-on-surface hover:bg-surface-container-low'
-                }`}
-              >
-                {plan.cta}
-              </Link>
-            </div>
-          ))}
         </div>
 
-        {/* Feature Comparison */}
-        <section className="space-y-6">
-          <h2 className="font-headline text-2xl text-center text-on-surface">Compare All Features</h2>
-          <div className="bento-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Feature</th>
-                    <th>Free</th>
-                    <th>Starter</th>
-                    <th>Premium</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>Monthly Credits</td><td className="font-data-value">50</td><td className="font-data-value">300</td><td className="font-data-value">600</td></tr>
-                  <tr><td>AI Scoring Logic</td><td>Basic</td><td>Advanced</td><td>Advanced + Custom</td></tr>
-                  <tr><td>Reply Generation</td><td>5 / day</td><td>Unlimited</td><td>Unlimited</td></tr>
-                  <tr><td>Data Export</td><td>CSV Only</td><td>CSV + CRM</td><td>CSV + CRM + API</td></tr>
-                  <tr><td>Email Alerts</td><td>—</td><td>—</td><td className="text-lime-green font-data-value">✓</td></tr>
-                  <tr><td>Priority Support</td><td>—</td><td className="text-lime-green font-data-value">✓</td><td className="text-lime-green font-data-value">✓ (Slack)</td></tr>
-                </tbody>
-              </table>
+        {/* Pricing Cards Grid */}
+        <div className="max-w-7xl mx-auto px-6 mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {plans.length === 0 ? (
+            <div className="col-span-full py-20 text-center text-on-surface-variant italic">
+              Loading plans...
+            </div>
+          ) : (
+            plans.map((plan, i) => (
+              <div 
+                key={plan._id.toString()} 
+                className={`relative bento-card p-8 rounded-3xl flex flex-col transition-all duration-500 animate-scale-in ${
+                  plan.highlight ? 'border-2 border-primary shadow-2xl shadow-primary/10 lg:scale-105 z-10' : 'border border-border-glass'
+                }`}
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                {plan.highlight && plan.badge && (
+                  <div className="absolute -top-4 left-0 right-0 flex justify-center">
+                    <span className="bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">
+                      {plan.badge}
+                    </span>
+                  </div>
+                )}
+                
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-on-surface mb-2">{plan.name}</h3>
+                  <p className="text-sm text-on-surface-variant h-10 line-clamp-2 leading-relaxed">{plan.description}</p>
+                </div>
+                
+                <div className="mb-8">
+                  <span className="text-4xl font-display font-bold text-on-surface">{plan.price}</span>
+                  <span className="text-on-surface-variant text-sm ml-1">{plan.period}</span>
+                </div>
+                
+                <Link 
+                  href={`/checkout?plan=${plan.name.toLowerCase()}`}
+                  className={`w-full py-3.5 rounded-xl font-bold text-sm mb-8 text-center transition-all active:scale-95 ${
+                    plan.highlight 
+                      ? 'btn-primary' 
+                      : 'bg-surface-container-low hover:bg-surface-container-high text-on-surface border border-border-glass'
+                  }`}
+                >
+                  {plan.cta || (plan.name.toLowerCase() === 'free' ? 'Get Started' : `Buy ${plan.name}`)}
+                </Link>
+                
+                <div className="flex-1 space-y-4">
+                  <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-4">Included Features</p>
+                  {plan.features?.map((feature, j) => (
+                    <div key={j} className="flex items-start gap-3">
+                      <span className="material-symbols-outlined text-lime-green text-lg shrink-0">check_circle</span>
+                      <span className="text-sm text-on-surface-variant font-medium leading-tight">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        
+        {/* Trust/FAQ Section */}
+        <div className="max-w-4xl mx-auto px-6 mt-32">
+          <div className="bento-card p-12 bg-surface-dim/50 border border-border-glass text-center space-y-8">
+            <div className="flex justify-center gap-12">
+               <div className="flex flex-col items-center gap-2">
+                 <span className="material-symbols-outlined text-primary text-3xl">security</span>
+                 <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Secure</span>
+               </div>
+               <div className="flex flex-col items-center gap-2">
+                 <span className="material-symbols-outlined text-primary text-3xl">bolt</span>
+                 <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Instant</span>
+               </div>
+               <div className="flex flex-col items-center gap-2">
+                 <span className="material-symbols-outlined text-primary text-3xl">support_agent</span>
+                 <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">24/7 Support</span>
+               </div>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-2xl font-headline text-on-surface">Need a custom solution?</h3>
+              <p className="text-on-surface-variant max-w-xl mx-auto">
+                If you have specific requirements or want to discuss enterprise licensing for your entire team, we&apos;re here to help.
+              </p>
+              <Link href="mailto:tarekaldali1@gmail.com" className="btn-ghost inline-flex items-center gap-2 px-8 py-3 rounded-xl border border-border-glass">
+                Contact our team
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </Link>
             </div>
           </div>
-        </section>
+        </div>
       </main>
 
       <Footer />
     </div>
   );
 }
+
