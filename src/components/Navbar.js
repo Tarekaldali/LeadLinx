@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { cookies } from 'next/headers';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-config';
 import LogoutButton from './LogoutButton';
 
 export default async function Navbar({ activePage = 'platform' }) {
-  const cookieStore = await cookies();
-  const isLoggedIn = !!cookieStore.get('token')?.value;
+  const session = await getServerSession(authOptions);
+  const isLoggedIn = !!session;
 
   return (
     <nav className="bg-white/80 backdrop-blur-xl border-b border-border-glass w-full top-0 sticky z-50">
@@ -50,7 +51,7 @@ export default async function Navbar({ activePage = 'platform' }) {
               <Link href="/login" className="text-on-surface-variant hover:text-on-surface text-sm font-medium transition-colors">
                 Log in
               </Link>
-              <Link href="/signup" className="btn-primary text-sm py-2">
+              <Link href="/signup" className="btn-primary text-sm py-2 px-6">
                 Get Started
               </Link>
             </>
