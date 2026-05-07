@@ -1,10 +1,21 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Modal from '@/components/Modal';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
+  const [showConfirmBan, setShowConfirmBan] = useState(null);
+  const [editFormData, setEditFormData] = useState({ plan: 'free', credits: 400 });
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const fetchUsers = async () => {
     try {
@@ -18,7 +29,16 @@ export default function AdminUsersPage() {
 
   useEffect(() => { fetchUsers(); }, []);
 
-  const updateUser = async (userId, updates) => {
+  const handleEdit = (user) => {
+    setEditingUser(user);
+    setEditFormData({
+      plan: user.plan || 'free',
+      credits: user.credits || 0
+    });
+  };
+
+  const handleUpdate = async (userId, updates) => {
+    setSaving(true);
     try {
       const res = await fetch('/api/admin/users', {
         method: 'PATCH',
@@ -26,12 +46,22 @@ export default function AdminUsersPage() {
         body: JSON.stringify({ userId, ...updates }),
       });
       if (res.ok) {
+        showToast('User updated successfully');
         setEditingUser(null);
         fetchUsers();
+      } else {
+        throw new Error('Update failed');
       }
-    } catch {
-      alert('Failed to update user');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setSaving(false);
     }
+  };
+
+  const confirmBan = () => {
+    handleUpdate(showConfirmBan._id, { banned: !showConfirmBan.banned });
+    setShowConfirmBan(null);
   };
 
   if (loading) return <div className="space-y-4">{[1,2,3].map(i => <div key={i} className="skeleton h-16 w-full"></div>)}</div>;
@@ -57,9 +87,7 @@ export default function AdminUsersPage() {
                 <th>User</th>
                 <th>Plan</th>
                 <th>Credits</th>
-                <th>Searches</th>
                 <th>Status</th>
-                <th>Joined</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -69,119 +97,112 @@ export default function AdminUsersPage() {
                   <td>
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center text-xs font-bold text-primary uppercase">
-                        {user.name?.substring(0, 2) || user.email?.substring(0, 2)}
+                        {(user.name || user.email || 'A').substring(0, 2)}
                       </div>
                       <div>
-                        <div className="font-medium text-on-surface text-sm">{user.name || 'No name'}</div>
+                        <div className="font-medium text-on-surface text-sm">{user.name || 'Anonymous'}</div>
                         <div className="text-xs text-on-surface-variant">{user.email}</div>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <span className={`badge ${user.plan === 'enterprise' ? 'badge-enterprise' : user.plan === 'growth' ? 'badge-growth' : 'badge-starter'}`}>
-                      {user.plan || 'starter'}
+                    <span className={`badge ${user.plan === 'enterprise' ? 'badge-enterprise' : user.plan === 'pro' ? 'badge-growth' : user.plan === 'plus' ? 'badge-growth' : 'badge-starter'}`}>
+                      {user.plan || 'free'}
                     </span>
                   </td>
-                  <td>
-                    <span className="font-data-value">{user.credits?.toLocaleString() || 0}</span>
-                  </td>
-                  <td>
-                    <span className="font-data-value text-on-surface-variant">{user.searchCount || 0}</span>
-                  </td>
+                  <td className="font-data-value">{user.credits?.toLocaleString() || 0}</td>
                   <td>
                     {user.banned ? (
-                      <span className="flex items-center gap-1.5 text-xs text-hot-pink font-data-label">
-                        <span className="w-2 h-2 rounded-full bg-hot-pink"></span>
-                        Suspended
-                      </span>
+                      <span className="badge badge-error">Suspended</span>
                     ) : (
-                      <span className="flex items-center gap-1.5 text-xs text-lime-green font-data-label">
-                        <span className="w-2 h-2 rounded-full bg-lime-green"></span>
-                        Active
-                      </span>
+                      <span className="badge badge-growth">Active</span>
                     )}
                   </td>
-                  <td className="text-xs text-on-surface-variant font-data-label">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
                   <td>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setEditingUser(editingUser === user._id ? null : user._id)}
-                        className="btn-ghost text-xs py-1 px-2"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => updateUser(user._id, { banned: !user.banned })}
-                        className={`text-xs py-1 px-2 rounded-lg border transition-colors cursor-pointer ${
-                          user.banned 
-                            ? 'border-lime-green/30 text-lime-green hover:bg-lime-green/5' 
-                            : 'border-hot-pink/30 text-hot-pink hover:bg-red-50'
-                        }`}
-                      >
+                    <div className="flex gap-2">
+                      <button onClick={() => handleEdit(user)} className="btn-ghost text-xs py-1 px-2">Edit</button>
+                      <button onClick={() => setShowConfirmBan(user)} className={`btn-ghost text-xs py-1 px-2 ${user.banned ? 'text-lime-green' : 'text-hot-pink'}`}>
                         {user.banned ? 'Unban' : 'Ban'}
                       </button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {users.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="text-center py-12 text-on-surface-variant">No users found</td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Edit Modal */}
-      {editingUser && (() => {
-        const user = users.find(u => u._id === editingUser);
-        if (!user) return null;
-        return (
-          <div className="modal-overlay" onClick={() => setEditingUser(null)}>
-            <div className="bento-card p-8 w-full max-w-md space-y-6 animate-scale-in" onClick={e => e.stopPropagation()}>
-              <h3 className="font-headline text-xl text-on-surface">Edit User: {user.email}</h3>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-data-label text-on-surface-variant">CREDITS</label>
-                  <input
-                    type="number"
-                    defaultValue={user.credits}
-                    className="input-field"
-                    id="edit-credits"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-data-label text-on-surface-variant">PLAN</label>
-                  <select defaultValue={user.plan} className="input-field" id="edit-plan">
-                    <option value="starter">Starter</option>
-                    <option value="growth">Growth</option>
-                    <option value="enterprise">Enterprise</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="flex gap-3 justify-end">
-                <button onClick={() => setEditingUser(null)} className="btn-ghost">Cancel</button>
-                <button
-                  onClick={() => {
-                    const credits = parseInt(document.getElementById('edit-credits').value);
-                    const plan = document.getElementById('edit-plan').value;
-                    updateUser(user._id, { credits, plan });
-                  }}
-                  className="btn-primary"
-                >
-                  Save Changes
-                </button>
-              </div>
+      <Modal 
+        isOpen={!!editingUser} 
+        onClose={() => setEditingUser(null)} 
+        title={`Edit User: ${editingUser?.email}`}
+      >
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-data-label text-on-surface-variant">QUICK ASSIGN PLAN</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setEditFormData({ plan: 'free', credits: 400 })} className="btn-ghost text-xs border border-border-glass">Free (400)</button>
+              <button type="button" onClick={() => setEditFormData({ plan: 'plus', credits: 1000 })} className="btn-ghost text-xs border border-border-glass">Plus (1000)</button>
+              <button type="button" onClick={() => setEditFormData({ plan: 'pro', credits: 2000 })} className="btn-ghost text-xs border border-border-glass">Pro (2000)</button>
+              <button type="button" onClick={() => setEditFormData({ plan: 'enterprise', credits: 5000 })} className="btn-ghost text-xs border border-border-glass">Enterprise (5000)</button>
             </div>
           </div>
-        );
-      })()}
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-data-label text-on-surface-variant">PLAN</label>
+              <select 
+                value={editFormData.plan} 
+                onChange={e => setEditFormData({...editFormData, plan: e.target.value})}
+                className="input-field w-full"
+              >
+                <option value="free">Free</option>
+                <option value="plus">Plus</option>
+                <option value="pro">Pro</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-data-label text-on-surface-variant">CREDITS</label>
+              <input
+                type="number"
+                value={editFormData.credits}
+                onChange={e => setEditFormData({...editFormData, credits: parseInt(e.target.value)})}
+                className="input-field w-full"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-3 justify-end pt-4">
+            <button onClick={() => setEditingUser(null)} className="btn-ghost">Cancel</button>
+            <button
+              onClick={() => handleUpdate(editingUser._id, editFormData)}
+              disabled={saving}
+              className="btn-primary"
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <ConfirmationModal 
+        isOpen={!!showConfirmBan}
+        onClose={() => setShowConfirmBan(null)}
+        onConfirm={confirmBan}
+        title={showConfirmBan?.banned ? 'Unban User' : 'Ban User'}
+        message={`Are you sure you want to ${showConfirmBan?.banned ? 'unban' : 'ban'} ${showConfirmBan?.email}?`}
+        confirmText={showConfirmBan?.banned ? 'Unban' : 'Ban'}
+        type={showConfirmBan?.banned ? 'success' : 'danger'}
+      />
+
+      {toast && (
+        <div className={`toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
