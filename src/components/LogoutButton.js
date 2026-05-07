@@ -1,12 +1,11 @@
 'use client';
+import { signOut } from 'next-auth/react';
 
 export default function LogoutButton() {
   return (
     <button 
-      onClick={() => {
-        fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.href = '/');
-      }}
-      className="btn-primary text-sm py-2"
+      onClick={() => signOut({ callbackUrl: '/' })}
+      className="btn-primary text-sm py-2 px-6"
     >
       Log out
     </button>
