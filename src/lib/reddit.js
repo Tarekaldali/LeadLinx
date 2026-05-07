@@ -43,7 +43,7 @@ function parsePosts(data) {
   return data.data.children
     .filter(child => child.kind === 't3')
     .map(child => ({
-      id: child.data.id,
+      postId: child.data.id,
       title: child.data.title || '',
       text: child.data.selftext || '',
       link: `https://reddit.com${child.data.permalink}`,
@@ -87,42 +87,72 @@ function matchesKeywords(content, keywords) {
 }
 
 /**
- * Fetches posts from up to 20 subreddits, looking back 2 months.
- * Reads new + hot + top(month) feeds, 100 posts each → hundreds of posts per subreddit.
+ * Fetches posts using Reddit's internal Search API to support Boolean logic.
  */
-export async function fetchRedditPosts(subreddits, keywords, negativeKeywords = []) {
+export async function fetchRedditPosts(subreddits, searchQueries) {
   const allPosts = new Map();
   const nowSec = Date.now() / 1000;
 
-  // Cap at 20 subreddits
-  const targetSubs = subreddits.slice(0, 20);
+  const safeSubs = Array.isArray(subreddits) ? subreddits : [];
+  
+  // SANITIZE: Remove r/ prefix, whitespace, and limit to 10 subreddits to avoid 404/URL length issues
+  const sanitizedSubs = safeSubs
+    .map(s => s.trim().replace(/^r\//, ''))
+    .filter(s => s.length > 0)
+    .slice(0, 10); 
 
-  // Feeds: new, hot, top-month — 100 posts per feed for maximum coverage
-  const feedConfigs = [
-    { feed: 'new',  suffix: '?limit=100' },
-    { feed: 'hot',  suffix: '?limit=100' },
-    { feed: 'top',  suffix: '?sort=top&t=month&limit=100' },
+  const subsString = sanitizedSubs.join('+');
+  const queries = Array.isArray(searchQueries) ? searchQueries : [searchQueries];
+
+  const searchPromises = [];
+  
+  // Strategy: For each strategic query, search across the combined subreddit pool
+  for (const q of queries) {
+    if (!q) continue;
+    
+  // Chunk subreddits into groups of 5 to avoid long URL issues
+  const subChunks = [];
+  for (let i = 0; i < sanitizedSubs.length; i += 5) {
+    subChunks.push(sanitizedSubs.slice(i, i + 5).join('+'));
+  }
+  // Add an empty string to represent "All of Reddit" search
+  subChunks.push(''); 
+
+  const queries = Array.isArray(searchQueries) ? [...searchQueries] : [searchQueries];
+  
+  // Add a simplified fallback query to ensure we don't return 0 posts
+  const fallback = queries[0].split(' ').slice(0, 3).join(' ');
+  if (!queries.includes(fallback)) queries.push(fallback);
+
+  const searchPromises = [];
+
+  const searchTypes = [
+    { sort: 'relevance', t: 'month' },
+    { sort: 'new',       t: 'all' },
+    { sort: 'top',       t: 'year' }
   ];
+  
+  for (const q of queries) {
+    if (!q) continue;
+    const encodedQuery = encodeURIComponent(q);
 
-  const feedPromises = [];
-  for (const sub of targetSubs) {
-    const s = sub.trim();
-    if (!s) continue;
-    for (const { feed, suffix } of feedConfigs) {
-      const url = `https://www.reddit.com/r/${s}/${feed}.json${suffix}`;
-      feedPromises.push(
-        fetchWithRetry(url)
-          .then(data => parsePosts(data))
-          .catch(err => {
-            console.warn(`⚠ r/${s}/${feed}: ${err.message}`);
-            return [];
-          })
-      );
+    for (const subsString of subChunks) {
+      for (const { sort, t } of searchTypes) {
+        const url = subsString 
+          ? `https://www.reddit.com/r/${subsString}/search.json?q=${encodedQuery}&restrict_sr=on&sort=${sort}&t=${t}&limit=100`
+          : `https://www.reddit.com/search.json?q=${encodedQuery}&sort=${sort}&t=${t}&limit=100`;
+
+        searchPromises.push(
+          fetchWithRetry(url)
+            .then(data => parsePosts(data))
+            .catch(() => [])
+        );
+      }
     }
   }
+  }
 
-  // Run all fetches in parallel
-  const results = await Promise.all(feedPromises);
+  const results = await Promise.all(searchPromises);
   for (const posts of results) {
     for (const post of posts) {
       if (!allPosts.has(post.id)) {
@@ -132,38 +162,20 @@ export async function fetchRedditPosts(subreddits, keywords, negativeKeywords = 
   }
 
   const allPostsArray = Array.from(allPosts.values());
-  console.log(`📦 Total unique posts fetched: ${allPostsArray.length} from ${targetSubs.length} subreddits`);
+  console.log(`📦 Strategic Fetch: Found ${allPostsArray.length} unique posts matching Boolean queries.`);
 
-  // Filter: only posts from last 2 months (no stale content)
-  const recentPosts = allPostsArray.filter(p => (nowSec - p.created) <= TWO_MONTHS_SECS);
-  console.log(`📅 Posts within 2 months: ${recentPosts.length}`);
-
-  // Filter out negative keywords
-  const lowerNeg = negativeKeywords.map(k => k.toLowerCase().trim()).filter(Boolean);
-  let filtered = recentPosts.filter(post => {
-    const content = `${post.title} ${post.text}`.toLowerCase();
-    return !lowerNeg.some(nk => content.includes(nk));
-  });
-
-  // Keyword matching
-  const lowerKws = keywords.map(k => k.toLowerCase().trim()).filter(Boolean);
-  const keywordMatched = filtered.filter(post =>
-    matchesKeywords(`${post.title} ${post.text}`, lowerKws)
-  );
+  // Filter: only posts from last 3 months (Search can be broader)
+  const THREE_MONTHS_SECS = 90 * 24 * 3600;
+  const filtered = allPostsArray.filter(p => (nowSec - p.created) <= THREE_MONTHS_SECS);
 
   const addEngagement = posts => posts.map(p => ({
     ...p,
     engagementScore: calcEngagement(p),
   }));
 
-  // Use keyword-matched posts if we have enough; otherwise fall back to all recent
-  if (keywordMatched.length >= 5) {
-    const ranked = addEngagement(keywordMatched).sort((a, b) => b.engagementScore - a.engagementScore);
-    console.log(`✅ Keyword matched: ${ranked.length} posts`);
-    return ranked;
-  }
-
-  // Fallback: all recent posts sorted by engagement — AI will do intent filtering
-  console.log(`⚡ Fallback to all ${filtered.length} recent posts for AI scoring`);
-  return addEngagement(filtered).sort((a, b) => b.engagementScore - a.engagementScore);
+  // Sort by engagement and return
+  const ranked = addEngagement(filtered).sort((a, b) => b.engagementScore - a.engagementScore);
+  console.log(`✅ Strategic Leads Filtered: ${ranked.length} posts ready for AI analysis.`);
+  
+  return ranked;
 }
