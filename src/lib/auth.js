@@ -1,9 +1,7 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import { getServerSession } from 'next-auth';
+import { authOptions } from './auth-config';
 import { getDb } from './mongodb';
-import { cookies } from 'next/headers';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
+import bcrypt from 'bcryptjs';
 
 export async function hashPassword(password) {
   return bcrypt.hash(password, 12);
@@ -13,62 +11,28 @@ export async function verifyPassword(password, hashedPassword) {
   return bcrypt.compare(password, hashedPassword);
 }
 
-export function generateToken(user) {
-  return jwt.sign(
-    { userId: user._id.toString(), email: user.email, role: user.role || 'user' },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-}
-
-export function verifyToken(token) {
-  try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch {
-    return null;
-  }
-}
-
 export async function getCurrentUser() {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-    if (!token) return null;
-    
-    const decoded = verifyToken(token);
-    if (!decoded) return null;
-    
-    const db = await getDb();
-    const { ObjectId } = await import('mongodb');
-    const user = await db.collection('users').findOne(
-      { _id: new ObjectId(decoded.userId) },
-      { projection: { password: 0 } }
-    );
-    
-    return user;
-  } catch {
-    return null;
-  }
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return null;
+
+  const db = await getDb();
+  const user = await db.collection('users').findOne(
+    { email: session.user.email },
+    { projection: { password: 0 } }
+  );
+  return user;
 }
 
-export async function requireAuth(request) {
-  const token = request.cookies.get('token')?.value 
-    || request.headers.get('authorization')?.replace('Bearer ', '');
-  
-  if (!token) {
+export async function requireAuth() {
+  const session = await getServerSession(authOptions);
+  if (!session) {
     return { error: 'Unauthorized', status: 401 };
   }
-  
-  const decoded = verifyToken(token);
-  if (!decoded) {
-    return { error: 'Invalid token', status: 401 };
-  }
-  
-  return { user: decoded };
+  return { user: session.user };
 }
 
-export async function requireAdmin(request) {
-  const result = await requireAuth(request);
+export async function requireAdmin() {
+  const result = await requireAuth();
   if (result.error) return result;
   
   if (result.user.role !== 'admin') {
@@ -77,3 +41,4 @@ export async function requireAdmin(request) {
   
   return result;
 }
+
