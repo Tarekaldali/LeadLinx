@@ -1,253 +1,206 @@
 'use client';
 import { useState } from 'react';
 
-const BADGE_CONFIG = {
-  hot:         { icon: '🔥', label: 'High Intent',  cls: 'intent-hot' },
-  opportunity: { icon: '⚡', label: 'Opportunity',  cls: 'intent-warm' },
-  discussion:  { icon: '💬', label: 'Discussion',   cls: 'intent-cold' },
+const TYPE_CONFIG = {
+  'Pain-Point': { icon: '🚨', label: 'Pain-Point' },
+  'Competitor-Frustration': { icon: '⚔️', label: 'Competitor' },
+  'Solution-Seeking': { icon: '🔍', label: 'Seeking Solution' },
 };
 
 export default function ChatMessage({ message, onSave, onExport, onSuggestionClick }) {
-  const [replyModal, setReplyModal] = useState(null);
-  const [replies, setReplies] = useState({});
-  const [replyTab, setReplyTab] = useState('helpful');
-  const [replyLoading, setReplyLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
   const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 2500); };
   const copy = (text) => { navigator.clipboard.writeText(text); showToast('Copied!'); };
 
-  const openReply = async (lead) => {
-    setReplyModal(lead);
-    setReplyLoading(true);
-    setReplyTab('helpful');
-    setReplies({});
-    try {
-      const res = await fetch('/api/leads/reply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: lead.title, text: lead.text }),
-      });
-      const data = await res.json();
-      if (res.ok) setReplies(data.replies || {});
-      else setReplies({ helpful: data.error || 'Failed' });
-    } catch { setReplies({ helpful: 'Network error' }); }
-    finally { setReplyLoading(false); }
-  };
-
-  // User message bubble
-  if (message.role === 'user') {
-    return (
-      <div className="flex justify-end">
-        <div className="max-w-lg bg-primary text-white rounded-2xl rounded-br-sm px-5 py-3 text-sm font-body">
-          {message.content}
-        </div>
-      </div>
-    );
-  }
-
-  // AI response bubble
-  const { leads = [], insights, selectedSubreddits = [], expandedQueries = [], totalScanned, suggestedQueries = [], error, planLimit } = message;
+  // Assistant data
+  const { leads = [], insights, selectedSubreddits = [], searchQueries = [], totalScanned, error, status } = message;
+  const isProcessing = status === 'processing';
+  const isCompleted = status === 'completed';
 
   return (
-    <div className="flex gap-3 items-start">
-      {/* AI avatar */}
-      <div className="w-8 h-8 rounded-full gradient-purple flex items-center justify-center shrink-0 mt-1">
-        <span className="material-symbols-outlined text-white text-sm">smart_toy</span>
-      </div>
+    <div className="space-y-6">
+      {/* Text Content */}
+      {message.content && (status === 'chat' || !status) && (
+        <div className="text-message">
+          {message.content}
+        </div>
+      )}
 
-      <div className="flex-1 space-y-4 min-w-0">
-        {/* Error state */}
-        {error && (
-          <div className="bento-card px-4 py-3 border-error/20 text-error text-sm flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm">error</span>{error}
-          </div>
-        )}
+      {/* Error State */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm flex items-center gap-2">
+          <span className="material-symbols-outlined text-[18px]">error</span>
+          {error}
+        </div>
+      )}
 
-        {/* Subreddits + stats */}
-        {selectedSubreddits.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-on-surface-variant font-data-label">AI SEARCHED:</span>
-            {selectedSubreddits.map(s => (
-              <span key={s} className="px-2 py-1 rounded-md bg-primary-container/50 text-primary font-medium">r/{s}</span>
-            ))}
-            {totalScanned > 0 && <span className="text-on-surface-variant ml-1">{totalScanned} posts scanned</span>}
-          </div>
-        )}
-
-        {/* No results */}
-        {!error && leads.length === 0 && (
-          <div className="bento-card p-5 text-center space-y-3">
-            <span className="material-symbols-outlined text-3xl text-tertiary block">search_off</span>
-            <p className="text-sm text-on-surface-variant">No strong leads found. Try one of these:</p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {suggestedQueries.map(q => (
-                <button key={q} onClick={() => onSuggestionClick(q)}
-                  className="chip-suggestion text-xs">{q}</button>
-              ))}
+      {/* Search Progress & Strategy Context */}
+      {(selectedSubreddits.length > 0 || searchQueries.length > 0 || isProcessing) && (
+        <div className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100/50 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {isProcessing && <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />}
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${isProcessing ? 'text-blue-500' : 'text-gray-400'}`}>
+                {isProcessing ? 'Architecting Search...' : 'Search Strategy'}
+              </span>
             </div>
-          </div>
-        )}
-
-        {/* Lead cards */}
-        {leads.length > 0 && (
-          <div className="space-y-3">
-            {/* Plan limit notice */}
-            {planLimit && leads.length >= planLimit && (
-              <div className="text-xs text-on-surface-variant px-1 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px] text-tertiary">info</span>
-                Showing {leads.length} leads (your plan limit).
-                <a href="/pricing" className="text-primary hover:underline ml-1">Upgrade for more →</a>
-              </div>
+            {totalScanned > 0 && (
+              <span className="text-[10px] text-gray-400 font-bold bg-white px-2 py-0.5 rounded-full border border-gray-100">
+                {totalScanned} POSTS SCANNED
+              </span>
             )}
-
-            {/* Export button */}
-            <div className="flex justify-end">
-              <button onClick={() => onExport(leads)}
-                className="btn-ghost text-xs py-1.5 px-3 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">download</span>
-                Export CSV ({leads.length})
-              </button>
-            </div>
-
-            {leads.map((lead, i) => {
-              const badge = BADGE_CONFIG[lead.badge] || BADGE_CONFIG.discussion;
-              return (
-                <div key={lead.id || i} className={`bento-card p-4 transition-all hover:border-primary/20 ${i === 0 ? 'ring-1 ring-primary/20' : ''}`}>
-                  {i === 0 && (
-                    <div className="flex items-center gap-1 text-xs font-data-label text-primary mb-2">
-                      <span className="material-symbols-outlined text-[12px]">star</span>BEST MATCH
-                    </div>
-                  )}
-                  <div className="flex gap-3">
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <h3 className="text-sm font-semibold text-on-surface leading-snug line-clamp-2">{lead.title}</h3>
-                      <div className="flex flex-wrap items-center gap-1.5 text-xs text-on-surface-variant font-data-label">
-                        <span className="text-secondary font-bold">r/{lead.subreddit}</span>
-                        <span>·</span><span>u/{lead.author}</span>
-                        {lead.score > 0 && <><span>·</span><span>↑{lead.score}</span></>}
-                        {lead.numComments > 0 && <><span>·</span><span>💬{lead.numComments}</span></>}
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${badge.cls}`}>
-                          {badge.icon} {badge.label}
-                        </span>
-                        {lead.urgency && lead.urgency !== 'low' && (
-                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-600 border border-orange-200">
-                            {lead.urgency === 'critical' ? '🚨' : '⏰'} {lead.urgency}
-                          </span>
-                        )}
-                        {lead.userType && lead.userType !== 'other' && (
-                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-primary-container text-on-primary-container">
-                            {lead.userType}
-                          </span>
-                        )}
-                      </div>
-                      {lead.painPoint && <p className="text-xs text-on-surface-variant italic line-clamp-1">"{lead.painPoint}"</p>}
-                      {lead.intentReason && <p className="text-xs text-primary">{lead.intentReason}</p>}
-                    </div>
-                    <div className="flex flex-col gap-1.5 shrink-0">
-                      <span className={`px-2.5 py-1 rounded-lg text-sm font-data-value text-center ${lead.intentScore >= 8 ? 'intent-hot' : lead.intentScore >= 5 ? 'intent-warm' : 'intent-cold'}`}>
-                        {lead.intentScore}/10
-                      </span>
-                      <a href={lead.link} target="_blank" rel="noreferrer"
-                        className="btn-primary text-xs py-1.5 px-3 text-center flex items-center gap-1 justify-center whitespace-nowrap">
-                        <span className="material-symbols-outlined text-[12px]">open_in_new</span>View
-                      </a>
-                      <button onClick={() => openReply(lead)}
-                        className="btn-teal text-xs py-1.5 px-3 flex items-center gap-1 justify-center whitespace-nowrap">
-                        <span className="material-symbols-outlined text-[12px]">auto_awesome</span>Reply
-                      </button>
-                      <button onClick={() => onSave(lead)}
-                        className="btn-ghost text-xs py-1.5 px-3 flex items-center gap-1 justify-center">
-                        <span className="material-symbols-outlined text-[12px]">bookmark_add</span>Save
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
-        )}
 
-        {/* Insights */}
-        {insights && (
-          <div className="bento-card p-4 space-y-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-on-surface">
-              <span className="material-symbols-outlined text-tertiary text-sm">insights</span>
-              Market Insights
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              {insights.topPainPoints?.length > 0 && (
-                <div>
-                  <div className="font-data-label text-on-surface-variant mb-1.5">PAIN POINTS</div>
-                  <ul className="space-y-1">{insights.topPainPoints.map((p, i) => <li key={i} className="text-on-surface">• {p}</li>)}</ul>
-                </div>
-              )}
-              {insights.trendingComplaints?.length > 0 && (
-                <div>
-                  <div className="font-data-label text-on-surface-variant mb-1.5">COMPLAINTS</div>
-                  <ul className="space-y-1">{insights.trendingComplaints.map((c, i) => <li key={i} className="text-on-surface">• {c}</li>)}</ul>
-                </div>
-              )}
-              {insights.saasIdeas?.length > 0 && (
-                <div>
-                  <div className="font-data-label text-on-surface-variant mb-1.5">SAAS IDEAS</div>
-                  <ul className="space-y-1">{insights.saasIdeas.map((s, i) => <li key={i} className="text-on-surface">💡 {s}</li>)}</ul>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Reply modal */}
-      {replyModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setReplyModal(null)}>
-          <div className="bento-card p-6 w-full max-w-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-headline text-base flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-sm">auto_awesome</span>AI Reply Generator
-              </h3>
-              <button onClick={() => setReplyModal(null)}>
-                <span className="material-symbols-outlined text-on-surface-variant">close</span>
-              </button>
-            </div>
-            <div className="text-xs font-data-label text-on-surface-variant mb-1">REPLYING TO</div>
-            <div className="text-sm font-medium text-on-surface mb-4 line-clamp-2">{replyModal.title}</div>
-            {replyLoading ? (
-              <div className="flex items-center gap-2 py-8 justify-center text-on-surface-variant text-sm">
-                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                Generating 3 reply variants...
-              </div>
-            ) : (
-              <>
-                <div className="flex gap-1 p-1 bg-surface-container-low rounded-lg mb-4">
-                  {[['helpful','💚 Helpful'],['authority','🧠 Authority'],['conversion','🎯 Conversion']].map(([key, label]) => (
-                    <button key={key} onClick={() => setReplyTab(key)}
-                      className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${replyTab === key ? 'bg-white text-on-surface shadow-sm' : 'text-on-surface-variant'}`}>
-                      {label}
-                    </button>
+          <div className="space-y-2">
+            {searchQueries.length > 0 && (
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] font-bold text-gray-300 uppercase tracking-tighter">Boolean Queries</span>
+                <div className="flex flex-wrap gap-1">
+                  {searchQueries.map((q, idx) => (
+                    <span key={idx} className="px-2 py-1 bg-white border border-gray-100 rounded-lg text-[10px] font-medium text-gray-600 font-mono">
+                      {typeof q === 'string' ? q : JSON.stringify(q)}
+                    </span>
                   ))}
                 </div>
-                <textarea
-                  className="input-field min-h-[140px] resize-y text-sm"
-                  value={replies[replyTab] || ''}
-                  onChange={e => setReplies(p => ({ ...p, [replyTab]: e.target.value }))}
-                />
-                <div className="flex gap-2 justify-end mt-4">
-                  <button onClick={() => setReplyModal(null)} className="btn-ghost text-sm">Cancel</button>
-                  <button onClick={() => copy(replies[replyTab] || '')} className="btn-primary text-sm flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">content_copy</span>Copy
-                  </button>
+              </div>
+            )}
+            
+            {selectedSubreddits.length > 0 && (
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] font-bold text-gray-300 uppercase tracking-tighter">Target Subreddits</span>
+                <div className="flex flex-wrap gap-1">
+                  {selectedSubreddits.map(s => (
+                    <span key={s} className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold">r/{s}</span>
+                  ))}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
       )}
 
-      {toast && <div className={`toast ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>{toast.msg}</div>}
+      {/* Lead Results */}
+      {leads.length > 0 ? (
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="flex justify-between items-center px-1">
+            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Qualified Prospects</h4>
+            {onExport && (
+              <button onClick={() => onExport(leads)} className="text-[10px] font-bold text-gray-400 hover:text-black flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">download</span> Export CSV
+              </button>
+            )}
+          </div>
+
+          <div className="grid gap-3">
+            {leads.map((lead, i) => {
+              const typeInfo = TYPE_CONFIG[lead.leadType] || { icon: '🎯', label: lead.leadType || 'Lead' };
+              return (
+                <div key={lead.id || i} className="p-5 border border-gray-100 rounded-2xl hover:border-black transition-all bg-white group hover:shadow-sm">
+                  <div className="flex justify-between items-start gap-4 mb-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold px-1.5 py-0.5 bg-gray-100 rounded-md text-gray-600">r/{lead.subreddit}</span>
+                        <span className="text-[10px] font-medium text-gray-400">u/{lead.author}</span>
+                      </div>
+                      <h3 className="font-bold text-base leading-tight hover:underline cursor-pointer">
+                        <a href={lead.link} target="_blank" rel="noreferrer">{lead.title}</a>
+                      </h3>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{typeInfo.icon} {typeInfo.label}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${lead.intentScore >= 9 ? 'bg-green-50 text-green-700' : 'bg-purple-50 text-purple-700'}`}>
+                          {lead.intentScore}/10 INTENT
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 shrink-0">
+                      <button onClick={() => onSave?.(lead)} className="w-9 h-9 border border-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors">
+                        <span className="material-symbols-outlined text-[18px]">bookmark</span>
+                      </button>
+                      <a href={lead.link} target="_blank" rel="noreferrer" className="w-9 h-9 bg-black text-white rounded-xl flex items-center justify-center hover:opacity-80 transition-opacity">
+                        <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  {lead.reasoning && (
+                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 mb-3">
+                      <div className="text-[9px] font-bold text-gray-400 uppercase mb-1 tracking-wider">AI Qualification reasoning</div>
+                      <p className="text-xs text-gray-700 font-medium leading-relaxed">{lead.reasoning}</p>
+                    </div>
+                  )}
+
+                  {lead.suggestedReply && (
+                    <div className="relative p-3 border border-dashed border-gray-200 rounded-xl hover:border-black transition-colors group/reply cursor-pointer" onClick={() => copy(lead.suggestedReply)}>
+                      <div className="text-[9px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Suggested Hook (Click to Copy)</div>
+                      <p className="text-xs text-gray-600 italic">"{lead.suggestedReply}"</p>
+                      <span className="absolute top-3 right-3 material-symbols-outlined text-gray-300 group-hover/reply:text-black text-[14px]">content_copy</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        isCompleted && !error && (
+          <div className="p-10 border border-dashed border-gray-200 rounded-2xl text-center space-y-4 animate-in zoom-in-95 duration-500">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+              <span className="material-symbols-outlined text-gray-300 text-[32px]">manage_search</span>
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-gray-900">No high-intent leads qualified</h3>
+              <p className="text-xs text-gray-500 max-w-[320px] mx-auto leading-relaxed">
+                I analyzed {totalScanned || 'all'} relevant posts found on Reddit, but none met our strict quality threshold (7/10 intent score). 
+                Try searching for specific **competitor names** or **direct pain points** to find more active prospects.
+              </p>
+            </div>
+          </div>
+        )
+      )}
+
+      {/* Insights Section */}
+      {insights && isCompleted && (
+        <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 space-y-4 animate-in fade-in duration-1000">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-gray-400 text-[20px]">analytics</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Market Intelligence</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {insights.topPainPoints?.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-gray-400 uppercase">Top Pain Points</span>
+                <ul className="space-y-1">
+                  {insights.topPainPoints.map((p, idx) => (
+                    <li key={idx} className="text-xs font-medium text-gray-700 flex items-start gap-2">
+                      <span className="text-purple-400 mt-1">•</span> {p}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {insights.saasIdeas?.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-gray-400 uppercase">Opportunity Gaps</span>
+                <ul className="space-y-1">
+                  {insights.saasIdeas.map((s, idx) => (
+                    <li key={idx} className="text-xs font-medium text-gray-700 flex items-start gap-2">
+                      <span className="text-teal-400 mt-1">💡</span> {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-24 right-4 z-50 px-4 py-2 bg-black text-white text-xs font-bold rounded-full shadow-xl animate-in fade-in slide-in-from-bottom-4">
+          {toast.msg}
+        </div>
+      )}
     </div>
   );
 }
