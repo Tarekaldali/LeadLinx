@@ -1,20 +1,26 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import ChatMessage from '@/components/ChatMessage';
 import { useDashboard } from './layout';
 
+import './dashboard.css';
+
 export default function DashboardPage() {
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
-  const { updateCredits, addChat, user } = useDashboard() || {};
+  const textareaRef = useRef(null);
+  const { updateCredits, addChat } = useDashboard() || {};
 
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  
   const messagesRef = useRef(messages);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
@@ -23,7 +29,7 @@ export default function DashboardPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Listen for sidebar events: new chat, load chat, use prompt
+  // Sidebar listeners
   useEffect(() => {
     const onNewChat = () => { setActiveChatId(null); setMessages([]); setInput(''); };
     const onLoadChat = async (e) => {
@@ -37,7 +43,7 @@ export default function DashboardPage() {
     };
     const onUsePrompt = (e) => {
       setInput(e.detail.prompt);
-      setTimeout(() => inputRef.current?.focus(), 100);
+      setTimeout(() => textareaRef.current?.focus(), 100);
     };
 
     window.addEventListener('newChat', onNewChat);
@@ -50,16 +56,7 @@ export default function DashboardPage() {
     };
   }, []);
 
-  // Auto-run ?q= from landing page
-  useEffect(() => {
-    const q = searchParams.get('q');
-    if (q) {
-      window.history.replaceState({}, '', '/dashboard');
-      setTimeout(() => sendMessage(q), 300);
-    }
-  }, []); // eslint-disable-line
-
-  // Scroll to bottom on new messages
+  // Scroll logic
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
@@ -81,7 +78,7 @@ export default function DashboardPage() {
         chatId = data.chatId;
         setActiveChatId(chatId);
         addChat?.({ _id: chatId, title: query.substring(0, 45), updatedAt: new Date() });
-      } catch { /* continue without persisting */ }
+      } catch { /* fail silent */ }
     }
 
     try {
@@ -93,25 +90,20 @@ export default function DashboardPage() {
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || 'Search failed');
-
       if (data.creditsRemaining !== undefined) updateCredits?.(data.creditsRemaining);
 
       const assistantMsg = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: query,
+        content: data.status === 'chat' ? data.message : query,
+        searchId: data.searchId,
+        status: data.status || 'processing',
         leads: data.leads || [],
         insights: data.insights || null,
-        selectedSubreddits: data.selectedSubreddits || [],
-        expandedQueries: data.expandedQueries || [],
-        totalScanned: data.totalPostsScanned || 0,
-        suggestedQueries: data.suggestedQueries || [],
-        planLimit: data.planLimit || 10,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, assistantMsg]);
 
-      // Persist to DB
       if (chatId) {
         const allMessages = [...messagesRef.current.filter(m => m.id !== userMsg.id), userMsg, assistantMsg];
         fetch(`/api/chats/${chatId}`, {
@@ -119,7 +111,6 @@ export default function DashboardPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: allMessages, title: query.substring(0, 50) }),
         }).catch(() => {});
-        addChat?.({ _id: chatId, title: query.substring(0, 45), updatedAt: new Date() });
       }
     } catch (err) {
       setMessages(prev => [...prev, {
@@ -127,7 +118,6 @@ export default function DashboardPage() {
         role: 'assistant',
         content: query,
         error: err.message,
-        leads: [],
         timestamp: new Date(),
       }]);
     } finally {
@@ -135,166 +125,109 @@ export default function DashboardPage() {
     }
   }, [input, loading, activeChatId, updateCredits, addChat]);
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  };
-
-  const exportCSV = (leads) => {
-    if (!leads?.length) return;
-    const headers = ['Title', 'Score', 'Reason', 'Subreddit', 'Link', 'Urgency', 'User Type'];
-    const rows = leads.map(l => [
-      `"${(l.title || '').replace(/"/g, '""')}"`,
-      l.intentScore || '',
-      `"${(l.intentReason || '').replace(/"/g, '""')}"`,
-      l.subreddit || '',
-      l.link || '',
-      l.urgency || '',
-      l.userType || '',
-    ]);
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'leads.csv'; a.click();
-    URL.revokeObjectURL(url);
-    showToast(`Exported ${leads.length} leads`);
-  };
-
-  const saveLead = async (lead) => {
-    try {
-      const res = await fetch('/api/leads/saved', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(lead),
-      });
-      const d = await res.json();
-      showToast(res.ok ? (d.message || 'Saved!') : (d.error || 'Failed'), res.ok ? 'success' : 'error');
-    } catch { showToast('Failed to save', 'error'); }
-  };
-
-  const handleSuggestionClick = useCallback((q) => {
+  const handleSuggestionClick = (q) => {
     setInput(q);
     setTimeout(() => sendMessage(q), 100);
-  }, [sendMessage]);
+  };
 
   return (
-    <div className="flex flex-col h-full bg-surface-dim">
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto">
-        {messages.length === 0 ? (
-          <WelcomeScreen onSuggestion={handleSuggestionClick} />
-        ) : (
-          <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-            {messages.map(msg => (
-              <ChatMessage
-                key={msg.id}
-                message={msg}
-                onSave={saveLead}
-                onExport={exportCSV}
-                onSuggestionClick={handleSuggestionClick}
-              />
-            ))}
-            {loading && messages[messages.length - 1]?.role === 'user' && (
-              <div className="flex gap-3 items-start">
-                <div className="w-8 h-8 rounded-full gradient-purple flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-white text-sm">smart_toy</span>
-                </div>
-                <div className="bento-card px-5 py-4 flex items-center gap-3">
-                  <div className="flex gap-1">
-                    {[0, 1, 2].map(i => (
-                      <div key={i} className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-                    ))}
+    <div className="dashboard-container">
+      <main className="main-content">
+        <div className="messages-area">
+          <div className="chat-max-width">
+            {messages.length === 0 ? (
+              <div className="welcome-focus animate-in">
+                <h1 className="welcome-title">How can I help you today?</h1>
+                <p className="welcome-subtitle">Search for leads, ask about business automation, or explore growth strategies.</p>
+                
+                <div className="suggestion-grid-minimal">
+                  <div className="suggestion-item" onClick={() => handleSuggestionClick("Find real estate agents in New York")}>
+                    <div className="suggestion-header">Find Prospects</div>
+                    <div className="suggestion-body">"Find real estate agents in New York looking for automation."</div>
                   </div>
-                  <span className="text-sm text-on-surface-variant">AI selecting subreddits and scanning...</span>
+                  <div className="suggestion-item" onClick={() => handleSuggestionClick("How can I automate my sales follow-ups?")}>
+                    <div className="suggestion-header">Automation Strategy</div>
+                    <div className="suggestion-body">"How can I automate my sales follow-ups with LeadLinx?"</div>
+                  </div>
+                  <div className="suggestion-item" onClick={() => handleSuggestionClick("Analyze r/SaaS for growth hacks")}>
+                    <div className="suggestion-header">Market Analysis</div>
+                    <div className="suggestion-body">"Analyze r/SaaS for the latest growth hacks and trends."</div>
+                  </div>
+                  <div className="suggestion-item" onClick={() => handleSuggestionClick("Write a cold email for digital agencies")}>
+                    <div className="suggestion-header">Content Creation</div>
+                    <div className="suggestion-body">"Write a high-converting cold email for digital agencies."</div>
+                  </div>
                 </div>
               </div>
+            ) : (
+              <div className="space-y-2">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className="message-bubble-human animate-in">
+                    <div className={`avatar-minimal ${msg.role === 'assistant' ? 'avatar-ai' : ''}`}>
+                      {msg.role === 'assistant' ? 'AI' : (session?.user?.name?.[0] || 'U')}
+                    </div>
+                    <div className="message-text">
+                      <ChatMessage message={msg} />
+                    </div>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="message-bubble-human animate-in">
+                    <div className="avatar-minimal avatar-ai">AI</div>
+                    <div className="message-text">
+                       <div className="flex gap-1.5 mt-2">
+                         <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce"></div>
+                         <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                         <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                       </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
             )}
-            <div ref={messagesEndRef} />
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Input bar */}
-      <div className="border-t border-border-glass bg-white px-4 py-4 shrink-0">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex gap-3 items-end bg-surface-container-low border border-outline-variant rounded-2xl px-4 py-3 focus-within:border-primary focus-within:shadow-sm transition-all">
+        <div className="input-container">
+          <div className="input-box-engineered">
             <textarea
-              ref={inputRef}
+              ref={textareaRef}
+              className="textarea-engineered"
+              placeholder="Ask anything..."
               rows={1}
-              className="flex-1 bg-transparent resize-none outline-none text-on-surface text-sm font-body placeholder:text-on-surface-variant max-h-32"
-              placeholder="Describe the buyers you're looking for... e.g. 'people frustrated with Shopify fees'"
               value={input}
-              onChange={e => {
+              onChange={(e) => {
                 setInput(e.target.value);
                 e.target.style.height = 'auto';
-                e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
+                e.target.style.height = Math.min(e.target.scrollHeight, 192) + 'px';
               }}
-              onKeyDown={handleKeyDown}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
             />
-            <button
+            <button 
+              className="action-btn-minimal"
               onClick={() => sendMessage()}
               disabled={loading || !input.trim()}
-              className="w-9 h-9 rounded-xl gradient-purple flex items-center justify-center transition-all disabled:opacity-40 shrink-0"
             >
-              {loading
-                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : <span className="material-symbols-outlined text-white text-sm">send</span>
-              }
+              <span className="material-symbols-outlined text-[20px]">arrow_upward</span>
             </button>
           </div>
-          <p className="text-center text-xs text-on-surface-variant mt-2">
-            AI automatically selects buyer communities on Reddit
-          </p>
+          <div className="max-w-[800px] mx-auto mt-3 px-1 text-[10px] text-gray-400 font-medium tracking-tight uppercase letter-spacing-[0.05em]">
+            LeadLinx AI • Reddit Intelligence Engine
+          </div>
         </div>
-      </div>
+      </main>
 
-      {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-24 right-4 z-50 px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg animate-scale-in ${
+        <div className={`fixed bottom-24 right-4 z-50 px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg animate-in ${
           toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'
         }`}>{toast.msg}</div>
       )}
-    </div>
-  );
-}
-
-function WelcomeScreen({ onSuggestion }) {
-  const examples = [
-    { icon: '🔍', text: 'People frustrated with Salesforce pricing', label: 'CRM' },
-    { icon: '🎨', text: 'Looking for AI image generation tools', label: 'AI Tools' },
-    { icon: '🛒', text: 'Switching from Shopify to alternatives', label: 'Ecommerce' },
-    { icon: '📊', text: 'Need a better analytics dashboard', label: 'Analytics' },
-    { icon: '📧', text: 'Email marketing platform too expensive', label: 'Marketing' },
-    { icon: '🚀', text: 'Looking for project management tool', label: 'Productivity' },
-  ];
-  return (
-    <div className="flex-1 flex items-center justify-center min-h-full py-12 px-4">
-      <div className="max-w-2xl w-full text-center space-y-8">
-        <div>
-          <div className="w-16 h-16 rounded-2xl gradient-purple flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="material-symbols-outlined text-white text-3xl">smart_toy</span>
-          </div>
-          <h1 className="text-2xl font-headline text-on-surface mb-2">Find Your Best Leads</h1>
-          <p className="text-on-surface-variant">Tell me what kind of buyers you&apos;re looking for. I&apos;ll find the right Reddit communities and surface high-intent prospects.</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
-          {examples.map((ex) => (
-            <button
-              key={ex.text}
-              onClick={() => onSuggestion(ex.text)}
-              className="bento-card p-4 text-left hover:border-primary/30 transition-all group"
-            >
-              <div className="flex items-start gap-3">
-                <span className="text-xl">{ex.icon}</span>
-                <div>
-                  <div className="text-xs font-data-label text-primary mb-1">{ex.label}</div>
-                  <div className="text-sm text-on-surface group-hover:text-primary transition-colors">{ex.text}</div>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
