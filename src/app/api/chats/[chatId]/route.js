@@ -9,7 +9,10 @@ export async function GET(request, { params }) {
   try {
     const { chatId } = await params;
     const db = await getDb();
-    const chat = await db.collection('chats').findOne({ _id: new ObjectId(chatId), userId: new ObjectId(authResult.user.userId) });
+    const chat = await db.collection('chats').findOne({ 
+      _id: new ObjectId(chatId), 
+      userId: new ObjectId(authResult.user.id) 
+    });
     if (!chat) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ chat });
   } catch (e) { return NextResponse.json({ error: 'Failed' }, { status: 500 }); }
@@ -23,7 +26,7 @@ export async function PATCH(request, { params }) {
     const { messages, title } = await request.json();
     const db = await getDb();
     await db.collection('chats').updateOne(
-      { _id: new ObjectId(chatId), userId: new ObjectId(authResult.user.userId) },
+      { _id: new ObjectId(chatId), userId: new ObjectId(authResult.user.id) },
       { $set: { messages, title, updatedAt: new Date() } }
     );
     return NextResponse.json({ ok: true });
@@ -36,7 +39,10 @@ export async function DELETE(request, { params }) {
   try {
     const { chatId } = await params;
     const db = await getDb();
-    await db.collection('chats').deleteOne({ _id: new ObjectId(chatId), userId: new ObjectId(authResult.user.userId) });
+    await db.collection('chats').deleteOne({ 
+      _id: new ObjectId(chatId), 
+      userId: new ObjectId(authResult.user.id) 
+    });
     return NextResponse.json({ ok: true });
   } catch (e) { return NextResponse.json({ error: 'Failed' }, { status: 500 }); }
 }
