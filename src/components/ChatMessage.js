@@ -92,50 +92,85 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
             )}
           </div>
 
-          <div className="grid gap-3">
+          <div className="grid gap-4">
             {leads.map((lead, i) => {
               const typeInfo = TYPE_CONFIG[lead.leadType] || { icon: '🎯', label: lead.leadType || 'Lead' };
+              const score = lead.score || lead.intentScore || 0; // fallback
+              const isHot = score >= 80 || (score <= 10 && score >= 8); // handles both 0-100 and 0-10 formats
+              const displayScore = score > 10 ? score : score * 10;
+              
               return (
-                <div key={lead.id || i} className="p-5 border border-gray-100 rounded-2xl hover:border-black transition-all bg-white group hover:shadow-sm">
-                  <div className="flex justify-between items-start gap-4 mb-3">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold px-1.5 py-0.5 bg-gray-100 rounded-md text-gray-600">r/{lead.subreddit}</span>
-                        <span className="text-[10px] font-medium text-gray-400">u/{lead.author}</span>
+                <div key={lead.id || i} className="p-5 border border-gray-100 rounded-2xl hover:border-blue-200 transition-all bg-white group hover:shadow-md relative overflow-hidden">
+                  {/* Decorative gradient for hot leads */}
+                  {isHot && <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-green-400 to-emerald-600" />}
+                  
+                  <div className="flex justify-between items-start gap-4 mb-4">
+                    <div className="space-y-3 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-gray-100 rounded-md text-gray-600 uppercase tracking-wider">{lead.subreddit}</span>
+                        <span className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px]">person</span>
+                          {lead.author} {lead.company ? `· ${lead.company}` : ''}
+                        </span>
+                        
+                        <span className={`ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm ${isHot ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                          <span className="material-symbols-outlined text-[12px]">{isHot ? 'local_fire_department' : 'analytics'}</span>
+                          {displayScore}/100 INTENT
+                        </span>
                       </div>
-                      <h3 className="font-bold text-base leading-tight hover:underline cursor-pointer">
+                      
+                      <h3 className="font-bold text-[15px] text-gray-900 leading-snug hover:text-blue-600 transition-colors cursor-pointer">
                         <a href={lead.link} target="_blank" rel="noreferrer">{lead.title}</a>
                       </h3>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{typeInfo.icon} {typeInfo.label}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${lead.intentScore >= 9 ? 'bg-green-50 text-green-700' : 'bg-purple-50 text-purple-700'}`}>
-                          {lead.intentScore}/10 INTENT
-                        </span>
+
+                      {/* Contact Info Badges */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {lead.emails?.map((e, idx) => (
+                          <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 rounded-md border border-purple-100 text-[11px] font-medium cursor-pointer hover:bg-purple-100 transition-colors" onClick={() => copy(e)}>
+                            <span className="material-symbols-outlined text-[14px]">mail</span> {e}
+                          </div>
+                        ))}
+                        {lead.phones?.map((p, idx) => (
+                          <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-100 text-[11px] font-medium cursor-pointer hover:bg-orange-100 transition-colors" onClick={() => copy(p)}>
+                            <span className="material-symbols-outlined text-[14px]">call</span> {p}
+                          </div>
+                        ))}
+                        {lead.socials?.map((s, idx) => (
+                          <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-700 rounded-md border border-slate-200 text-[11px] font-medium cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => copy(s)}>
+                            <span className="material-symbols-outlined text-[14px]">alternate_email</span> {s}
+                          </div>
+                        ))}
                       </div>
                     </div>
                     
                     <div className="flex flex-col gap-2 shrink-0">
-                      <button onClick={() => onSave?.(lead)} className="w-9 h-9 border border-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors">
-                        <span className="material-symbols-outlined text-[18px]">bookmark</span>
+                      <button onClick={() => onSave?.(lead)} className="w-10 h-10 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 hover:text-blue-600 transition-colors text-gray-400 group-hover:border-gray-300">
+                        <span className="material-symbols-outlined text-[20px]">bookmark</span>
                       </button>
-                      <a href={lead.link} target="_blank" rel="noreferrer" className="w-9 h-9 bg-black text-white rounded-xl flex items-center justify-center hover:opacity-80 transition-opacity">
-                        <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                      <a href={lead.link} target="_blank" rel="noreferrer" className="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center hover:bg-blue-600 transition-colors shadow-sm">
+                        <span className="material-symbols-outlined text-[20px]">open_in_new</span>
                       </a>
                     </div>
                   </div>
 
-                  {lead.reasoning && (
-                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 mb-3">
-                      <div className="text-[9px] font-bold text-gray-400 uppercase mb-1 tracking-wider">AI Qualification reasoning</div>
-                      <p className="text-xs text-gray-700 font-medium leading-relaxed">{lead.reasoning}</p>
+                  {lead.body && (
+                    <div className="p-3.5 bg-blue-50/50 rounded-xl border border-blue-100/50 mb-3">
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-400 uppercase mb-1.5 tracking-wider">
+                        <span className="material-symbols-outlined text-[14px]">psychology</span>
+                        AI Qualification Reasoning
+                      </div>
+                      <p className="text-[13px] text-slate-700 font-medium leading-relaxed">{lead.body}</p>
                     </div>
                   )}
 
                   {lead.suggestedReply && (
-                    <div className="relative p-3 border border-dashed border-gray-200 rounded-xl hover:border-black transition-colors group/reply cursor-pointer" onClick={() => copy(lead.suggestedReply)}>
-                      <div className="text-[9px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Suggested Hook (Click to Copy)</div>
-                      <p className="text-xs text-gray-600 italic">"{lead.suggestedReply}"</p>
-                      <span className="absolute top-3 right-3 material-symbols-outlined text-gray-300 group-hover/reply:text-black text-[14px]">content_copy</span>
+                    <div className="relative p-3.5 border border-dashed border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50/30 transition-all group/reply cursor-pointer mt-3" onClick={() => copy(lead.suggestedReply)}>
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase mb-1.5 tracking-wider group-hover/reply:text-blue-500 transition-colors">
+                        <span className="material-symbols-outlined text-[14px]">edit_note</span>
+                        Suggested Hook (Click to Copy)
+                      </div>
+                      <p className="text-[13px] text-gray-600 italic">"{lead.suggestedReply}"</p>
+                      <span className="absolute top-3.5 right-3.5 material-symbols-outlined text-gray-300 group-hover/reply:text-blue-500 text-[16px] transition-colors">content_copy</span>
                     </div>
                   )}
                 </div>

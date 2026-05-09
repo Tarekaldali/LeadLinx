@@ -61,16 +61,12 @@ export default function DashboardLayout({ children }) {
     await signOut({ callbackUrl: '/' });
   };
 
+  const [localCredits, setLocalCredits] = useState(null);
+
   const updateCredits = useCallback(async (newCredits) => {
-    // Update the session data locally and on the server
-    await update({ 
-      ...session,
-      user: {
-        ...session?.user,
-        credits: newCredits
-      }
-    });
-  }, [session, update]);
+    setLocalCredits(newCredits);
+    // Don't call update() from next-auth as it forces a hard refresh on some versions.
+  }, []);
 
   const addChat = useCallback((chat) => {
     setChats(prev => [chat, ...prev.filter(c => c._id !== chat._id)]);
@@ -105,7 +101,8 @@ export default function DashboardLayout({ children }) {
 
   const tierConfig = getTierConfig(user?.plan);
   const maxCredits = tierConfig.maxCredits;
-  const creditsPercent = Math.min(100, Math.round((user?.credits / maxCredits) * 100));
+  const currentCredits = localCredits !== null ? localCredits : (user?.credits || 0);
+  const creditsPercent = Math.min(100, Math.round((currentCredits / maxCredits) * 100));
   const filteredPrompts = promptFilter === 'All' ? PROMPT_LIBRARY : PROMPT_LIBRARY.filter(p => p.category === promptFilter);
 
   const Sidebar = (
@@ -239,7 +236,7 @@ export default function DashboardLayout({ children }) {
             <Link href="/pricing" className="text-xs text-primary font-medium hover:underline">Upgrade</Link>
           </div>
           <div className="text-lg font-bold text-sidebar-fg mb-1.5">
-            {user?.credits?.toLocaleString() || 0}
+            {currentCredits.toLocaleString()}
             <span className="text-sidebar-muted font-normal text-sm"> / {maxCredits.toLocaleString()}</span>
           </div>
           <div className="h-1.5 rounded-full bg-sidebar-hover overflow-hidden">
@@ -296,7 +293,7 @@ export default function DashboardLayout({ children }) {
               <span className="material-symbols-outlined">menu</span>
             </button>
             <span className="font-bold text-sidebar-fg flex-1 text-sm">LeadLinx</span>
-            <span className="text-xs text-sidebar-muted">{user?.credits} credits</span>
+            <span className="text-xs text-sidebar-muted">{currentCredits} credits</span>
           </div>
 
           {/* Page content */}

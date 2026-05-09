@@ -11,6 +11,13 @@ export async function verifyPassword(password, hashedPassword) {
   return bcrypt.compare(password, hashedPassword);
 }
 
+export function generateToken(payload) {
+  // Dummy or real JWT implementation if needed by custom routes
+  // Next-auth handles the actual session tokens
+  const jwt = require('jsonwebtoken');
+  return jwt.sign(payload, process.env.NEXTAUTH_SECRET || 'fallback', { expiresIn: '7d' });
+}
+
 export async function getCurrentUser() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return null;

@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  
+
   const messagesRef = useRef(messages);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
@@ -110,7 +110,7 @@ export default function DashboardPage() {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: allMessages, title: query.substring(0, 50) }),
-        }).catch(() => {});
+        }).catch(() => { });
       }
     } catch (err) {
       setMessages(prev => [...prev, {
@@ -139,7 +139,7 @@ export default function DashboardPage() {
               <div className="welcome-focus animate-in">
                 <h1 className="welcome-title">How can I help you today?</h1>
                 <p className="welcome-subtitle">Search for leads, ask about business automation, or explore growth strategies.</p>
-                
+
                 <div className="suggestion-grid-minimal">
                   <div className="suggestion-item" onClick={() => handleSuggestionClick("Find real estate agents in New York")}>
                     <div className="suggestion-header">Find Prospects</div>
@@ -175,11 +175,11 @@ export default function DashboardPage() {
                   <div className="message-bubble-human animate-in">
                     <div className="avatar-minimal avatar-ai">AI</div>
                     <div className="message-text">
-                       <div className="flex gap-1.5 mt-2">
-                         <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce"></div>
-                         <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                         <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                       </div>
+                      <div className="flex gap-1.5 mt-2">
+                        <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -209,7 +209,7 @@ export default function DashboardPage() {
                 }
               }}
             />
-            <button 
+            <button
               className="action-btn-minimal"
               onClick={() => sendMessage()}
               disabled={loading || !input.trim()}
@@ -224,9 +224,8 @@ export default function DashboardPage() {
       </main>
 
       {toast && (
-        <div className={`fixed bottom-24 right-4 z-50 px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg animate-in ${
-          toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'
-        }`}>{toast.msg}</div>
+        <div className={`fixed bottom-24 right-4 z-50 px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg animate-in ${toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'
+          }`}>{toast.msg}</div>
       )}
     </div>
   );

@@ -42,7 +42,7 @@ export async function getDb() {
 
   if (!isInitialized) {
     try {
-      const collections = ['users', 'searches', 'leads', 'alerts', 'subscriptions', 'logs', 'blog', 'saved_leads', 'ai_usage', 'chats'];
+      const collections = ['users', 'searches', 'leads', 'alerts', 'subscriptions', 'logs', 'blog', 'saved_leads', 'ai_usage', 'chats', 'harvested_leads', 'harvest_jobs'];
       const existingCollections = await db.listCollections().toArray();
       const existingNames = existingCollections.map(c => c.name);
 

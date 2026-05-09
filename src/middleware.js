@@ -27,6 +27,7 @@ export const config = {
     "/admin/:path*",
     "/api/leads/:path*",
     "/api/admin/:path*",
+    "/api/harvester/:path*",
     "/login",
     "/signup"
   ],
