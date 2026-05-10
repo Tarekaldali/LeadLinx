@@ -38,9 +38,9 @@ export default function AdminSearchesPage() {
                   <YAxis dataKey="_id" type="category" width={120} stroke="#9ca3af" tick={{ fontSize: 11 }} />
                   <Tooltip
                     contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                    itemStyle={{ color: '#7c3aed' }}
+                    itemStyle={{ color: '#dc2626' }}
                   />
-                  <Bar dataKey="count" fill="#7c3aed" radius={[0, 6, 6, 0]} />
+                  <Bar dataKey="count" fill="#dc2626" radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

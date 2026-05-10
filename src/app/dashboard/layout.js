@@ -312,7 +312,7 @@ export default function DashboardLayout({ children }) {
       {/* Prompt Library Modal */}
       {promptLibraryOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setPromptLibraryOpen(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[80vh] flex flex-col animate-scale-in" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-surface rounded-2xl w-full max-w-3xl max-h-[80vh] flex flex-col animate-scale-in" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="p-6 border-b border-border-glass">
               <div className="flex items-center justify-between mb-2">

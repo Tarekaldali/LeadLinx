@@ -24,10 +24,6 @@ export default async function PricingPage() {
       <main className="flex-1 pb-24">
         {/* Header Section */}
         <div className="max-w-7xl mx-auto px-6 mt-24 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-container/50 border border-primary/10 text-xs font-data-label text-primary mb-6 animate-fade-in">
-            <span className="material-symbols-outlined text-sm">workspace_premium</span>
-            PREMIUM PLANS
-          </div>
           <h1 className="text-4xl md:text-6xl font-display font-bold mb-6 tracking-tight animate-fade-in">
             Choose your <span className="text-primary">growth</span> engine
           </h1>

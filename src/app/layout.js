@@ -28,10 +28,11 @@ export const metadata = {
 };
 
 import GoogleProviderWrapper from '@/components/GoogleProviderWrapper';
+import ThemeProvider from '@/components/ThemeProvider';
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -59,9 +60,11 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="antialiased">
-        <GoogleProviderWrapper>
-          {children}
-        </GoogleProviderWrapper>
+        <ThemeProvider>
+          <GoogleProviderWrapper>
+            {children}
+          </GoogleProviderWrapper>
+        </ThemeProvider>
       </body>
     </html>
   );

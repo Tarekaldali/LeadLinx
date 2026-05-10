@@ -36,6 +36,7 @@ export default function AdminCostsPage() {
           onChange={e => setDays(Number(e.target.value))}
           className="input-field py-2 px-3 w-36 text-sm"
         >
+          <option value={1}>Last 1 day</option>
           <option value={7}>Last 7 days</option>
           <option value={30}>Last 30 days</option>
           <option value={90}>Last 90 days</option>

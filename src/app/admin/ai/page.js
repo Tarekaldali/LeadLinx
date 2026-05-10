@@ -75,7 +75,7 @@ export default function AdminAIPage() {
                 <Tooltip
                   contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                 />
-                <Line type="monotone" dataKey="count" stroke="#7c3aed" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="count" stroke="#dc2626" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>

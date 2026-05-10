@@ -18,14 +18,14 @@
   --color-inverse-surface: #2e3038;
   --color-inverse-on-surface: #f2f3f8;
 
-  /* Primary — Modern Purple */
-  --color-primary: #7c3aed;
+  /* Primary — Modern Red */
+  --color-primary: #dc2626;
   --color-on-primary: #ffffff;
-  --color-primary-container: #ede9fe;
-  --color-on-primary-container: #4c1d95;
-  --color-inverse-primary: #a78bfa;
-  --color-primary-fixed: #ede9fe;
-  --color-primary-fixed-dim: #c4b5fd;
+  --color-primary-container: #fef2f2;
+  --color-on-primary-container: #991b1b;
+  --color-inverse-primary: #f87171;
+  --color-primary-fixed: #fef2f2;
+  --color-primary-fixed-dim: #fca5a5;
 
   /* Secondary — Soft Teal */
   --color-secondary: #0d9488;
@@ -54,11 +54,11 @@
   --color-outline-variant: #e5e7eb;
   --color-border-glass: #e5e7eb;
   --color-surface-variant: #f3f4f6;
-  --color-surface-tint: #7c3aed;
+  --color-surface-tint: #dc2626;
 
   /* Functional accents */
   --color-hot-pink: #ef4444;
-  --color-electric-blue: #7c3aed;
+  --color-electric-blue: #dc2626;
   --color-lime-green: #10b981;
   --color-deep-bg: #fafbfd;
 
@@ -75,8 +75,29 @@
   --color-sidebar-fg: #f1f3f9;
   --color-sidebar-muted: #6b7280;
   --color-sidebar-hover: rgba(255, 255, 255, 0.07);
-  --color-sidebar-active: rgba(124, 58, 237, 0.15);
+  --color-sidebar-active: rgba(220, 38, 38, 0.15);
   --color-sidebar-border: rgba(255, 255, 255, 0.07);
+}
+
+.dark {
+  --color-background: #09090b;
+  --color-surface: #18181b;
+  --color-surface-dim: #09090b;
+  --color-surface-bright: #27272a;
+  --color-surface-container-lowest: #000000;
+  --color-surface-container-low: #09090b;
+  --color-surface-container: #18181b;
+  --color-surface-container-high: #27272a;
+  --color-surface-container-highest: #3f3f46;
+
+  --color-on-surface: #f4f4f5;
+  --color-on-surface-variant: #a1a1aa;
+  --color-inverse-surface: #ffffff;
+  --color-inverse-on-surface: #09090b;
+
+  --color-border-glass: #27272a;
+  --color-outline: #52525b;
+  --color-outline-variant: #3f3f46;
 }
 
 /* === BASE STYLES === */
@@ -100,6 +121,12 @@ body {
 ::selection {
   background: var(--color-primary);
   color: var(--color-on-primary);
+}
+
+/* Brand Gradient (Red) */
+.gradient-purple,
+.gradient-primary {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
 }
 
 /* Scrollbar */
@@ -171,8 +198,8 @@ body {
 }
 
 .bento-card:hover {
-  border-color: rgba(124, 58, 237, 0.2);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-color: rgba(220, 38, 38, 0.2);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* === GLASS EFFECT === */
@@ -191,8 +218,8 @@ body {
   box-shadow: 0 0 12px -4px rgba(13, 148, 136, 0.4);
 }
 
-.ai-glow-purple {
-  box-shadow: 0 0 12px -4px rgba(124, 58, 237, 0.4);
+.ai-glow-primary {
+  box-shadow: 0 0 12px -4px rgba(220, 38, 38, 0.4);
 }
 
 /* === INTENT BADGES === */
@@ -235,9 +262,9 @@ body {
 }
 
 .btn-primary:hover {
-  filter: brightness(1.1);
+  background: #b91c1c;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
 }
 
 .btn-primary:active {
@@ -327,7 +354,7 @@ body {
 
 .input-field:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 /* === SIDEBAR === */
@@ -454,8 +481,8 @@ body {
 }
 
 .badge-enterprise {
-  background: rgba(124, 58, 237, 0.1);
-  color: #7c3aed;
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
 }
 
 /* === ANIMATIONS === */
@@ -611,8 +638,8 @@ body {
 }
 
 /* === GRADIENT ACCENTS === */
-.gradient-purple {
-  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+.gradient-primary {
+  background: linear-gradient(135deg, #dc2626, #f87171);
 }
 
 .gradient-teal {
@@ -666,9 +693,9 @@ body {
   border: 1px solid rgba(13, 148, 136, 0.2);
 }
 
-/* === GRADIENT PURPLE (AI avatar, send button) === */
-.gradient-purple {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+/* === GRADIENT PRIMARY (AI avatar, send button) === */
+.gradient-primary {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
 }
 
 /* === SCALE-IN ANIMATION === */
@@ -744,13 +771,13 @@ body {
 }
 
 .sidebar-item-action {
-  background: rgba(124, 58, 237, 0.12);
+  background: rgba(220, 38, 38, 0.12);
   color: var(--color-sidebar-fg);
-  border: 1px solid rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .sidebar-item-action:hover {
-  background: rgba(124, 58, 237, 0.2);
+  background: rgba(220, 38, 38, 0.2);
 }
 
 .sidebar-divider {

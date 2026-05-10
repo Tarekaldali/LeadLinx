@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import ChatMessage from '@/components/ChatMessage';
@@ -10,6 +10,7 @@ import './dashboard.css';
 
 export default function DashboardPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { data: session } = useSession();
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -61,8 +62,9 @@ export default function DashboardPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
+  const hasAutoFired = useRef(false);
   const sendMessage = useCallback(async (overrideInput) => {
-    const query = (overrideInput || input).trim();
+    const query = (typeof overrideInput === 'string' ? overrideInput : input).trim();
     if (!query || loading) return;
     setInput('');
     setLoading(true);
@@ -124,6 +126,16 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }, [input, loading, activeChatId, updateCredits, addChat]);
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q && !hasAutoFired.current) {
+      hasAutoFired.current = true;
+      setInput(q);
+      router.replace('/dashboard', { scroll: false });
+      setTimeout(() => sendMessage(q), 100);
+    }
+  }, [searchParams, sendMessage]);
 
   const handleSuggestionClick = (q) => {
     setInput(q);

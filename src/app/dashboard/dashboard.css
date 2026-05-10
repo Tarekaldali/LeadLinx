@@ -9,8 +9,18 @@
   --db-border: #eeeeee;
   --db-text: #111111;
   --db-muted: #717171;
-  --db-accent: #7c3aed;
+  --db-accent: #dc2626;
   --db-input-bg: #ffffff;
+}
+
+.dark {
+  --db-bg: #09090b;
+  --db-sidebar: #18181b;
+  --db-border: #27272a;
+  --db-text: #f4f4f5;
+  --db-muted: #a1a1aa;
+  --db-accent: #dc2626;
+  --db-input-bg: #18181b;
 }
 
 .dashboard-container {
@@ -155,9 +165,17 @@
   transition: all 0.2s ease;
 }
 
+.dark .suggestion-item {
+  background: var(--db-input-bg);
+}
+
 .suggestion-item:hover {
   border-color: var(--db-text);
   background: #fafafa;
+}
+
+.dark .suggestion-item:hover {
+  background: #27272a;
 }
 
 .suggestion-header {
@@ -175,7 +193,7 @@
 /* --- Message Bubbles (Crafted) --- */
 .message-bubble-human {
   padding: 1.5rem 0;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--db-border);
   display: flex;
   gap: 1.5rem;
 }

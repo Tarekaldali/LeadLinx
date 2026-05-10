@@ -8,7 +8,7 @@
   --ch-bg: #ffffff;
   --ch-text: #0a0a0a;
   --ch-muted: #666666;
-  --ch-accent: #7c3aed;
+  --ch-accent: #dc2626;
   --ch-border: #eeeeee;
   --ch-input-bg: #f9f9f9;
 }
@@ -104,7 +104,7 @@
   outline: none;
   border-color: var(--ch-accent);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .input-row {

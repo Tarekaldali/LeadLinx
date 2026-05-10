@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import Link from 'next/link';
+import { useTheme } from 'next-themes';
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: 'person' },
@@ -13,6 +14,8 @@ const TABS = [
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -35,6 +38,10 @@ export default function SettingsPage() {
       setName(session.user.name || '');
     }
   }, [status, session]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     fetch('/api/settings/keywords')
@@ -279,7 +286,14 @@ export default function SettingsPage() {
                   </div>
                   
                   <div className="flex flex-col gap-3 w-full md:w-auto">
-                    <button className="px-5 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm text-center">
+                    <button
+                      onClick={async () => {
+                        const res = await fetch('/api/stripe/portal', { method: 'POST' });
+                        const data = await res.json();
+                        if (data.url) window.location.href = data.url;
+                      }}
+                      className="px-5 py-2 bg-black dark:bg-white dark:text-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-sm text-center"
+                    >
                       Manage Billing
                     </button>
                     {user?.plan === 'free' && (
@@ -330,10 +344,17 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-end gap-3">
-                        <button className="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm text-center">
+                        <button className="px-5 py-2 bg-white dark:bg-surface-container border border-gray-300 dark:border-border-glass text-gray-700 dark:text-on-surface-variant rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-surface-container-high transition-colors shadow-sm text-center">
                           Download Latest Invoice
                         </button>
-                        <button className="px-5 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm text-center">
+                        <button
+                          onClick={async () => {
+                            const res = await fetch('/api/stripe/portal', { method: 'POST' });
+                            const data = await res.json();
+                            if (data.url) window.location.href = data.url;
+                          }}
+                          className="px-5 py-2 bg-black dark:bg-white dark:text-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-sm text-center"
+                        >
                           Update Payment Method
                         </button>
                       </div>
@@ -347,11 +368,50 @@ export default function SettingsPage() {
           {/* Preferences Tab */}
           {activeTab === 'preferences' && (
             <div className="space-y-6 animate-fade-in">
+              {/* Appearance */}
+              <div className="bg-white dark:bg-surface rounded-2xl border border-gray-200 dark:border-border-glass shadow-sm overflow-hidden">
+                <div className="px-6 py-5 border-b border-gray-100 dark:border-border-glass">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-on-surface">Appearance</h2>
+                  <p className="text-sm text-gray-500 dark:text-on-surface-variant">Customize how LeadLinx looks on your device.</p>
+                </div>
+                <div className="p-6">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    {/* Light Theme */}
+                    <button
+                      onClick={() => setTheme('light')}
+                      className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                        mounted && theme === 'light' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
+                      }`}
+                    >
+                      <div className="w-16 h-12 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-gray-400">light_mode</span>
+                      </div>
+                      <span className={`text-sm font-medium ${mounted && theme === 'light' ? 'text-primary' : 'text-gray-700 dark:text-gray-300'}`}>Light</span>
+                    </button>
+
+                    {/* Dark Theme */}
+                    <button
+                      onClick={() => setTheme('dark')}
+                      className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                        mounted && theme === 'dark' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
+                      }`}
+                    >
+                      <div className="w-16 h-12 rounded-md bg-gray-900 border border-gray-800 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-gray-500">dark_mode</span>
+                      </div>
+                      <span className={`text-sm font-medium ${mounted && theme === 'dark' ? 'text-primary' : 'text-gray-700 dark:text-gray-300'}`}>Dark</span>
+                    </button>
+
+
+                  </div>
+                </div>
+              </div>
+
               {/* Notifications */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-gray-100">
-                  <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
-                  <p className="text-sm text-gray-500">Manage what emails you receive from LeadLinx.</p>
+              <div className="bg-white dark:bg-surface rounded-2xl border border-gray-200 dark:border-border-glass shadow-sm overflow-hidden">
+                <div className="px-6 py-5 border-b border-gray-100 dark:border-border-glass">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-on-surface">Notifications</h2>
+                  <p className="text-sm text-gray-500 dark:text-on-surface-variant">Manage what emails you receive from LeadLinx.</p>
                 </div>
                 <div className="p-6 space-y-6">
                   <div className="flex items-center justify-between">

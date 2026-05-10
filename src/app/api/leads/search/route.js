@@ -73,13 +73,19 @@ export async function POST(request) {
     const leadCost = Math.floor(result.leads.length / 5);
     const totalCost = baseCost + leadCost;
 
-    await db.collection('users').updateOne(
-      { _id: userId },
-      {
-        $inc: { credits: -totalCost },
-        $set: { updatedAt: new Date() },
-      }
-    );
+    // Prevent negative balance
+    const currentUser = await db.collection('users').findOne({ _id: userId });
+    const safeDeduction = Math.min(totalCost, currentUser?.credits || 0);
+
+    if (safeDeduction > 0) {
+      await db.collection('users').updateOne(
+        { _id: userId, credits: { $gte: safeDeduction } },
+        {
+          $inc: { credits: -safeDeduction },
+          $set: { updatedAt: new Date() },
+        }
+      );
+    }
 
     const updatedUser = await db.collection('users').findOne({ _id: userId });
 
@@ -103,6 +109,35 @@ export async function POST(request) {
       score: l.score || 0,
       leadType: result.route_data?.targetType === 'b2c' ? 'B2C (Consumer)' : 'B2B (Business)',
     }));
+
+    // 5b. Store leads in the 'leads' collection in MongoDB
+    if (leads.length > 0) {
+      const leadsToStore = leads.map(l => ({
+        userId,
+        chatId: chatId || null,
+        searchQuery: query,
+        leadId: l.id,
+        author: l.author,
+        company: l.company,
+        title: l.title,
+        body: l.body,
+        link: l.link,
+        source: l.subreddit,
+        emails: l.emails,
+        phones: l.phones,
+        socials: l.socials,
+        score: l.score,
+        leadType: l.leadType,
+        createdAt: new Date(),
+      }));
+
+      try {
+        await db.collection('leads').insertMany(leadsToStore, { ordered: false });
+      } catch (e) {
+        // Ignore duplicate key errors if leads already exist
+        if (e.code !== 11000) console.error('Lead storage error:', e);
+      }
+    }
 
     // 6. Log search for analytics
     await db.collection('searches').insertOne({

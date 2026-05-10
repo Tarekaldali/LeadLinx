@@ -56,7 +56,7 @@ export default function AnimatedSearchBar() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    router.push('/dashboard');
+    router.push(`/dashboard?q=${encodeURIComponent(inputValue)}`);
   };
 
   return (
@@ -105,7 +105,7 @@ export default function AnimatedSearchBar() {
                   className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-xl text-gray-700 text-sm font-medium transition-colors flex items-center gap-3 group"
                   onClick={() => {
                     setInputValue(sug);
-                    router.push('/dashboard');
+                    router.push(`/dashboard?q=${encodeURIComponent(sug)}`);
                   }}
                 >
                   <span className="material-symbols-outlined text-gray-300 group-hover:text-primary transition-colors text-[20px]">search</span>

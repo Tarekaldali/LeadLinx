@@ -126,7 +126,7 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
                       {/* Contact Info Badges */}
                       <div className="flex flex-wrap gap-2 mt-2">
                         {lead.emails?.map((e, idx) => (
-                          <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 rounded-md border border-purple-100 text-[11px] font-medium cursor-pointer hover:bg-purple-100 transition-colors" onClick={() => copy(e)}>
+                          <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 rounded-md border border-red-100 text-[11px] font-medium cursor-pointer hover:bg-red-100 transition-colors" onClick={() => copy(e)}>
                             <span className="material-symbols-outlined text-[14px]">mail</span> {e}
                           </div>
                         ))}
@@ -209,7 +209,7 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
                 <ul className="space-y-1">
                   {insights.topPainPoints.map((p, idx) => (
                     <li key={idx} className="text-xs font-medium text-gray-700 flex items-start gap-2">
-                      <span className="text-purple-400 mt-1">•</span> {p}
+                      <span className="text-primary mt-1">•</span> {p}
                     </li>
                   ))}
                 </ul>

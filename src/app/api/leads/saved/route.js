@@ -36,10 +36,12 @@ export async function POST(request) {
     const db = await getDb();
     const userId = new ObjectId(authResult.user.id);
 
+    const postId = lead.id || new ObjectId().toString();
+
     // Check if already saved
     const existing = await db.collection('saved_leads').findOne({
       userId,
-      postId: lead.id,
+      postId: postId,
     });
 
     if (existing) {
@@ -48,7 +50,7 @@ export async function POST(request) {
 
     await db.collection('saved_leads').insertOne({
       userId,
-      postId: lead.id,
+      postId: postId,
       title: lead.title,
       text: lead.text || lead.body,
       body: lead.body,

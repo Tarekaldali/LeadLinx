@@ -24,7 +24,7 @@ export default function AdminRevenuePage() {
     );
   }
 
-  const COLORS = ['#7c3aed', '#0d9488', '#f59e0b', '#6b7280'];
+  const COLORS = ['#dc2626', '#0d9488', '#f59e0b', '#6b7280'];
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -77,7 +77,7 @@ export default function AdminRevenuePage() {
                 <Tooltip
                   contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                 />
-                <Line type="monotone" dataKey="revenue" stroke="#7c3aed" strokeWidth={3} dot={{ fill: '#7c3aed', r: 4 }} />
+                <Line type="monotone" dataKey="revenue" stroke="#dc2626" strokeWidth={3} dot={{ fill: '#dc2626', r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

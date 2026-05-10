@@ -107,8 +107,8 @@ export default function AdminOverviewPage() {
                 <Bar dataKey="count" fill="url(#barGradient)" radius={[8, 8, 0, 0]} />
                 <defs>
                   <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#7c3aed" />
-                    <stop offset="100%" stopColor="#c026d3" />
+                    <stop offset="0%" stopColor="#dc2626" />
+                    <stop offset="100%" stopColor="#991b1b" />
                   </linearGradient>
                 </defs>
               </BarChart>
@@ -146,7 +146,7 @@ export default function AdminOverviewPage() {
             <div className="health-item">
               <span className="text-sm font-semibold opacity-80">Inference Conversion</span>
               <div className="status-indicator">
-                <span className="text-purple-400 font-bold">{data.conversionRate}%</span>
+                <span className="text-primary font-bold">{data.conversionRate}%</span>
               </div>
             </div>
           </div>
@@ -154,7 +154,7 @@ export default function AdminOverviewPage() {
           <div className="mt-10 p-5 bg-white/5 rounded-2xl border border-white/10">
              <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Network Load</div>
              <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-blue-400 to-purple-400 w-[64%]"></div>
+                <div className="h-full bg-gradient-to-r from-red-500 to-red-700 w-[64%]"></div>
              </div>
              <div className="flex justify-between mt-2">
                 <span className="text-[10px] text-white/60">64% Capacity utilized</span>
