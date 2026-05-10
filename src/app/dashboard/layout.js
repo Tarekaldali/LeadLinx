@@ -164,10 +164,10 @@ export default function DashboardLayout({ children }) {
                     </Link>
                     <button 
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowConfirmDelete(chat._id); }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 text-sidebar-muted hover:text-red-400 transition-all rounded-md hover:bg-red-400/10"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 text-sidebar-muted hover:text-red-400 transition-colors bg-sidebar-hover hover:bg-red-400/10 rounded-md flex items-center justify-center"
                       title="Delete chat"
                     >
-                      <span className="material-symbols-outlined text-[14px]">delete</span>
+                      <span className="material-symbols-outlined text-[16px]">delete</span>
                     </button>
                   </div>
                 ))
@@ -221,10 +221,12 @@ export default function DashboardLayout({ children }) {
         <div className="sidebar-divider" />
 
         {/* Upgrade */}
-        <Link href="/pricing" className="sidebar-item flex items-center gap-2.5 text-secondary hover:text-secondary">
-          <span className="material-symbols-outlined text-[18px]">upgrade</span>
-          <span className="text-sm">Upgrade Plan</span>
-        </Link>
+        {(!user?.plan || user.plan === 'free') && (
+          <Link href="/pricing" className="sidebar-item flex items-center gap-2.5 text-secondary hover:text-secondary">
+            <span className="material-symbols-outlined text-[18px]">upgrade</span>
+            <span className="text-sm">Upgrade Plan</span>
+          </Link>
+        )}
       </div>
 
       {/* Credits + User footer */}
@@ -233,7 +235,9 @@ export default function DashboardLayout({ children }) {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs text-sidebar-muted">Credits remaining</span>
-            <Link href="/pricing" className="text-xs text-primary font-medium hover:underline">Upgrade</Link>
+            {(!user?.plan || user.plan === 'free') && (
+              <Link href="/pricing" className="text-xs text-primary font-medium hover:underline">Upgrade</Link>
+            )}
           </div>
           <div className="text-lg font-bold text-sidebar-fg mb-1.5">
             {currentCredits.toLocaleString()}

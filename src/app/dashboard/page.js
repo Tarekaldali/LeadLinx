@@ -130,6 +130,24 @@ export default function DashboardPage() {
     setTimeout(() => sendMessage(q), 100);
   };
 
+  const handleSaveLead = async (lead) => {
+    try {
+      const res = await fetch('/api/leads/saved', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lead),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || 'Lead saved successfully!');
+      } else {
+        throw new Error(data.error || 'Failed to save lead');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
   return (
     <div className="dashboard-container">
       <main className="main-content">
@@ -167,7 +185,7 @@ export default function DashboardPage() {
                       {msg.role === 'assistant' ? 'AI' : (session?.user?.name?.[0] || 'U')}
                     </div>
                     <div className="message-text">
-                      <ChatMessage message={msg} />
+                      <ChatMessage message={msg} onSave={handleSaveLead} />
                     </div>
                   </div>
                 ))}

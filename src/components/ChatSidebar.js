@@ -80,10 +80,12 @@ export default function ChatSidebar({ chats, activeChatId, onNewChat, onLoadChat
           <span className="material-symbols-outlined text-sm">settings</span>
           Settings
         </a>
-        <a href="/pricing" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-on-surface hover:bg-surface-container-low transition-colors">
-          <span className="material-symbols-outlined text-sm text-tertiary">upgrade</span>
-          Upgrade Plan
-        </a>
+        {(!user?.plan || user.plan === 'free') && (
+          <a href="/pricing" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-on-surface hover:bg-surface-container-low transition-colors">
+            <span className="material-symbols-outlined text-sm text-tertiary">upgrade</span>
+            Upgrade Plan
+          </a>
+        )}
       </div>
     </aside>
   );

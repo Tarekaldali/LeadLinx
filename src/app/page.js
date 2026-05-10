@@ -3,6 +3,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
+import AnimatedSearchBar from '@/components/AnimatedSearchBar';
 
 export default async function LandingPage() {
   const session = await getServerSession(authOptions);
@@ -18,7 +19,7 @@ export default async function LandingPage() {
           {/* Subtle background grid pattern */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] -z-10"></div>
           
-          <div className="w-full md:w-1/2 flex flex-col items-start text-left z-10">
+          <div className="w-full md:w-[55%] flex flex-col items-start text-left z-10">
             {/* Headline */}
             <h1 className="font-display text-5xl md:text-7xl font-bold leading-[1.1] mb-6 text-on-surface">
               AI-Powered <br/>
@@ -27,25 +28,27 @@ export default async function LandingPage() {
             </h1>
             
             {/* Subtitle */}
-            <p className="font-body text-on-surface-variant text-lg md:text-xl max-w-lg mb-10 leading-relaxed">
+            <p className="font-body text-on-surface-variant text-lg md:text-xl max-w-lg mb-8 leading-relaxed">
               Automatically discovers, analyzes, and qualifies potential prospects based on your ideal customer profile by monitoring relevant Reddit communities with advanced AI intelligence.
             </p>
+
+            <AnimatedSearchBar />
 
             {/* Buttons */}
             <div className="flex flex-wrap items-center gap-4 mb-16">
               {isLoggedIn ? (
-                <Link href="/dashboard" className="btn-primary flex items-center gap-2 px-8 py-4 text-base rounded-2xl shadow-lg shadow-primary/20">
+                <Link href="/dashboard" className="btn-ghost flex items-center gap-2 px-6 py-3 text-sm rounded-xl border border-border-glass hover:bg-surface">
                   Go to Dashboard
-                  <span className="material-symbols-outlined text-xl">arrow_forward</span>
+                  <span className="material-symbols-outlined text-lg">arrow_forward</span>
                 </Link>
               ) : (
                 <>
-                  <Link href="/signup" className="btn-primary flex items-center gap-2 px-8 py-4 text-base rounded-2xl shadow-lg shadow-primary/20">
-                    Get Started Free
-                    <span className="material-symbols-outlined text-xl">bolt</span>
+                  <Link href="/signup" className="btn-ghost flex items-center gap-2 px-6 py-3 text-sm rounded-xl border border-border-glass hover:bg-surface">
+                    Create free account
+                    <span className="material-symbols-outlined text-lg">bolt</span>
                   </Link>
-                  <Link href="/login" className="btn-ghost flex items-center gap-2 px-8 py-4 text-base rounded-2xl border border-border-glass bg-surface/50 hover:bg-surface">
-                    Sign In
+                  <Link href="/login" className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors px-4">
+                    Sign in to existing
                   </Link>
                 </>
               )}
