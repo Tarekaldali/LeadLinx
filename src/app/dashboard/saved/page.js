@@ -57,7 +57,6 @@ export default function SavedLeadsPage() {
       <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-primary text-2xl">stars</span>
             <h1 className="text-4xl font-black text-on-surface tracking-tight">Saved Leads</h1>
           </div>
           <p className="text-on-surface-variant font-medium flex items-center gap-2">

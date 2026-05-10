@@ -70,9 +70,6 @@ export default async function ProgrammaticSEOPage({ params }) {
               { icon: 'auto_awesome', title: 'Generate Reply', desc: `AI drafts a helpful, non-spammy reply that provides value first. Copy, paste, and engage authentically.` },
             ].map((step, i) => (
               <div key={i} className="bento-card p-6 rounded-2xl text-center">
-                <div className="w-12 h-12 rounded-xl bg-primary-container/50 flex items-center justify-center mx-auto mb-4">
-                  <span className="material-symbols-outlined text-primary text-2xl">{step.icon}</span>
-                </div>
                 <h3 className="font-headline text-base mb-2 text-on-surface">{step.title}</h3>
                 <p className="text-sm text-on-surface-variant">{step.desc}</p>
               </div>
