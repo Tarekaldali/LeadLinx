@@ -8,13 +8,11 @@ export default async function Navbar({ activePage = 'platform' }) {
   const isLoggedIn = !!session;
 
   return (
-    <nav className="bg-white/80 backdrop-blur-xl border-b border-border-glass w-full top-0 sticky z-50">
+    <nav className="bg-surface/80 backdrop-blur-xl border-b border-border-glass w-full top-0 sticky z-50 transition-colors">
       <div className="flex justify-between items-center w-full px-6 py-3 max-w-[1920px] mx-auto">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg gradient-purple flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-sm">bolt</span>
-            </div>
+            {/* <img src="/logo-new.png" alt="LeadLinx Logo" className="w-14 h-14 object-contain" /> */}
             <span className="text-lg font-bold tracking-tight text-on-surface">LeadLinx</span>
           </Link>
           <div className="hidden md:flex items-center gap-6">

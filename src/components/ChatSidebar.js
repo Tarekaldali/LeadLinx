@@ -12,9 +12,7 @@ export default function ChatSidebar({ chats, activeChatId, onNewChat, onLoadChat
       {/* Header */}
       <div className="p-4 flex items-center justify-between border-b border-border-glass">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg gradient-purple flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-sm">bolt</span>
-          </div>
+          <img src="/logo-new.png" alt="LeadLinx" className="w-8 h-8 object-contain" />
           <span className="font-bold text-on-surface text-sm">LeadLinx AI</span>
         </div>
         <button onClick={onClose} className="md:hidden text-on-surface-variant">

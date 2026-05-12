@@ -40,14 +40,14 @@ export async function POST(request) {
 
     // 1. Pre-check credits & Plan Limitations
     const user = await db.collection('users').findOne({ _id: userId });
-    
+
     // Check if subscription exists and is active (if required by business logic)
     const subscription = await db.collection('subscriptions').findOne({ userId });
     const isPremium = subscription && subscription.status === 'active';
-    
-    // Free plan max limits
-    if (!isPremium && user.credits < 1) {
-      return NextResponse.json({ error: 'Insufficient credits. Please upgrade your plan.' }, { status: 402 });
+
+    // Require at least 1 credit to start a search
+    if (user.credits < 1) {
+      return NextResponse.json({ error: 'Insufficient credits. Please top up your balance or upgrade your plan.' }, { status: 402 });
     }
 
     // 2. Intent Classification
@@ -61,10 +61,10 @@ export async function POST(request) {
 
     // 3. Run Omni-Extractor pipeline
     console.log(`🚀 Running Omni-Extractor for: "${query}"`);
-    
+
     // Import omni dynamically so we don't break if files are moving
     const { extractOmniLeads } = await import('@/lib/omni-extractor/index.js');
-    
+
     // Pass isPremium flag to allow aggressive fetching
     const result = await extractOmniLeads(query, { isPremium });
 

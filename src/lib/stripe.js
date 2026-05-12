@@ -11,10 +11,9 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 // Map plan names to Stripe price IDs (create these in your Stripe Dashboard)
 // For now, using dynamic pricing — prices created on-the-fly if not hardcoded
 export const PLAN_PRICES = {
-  starter: { amount: 2900, credits: 400, name: 'Starter' },
-  plus: { amount: 7900, credits: 1000, name: 'Plus' },
-  pro: { amount: 14900, credits: 2000, name: 'Pro' },
-  enterprise: { amount: 29900, credits: 5000, name: 'Enterprise' },
+  plus: { amount: 399, credits: 1000, name: 'Plus' },
+  pro: { amount: 799, credits: 2000, name: 'Pro' },
+  enterprise: { amount: 1999, credits: 5000, name: 'Enterprise' },
 };
 
 /**

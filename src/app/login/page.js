@@ -51,10 +51,7 @@ export default function LoginPage() {
         {/* Logo & Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-primary/20">
-              <span className="material-symbols-outlined text-white text-2xl">bolt</span>
-            </div>
-            <span className="text-2xl font-bold text-white tracking-tight">LeadLinx</span>
+            <img src="/logo-new.png" alt="LeadLinx Logo" className="w-68 h-48 object-contain group-hover:scale-110 transition-transform" />
           </Link>
           <h1 className="text-3xl font-bold text-white mt-6 tracking-tight">Welcome back</h1>
           <p className="text-on-surface-variant">Choose your preferred login method</p>
@@ -71,7 +68,7 @@ export default function LoginPage() {
           {/* Google Login */}
           <button
             onClick={handleGoogleLogin}
-            className="w-full h-14 bg-white hover:bg-white/90 text-black rounded-2xl font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-lg shadow-black/20"
+            className="w-full h-14 bg-background hover:bg-background/90 text-black rounded-2xl font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-lg shadow-black/20"
           >
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
             Continue with Google
@@ -95,7 +92,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-5 text-white placeholder:text-white/20 focus:border-primary/50 focus:bg-primary/5 outline-none transition-all"
+                  className="w-full h-14 bg-background/5 border border-white/10 rounded-2xl pl-12 pr-5 text-white placeholder:text-white/20 focus:border-primary/50 focus:bg-primary/5 outline-none transition-all"
                   required
                 />
               </div>
@@ -110,7 +107,7 @@ export default function LoginPage() {
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (
                 <>
-                  Send Verification Code 
+                  Send Verification Code
                   <span className="material-symbols-outlined text-xl">arrow_forward</span>
                 </>
               )}

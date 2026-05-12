@@ -10,7 +10,7 @@ export default async function LandingPage() {
   const isLoggedIn = !!session;
 
   return (
-    <div className="bg-white text-on-surface">
+    <div className="bg-background text-on-surface">
       <Navbar activePage="platform" />
 
       <main className="max-w-7xl mx-auto px-6 py-16 space-y-24">
@@ -122,7 +122,6 @@ export default async function LandingPage() {
                     <span className="w-2 h-2 rounded-full bg-lime-green animate-pulse"></span>
                     24/7 Active
                   </span>
-                  <span className="text-on-surface-variant">v3.0 Engine</span>
                 </div>
               </div>
             </div>

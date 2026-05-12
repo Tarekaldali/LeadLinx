@@ -19,7 +19,7 @@
   --color-inverse-on-surface: #f2f3f8;
 
   /* Primary — Modern Red */
-  --color-primary: #dc2626;
+  --color-primary: #ef4444;
   --color-on-primary: #ffffff;
   --color-primary-container: #fef2f2;
   --color-on-primary-container: #991b1b;
@@ -123,8 +123,25 @@ body {
   color: var(--color-on-primary);
 }
 
+.landing-logo {
+  color: var(--color-primary);
+  width: 12rem;
+}
+
+/* Logo Styling */
+.app-logo {
+  object-fit: contain;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  will-change: transform, filter;
+}
+
+.app-logo:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 15px rgba(239, 68, 68, 0.25));
+}
+
 /* Brand Gradient (Red) */
-.gradient-purple,
 .gradient-primary {
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
 }
@@ -190,7 +207,7 @@ body {
 
 /* === BENTO CARD === */
 .bento-card {
-  background: #ffffff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border-glass);
   border-radius: var(--radius-bento);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -198,13 +215,13 @@ body {
 }
 
 .bento-card:hover {
-  border-color: rgba(220, 38, 38, 0.2);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-color: rgba(239, 68, 68, 0.2);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* === GLASS EFFECT === */
 .glass {
-  background: rgba(255, 255, 255, 0.85);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
   backdrop-filter: blur(20px);
   border: 1px solid var(--color-border-glass);
 }
@@ -219,7 +236,7 @@ body {
 }
 
 .ai-glow-primary {
-  box-shadow: 0 0 12px -4px rgba(220, 38, 38, 0.4);
+  box-shadow: 0 0 12px -4px rgba(239, 68, 68, 0.4);
 }
 
 /* === INTENT BADGES === */
@@ -639,7 +656,7 @@ body {
 
 /* === GRADIENT ACCENTS === */
 .gradient-primary {
-  background: linear-gradient(135deg, #dc2626, #f87171);
+  background: linear-gradient(135deg, #ef4444, #fca5a5);
 }
 
 .gradient-teal {
@@ -695,7 +712,7 @@ body {
 
 /* === GRADIENT PRIMARY (AI avatar, send button) === */
 .gradient-primary {
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
 }
 
 /* === SCALE-IN ANIMATION === */
@@ -771,13 +788,13 @@ body {
 }
 
 .sidebar-item-action {
-  background: rgba(220, 38, 38, 0.12);
+  background: rgba(239, 68, 68, 0.12);
   color: var(--color-sidebar-fg);
-  border: 1px solid rgba(220, 38, 38, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .sidebar-item-action:hover {
-  background: rgba(220, 38, 38, 0.2);
+  background: rgba(239, 68, 68, 0.2);
 }
 
 .sidebar-divider {

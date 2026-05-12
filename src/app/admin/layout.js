@@ -41,6 +41,7 @@ export default function AdminLayout({ children }) {
         { href: '/admin/users',    icon: 'group',                 label: 'Users' },
         { href: '/admin/revenue',  icon: 'payments',              label: 'Revenue' },
         { href: '/admin/costs',    icon: 'receipt_long',          label: 'Chat Costs & Profit' },
+        { href: '/admin/chats',    icon: 'forum',                 label: 'Chat History' },
         { href: '/admin/searches', icon: 'troubleshoot',          label: 'Search Analytics' },
       ],
     },
@@ -50,6 +51,7 @@ export default function AdminLayout({ children }) {
         { href: '/admin/ai',       icon: 'smart_toy',             label: 'AI Monitor' },
         { href: '/admin/alerts',   icon: 'notifications_active',  label: 'Alerts' },
         { href: '/admin/logs',     icon: 'data_object',           label: 'System Logs' },
+        { href: '/admin/settings', icon: 'settings',              label: 'Settings' },
       ],
     },
     {

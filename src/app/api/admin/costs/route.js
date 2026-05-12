@@ -14,12 +14,35 @@ export async function GET(request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const days = parseInt(searchParams.get('days') || '30');
-    const since = new Date(Date.now() - days * 24 * 3600 * 1000);
+    const days = searchParams.get('days') || '30';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '15');
+    const search = searchParams.get('search') || '';
+    const sortField = searchParams.get('sortField') || 'totalCost';
+    const sortDir = parseInt(searchParams.get('sortDir') || '-1');
 
-    // Aggregate cost data per search
-    const searches = await db.collection('ai_usage').aggregate([
-      { $match: { timestamp: { $gte: since }, type: 'lead_search' } },
+    const matchQuery = { type: 'lead_search' };
+    if (days !== '9999' && days !== 'all') {
+      const since = new Date(Date.now() - parseInt(days) * 24 * 3600 * 1000);
+      matchQuery.timestamp = { $gte: since };
+    }
+
+    // Optional text search filter across userId or chatId
+    let searchFilter = {};
+    if (search) {
+      const searchRegex = { $regex: search, $options: 'i' };
+      searchFilter = {
+        $or: [
+          { _id: searchRegex },
+          { userEmail: searchRegex },
+          { userIdStr: searchRegex }
+        ]
+      };
+    }
+
+    // Aggregate cost data per search (chatId)
+    let searchesPipeline = [
+      { $match: matchQuery },
       {
         $group: {
           _id: '$chatId',
@@ -36,13 +59,56 @@ export async function GET(request) {
           lastSearch:     { $max: '$timestamp' },
         } 
       },
-      { $sort: { totalCost: -1 } },
-      { $limit: 100 },
-    ]).toArray();
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userDetails'
+        }
+      },
+      {
+        $addFields: {
+          userEmail: { $arrayElemAt: ['$userDetails.email', 0] },
+          userIdStr: { $toString: '$userId' }
+        }
+      },
+      { $match: searchFilter ? searchFilter : {} },
+      { $sort: { [sortField]: sortDir } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+      { $project: { userDetails: 0 } }
+    ];
+
+    const searches = await db.collection('ai_usage').aggregate(searchesPipeline).toArray();
+
+    // Get total count for pagination
+    const countPipeline = [
+      { $match: matchQuery },
+      { $group: { _id: '$chatId', userId: { $first: '$userId' } } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userDetails'
+        }
+      },
+      {
+        $addFields: {
+          userEmail: { $arrayElemAt: ['$userDetails.email', 0] },
+          userIdStr: { $toString: '$userId' }
+        }
+      },
+      { $match: searchFilter ? searchFilter : {} },
+      { $count: 'total' }
+    ];
+    const totalCountRes = await db.collection('ai_usage').aggregate(countPipeline).toArray();
+    const totalSearchesCount = totalCountRes[0]?.total || 0;
 
     // Overall totals
     const totals = await db.collection('ai_usage').aggregate([
-      { $match: { timestamp: { $gte: since }, type: 'lead_search' } },
+      { $match: matchQuery },
       {
         $group: {
           _id: null,
@@ -59,7 +125,7 @@ export async function GET(request) {
 
     // Per-user summary
     const perUser = await db.collection('ai_usage').aggregate([
-      { $match: { timestamp: { $gte: since }, type: 'lead_search' } },
+      { $match: matchQuery },
       {
         $group: {
           _id: '$userId',
@@ -89,6 +155,9 @@ export async function GET(request) {
         _id: s._id?.toString() || 'no-chat',
         userId: s.userId?.toString(),
       })),
+      totalSearchesCount,
+      totalPages: Math.ceil(totalSearchesCount / limit),
+      currentPage: page,
       perUser: perUser.map(u => ({
         ...u,
         _id: u._id?.toString(),

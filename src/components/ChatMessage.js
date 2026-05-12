@@ -9,9 +9,18 @@ const TYPE_CONFIG = {
 
 export default function ChatMessage({ message, onSave, onExport, onSuggestionClick }) {
   const [toast, setToast] = useState(null);
+  const [savedLeads, setSavedLeads] = useState(new Set());
 
   const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 2500); };
   const copy = (text) => { navigator.clipboard.writeText(text); showToast('Copied!'); };
+
+  const handleSave = async (lead) => {
+    if (savedLeads.has(lead.id)) return;
+    const success = await onSave?.(lead);
+    if (success) {
+      setSavedLeads(prev => new Set([...prev, lead.id]));
+    }
+  };
 
   // Assistant data
   const { leads = [], insights, selectedSubreddits = [], searchQueries = [], totalScanned, error, status } = message;
@@ -65,7 +74,7 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
                 </div>
               </div>
             )}
-            
+
             {selectedSubreddits.length > 0 && (
               <div className="flex flex-col gap-1">
                 <span className="text-[9px] font-bold text-gray-300 uppercase tracking-tighter">Target Subreddits</span>
@@ -98,12 +107,12 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
               const score = lead.score || lead.intentScore || 0; // fallback
               const isHot = score >= 80 || (score <= 10 && score >= 8); // handles both 0-100 and 0-10 formats
               const displayScore = score > 10 ? score : score * 10;
-              
+
               return (
                 <div key={lead.id || i} className="p-5 border border-gray-100 rounded-2xl hover:border-blue-200 transition-all bg-white group hover:shadow-md relative overflow-hidden">
                   {/* Decorative gradient for hot leads */}
                   {isHot && <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-green-400 to-emerald-600" />}
-                  
+
                   <div className="flex justify-between items-start gap-4 mb-4">
                     <div className="space-y-3 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -112,13 +121,13 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
                           <span className="material-symbols-outlined text-[14px]">person</span>
                           {lead.author} {lead.company ? `· ${lead.company}` : ''}
                         </span>
-                        
+
                         <span className={`ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm ${isHot ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
                           <span className="material-symbols-outlined text-[12px]">{isHot ? 'local_fire_department' : 'analytics'}</span>
                           {displayScore}/100 INTENT
                         </span>
                       </div>
-                      
+
                       <h3 className="font-bold text-[15px] text-gray-900 leading-snug hover:text-blue-600 transition-colors cursor-pointer">
                         <a href={lead.link} target="_blank" rel="noreferrer">{lead.title}</a>
                       </h3>
@@ -142,10 +151,20 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
                         ))}
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col gap-2 shrink-0">
-                      <button onClick={() => onSave?.(lead)} className="w-10 h-10 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 hover:text-blue-600 transition-colors text-gray-400 group-hover:border-gray-300">
-                        <span className="material-symbols-outlined text-[20px]">bookmark</span>
+                      <button
+                        onClick={() => handleSave(lead)}
+                        disabled={savedLeads.has(lead.id)}
+                        className={`w-10 h-10 border rounded-xl flex items-center justify-center transition-colors shadow-sm ${savedLeads.has(lead.id)
+                            ? 'bg-primary border-primary text-white'
+                            : 'bg-surface border-border-glass text-on-surface-variant hover:bg-surface-container hover:text-primary group-hover:border-border-glass'
+                          }`}
+                        title={savedLeads.has(lead.id) ? "Saved" : "Save Lead"}
+                      >
+                        <span className="material-symbols-outlined text-[20px]">
+                          {savedLeads.has(lead.id) ? 'bookmark_added' : 'bookmark'}
+                        </span>
                       </button>
                       <a href={lead.link} target="_blank" rel="noreferrer" className="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center hover:bg-blue-600 transition-colors shadow-sm">
                         <span className="material-symbols-outlined text-[20px]">open_in_new</span>
@@ -187,7 +206,7 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
             <div className="space-y-1">
               <h3 className="text-sm font-bold text-gray-900">No high-intent leads qualified</h3>
               <p className="text-xs text-gray-500 max-w-[320px] mx-auto leading-relaxed">
-                I analyzed {totalScanned || 'all'} relevant posts found on Reddit, but none met our strict quality threshold (7/10 intent score). 
+                I analyzed {totalScanned || 'all'} relevant posts found on Reddit, but none met our strict quality threshold (7/10 intent score).
                 Try searching for specific **competitor names** or **direct pain points** to find more active prospects.
               </p>
             </div>

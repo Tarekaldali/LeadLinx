@@ -91,7 +91,7 @@ export default function SavedLeadsPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {leads.map((lead) => (
-            <div key={lead._id} className="bento-card group flex flex-col bg-white overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+            <div key={lead._id} className="bento-card group flex flex-col bg-background overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               {/* Card Header */}
               <div className="p-6 flex-1 space-y-4">
                 <div className="flex items-start justify-between gap-4">
@@ -163,7 +163,7 @@ export default function SavedLeadsPage() {
                     href={lead.link} 
                     target="_blank" 
                     rel="noreferrer" 
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-outline-variant hover:border-primary hover:text-primary rounded-lg text-xs font-bold transition-all shadow-sm"
+                    className="flex items-center gap-2 px-4 py-2 bg-surface border border-border-glass hover:border-primary hover:text-primary rounded-lg text-xs font-bold transition-all shadow-sm"
                   >
                     View Post
                     <span className="material-symbols-outlined text-sm">open_in_new</span>

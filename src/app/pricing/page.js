@@ -18,7 +18,7 @@ export default async function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-on-surface flex flex-col">
+    <div className="min-h-screen bg-background text-on-surface flex flex-col">
       <Navbar activePage="pricing" />
       
       <main className="flex-1 pb-24">

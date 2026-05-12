@@ -43,7 +43,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-on-surface flex flex-col justify-center items-center p-6">
+    <div className="min-h-screen bg-background text-on-surface flex flex-col justify-center items-center p-6">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] -z-10"></div>
 
       <div className="w-full max-w-md space-y-4">
@@ -51,7 +51,7 @@ export default function SignupPage() {
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Back to Home
         </Link>
-        <div className="bento-card p-8 space-y-8 bg-white/80 backdrop-blur-md shadow-2xl border border-border-glass">
+        <div className="bento-card p-8 space-y-8 bg-surface/80 backdrop-blur-md shadow-2xl border border-border-glass">
           <div className="text-center">
             <h1 className="text-3xl font-display font-bold text-on-surface">Create Account</h1>
             <p className="text-on-surface-variant font-body mt-2">Start finding high-intent leads today.</p>
@@ -60,7 +60,7 @@ export default function SignupPage() {
           <div className="space-y-4">
             <button
               onClick={handleGoogleSignup}
-              className="w-full h-12 bg-white hover:bg-surface-dim text-on-surface rounded-xl font-bold border border-border-glass flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm"
+              className="w-full h-12 bg-background hover:bg-surface-dim text-on-surface rounded-xl font-bold border border-border-glass flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm"
             >
               <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
               Sign up with Google

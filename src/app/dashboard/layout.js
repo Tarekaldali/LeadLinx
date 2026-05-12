@@ -54,7 +54,7 @@ export default function DashboardLayout({ children }) {
     fetch('/api/chats')
       .then(r => r.json())
       .then(d => setChats(d.chats || []))
-      .catch(() => {});
+      .catch(() => { });
   }, [loading, session]);
 
   const handleLogout = async () => {
@@ -110,12 +110,10 @@ export default function DashboardLayout({ children }) {
       {/* Logo + collapse */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-sidebar-border shrink-0">
         <a href="/">
-        <div className="flex items-center gap-2.5" >
-          <div className="w-7 h-7 rounded-lg gradient-purple flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-sm">bolt</span>
+          <div className="flex items-center gap-2.5">
+            {/* <img src="/logo-new.png" alt="LeadLinx Logo" className="w-14 h-14object-contain" /> */}
+            <span className="font-bold text-sidebar-fg text-base tracking-tight">LeadLinx</span>
           </div>
-          <span className="font-bold text-sidebar-fg text-base tracking-tight">LeadLinx</span>
-        </div>
         </a>
         <button onClick={() => setSidebarOpen(false)} className="md:hidden text-sidebar-muted hover:text-sidebar-fg transition-colors">
           <span className="material-symbols-outlined text-sm">close</span>
@@ -153,18 +151,18 @@ export default function DashboardLayout({ children }) {
                 <p className="text-xs text-sidebar-muted px-3 py-2 italic">No chats yet</p>
               ) : (
                 chats.slice(0, 8).map(chat => (
-                  <div key={chat._id} className="group relative">
+                  <div key={chat._id} className="group flex items-center justify-between rounded-lg hover:bg-sidebar-hover mb-0.5">
                     <Link
                       href="/dashboard"
                       onClick={() => { setSidebarOpen(false); window.dispatchEvent(new CustomEvent('loadChat', { detail: { chatId: chat._id } })); }}
-                      className={`sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg text-sm pr-10 ${pathname === '/dashboard' ? 'text-sidebar-fg hover:bg-sidebar-hover' : 'text-sidebar-muted hover:text-sidebar-fg hover:bg-sidebar-hover'}`}
+                      className={`flex items-center gap-2 px-3 py-2 flex-1 min-w-0 ${pathname === '/dashboard' ? 'text-sidebar-fg' : 'text-sidebar-muted hover:text-sidebar-fg'}`}
                     >
                       <span className="material-symbols-outlined text-[16px] shrink-0 opacity-50">chat_bubble</span>
                       <span className="truncate text-xs flex-1 min-w-0">{chat.title || 'New Chat'}</span>
                     </Link>
-                    <button 
+                    <button
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowConfirmDelete(chat._id); }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 text-sidebar-muted hover:text-red-400 transition-colors bg-sidebar-hover hover:bg-red-400/10 rounded-md flex items-center justify-center"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 text-sidebar-muted hover:text-red-400 transition-colors hover:bg-red-400/10 rounded-md flex items-center justify-center shrink-0 mr-2"
                       title="Delete chat"
                     >
                       <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -312,7 +310,7 @@ export default function DashboardLayout({ children }) {
       {/* Prompt Library Modal */}
       {promptLibraryOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setPromptLibraryOpen(false)}>
-          <div className="bg-white dark:bg-surface rounded-2xl w-full max-w-3xl max-h-[80vh] flex flex-col animate-scale-in" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface rounded-2xl w-full max-w-3xl max-h-[80vh] flex flex-col animate-scale-in" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="p-6 border-b border-border-glass">
               <div className="flex items-center justify-between mb-2">
@@ -328,11 +326,10 @@ export default function DashboardLayout({ children }) {
                   <button
                     key={cat}
                     onClick={() => setPromptFilter(cat)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                      promptFilter === cat
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${promptFilter === cat
                         ? 'bg-primary text-white border-primary'
                         : 'border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary'
-                    }`}
+                      }`}
                   >
                     {cat}
                   </button>
@@ -366,7 +363,7 @@ export default function DashboardLayout({ children }) {
         </div>
       )}
       {/* Confirmation Modals */}
-      <ConfirmationModal 
+      <ConfirmationModal
         isOpen={!!showConfirmDelete}
         onClose={() => setShowConfirmDelete(null)}
         onConfirm={() => handleDeleteChat(showConfirmDelete)}

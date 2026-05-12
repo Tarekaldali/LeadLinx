@@ -55,7 +55,7 @@ export default async function BlogPostPage({ params }) {
 
   if (!article) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="font-display text-3xl mb-4 text-on-surface">Article Not Found</h1>
           <Link href="/blog" className="text-primary hover:underline">Back to Blog</Link>
@@ -73,7 +73,7 @@ export default async function BlogPostPage({ params }) {
   }
 
   return (
-    <div className="bg-white text-on-surface min-h-screen">
+    <div className="bg-background text-on-surface min-h-screen">
       <Navbar activePage="blog" />
 
       <main className="max-w-3xl mx-auto px-6 py-16">

@@ -36,7 +36,7 @@ export default async function ProgrammaticSEOPage({ params }) {
   const subreddits = data.subreddits || ['SaaS', 'entrepreneur', 'marketing'];
   
   return (
-    <div className="bg-white text-on-surface min-h-screen">
+    <div className="bg-background text-on-surface min-h-screen">
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-6 py-16 space-y-12">
