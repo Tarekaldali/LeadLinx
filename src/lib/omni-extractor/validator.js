@@ -13,16 +13,19 @@ EVALUATION CRITERIA:
 1. Intent Match: Does the text show they are looking for the service/product described in the intent? Or are they selling it? (We want buyers, or relevant businesses).
 2. Contact Quality: Are these real contacts or fake/spam? 
 
-Return ONLY valid JSON:
+OUTPUT FORMAT:
+Return ONLY a valid JSON object. Do not include any markdown formatting (like \`\`\`json), no preamble, and no post-response text.
+
+REQUIRED JSON STRUCTURE:
 {
   "is_valid_lead": true | false,
   "confidence_score": 0.0 - 1.0,
   "lead_name": "Extracted name or 'Unknown'",
-  "reasoning": "Why this is or isn't a lead",
+  "reasoning": "Brief explanation of why this is or isn't a lead",
   "verified_contacts": {
-    "emails": ["valid@email.com"],
-    "phones": ["+123456"],
-    "socials": ["@handle"]
+    "emails": ["list of valid emails"],
+    "phones": ["list of valid phones"],
+    "socials": ["list of valid social handles"]
   }
 }
 `;
@@ -38,18 +41,35 @@ export async function validateLeadIntent(contextText, extractedContacts, searchI
     ];
 
     const res = await callGemini(messages, { temperature: 0, responseFormat: 'json' });
-    const text = res.text.replace(/```json/gi, '').replace(/```/gi, '').trim();
+    let text = res.text.trim();
     
+    // Attempt to extract JSON if it's wrapped in markers or surrounded by text
     let parsed;
     try {
+      // 1. Try direct parse
       parsed = JSON.parse(text);
-    } catch {
-      const start = text.indexOf('{');
-      const end = text.lastIndexOf('}');
-      if (start !== -1 && end !== -1) {
-        parsed = JSON.parse(text.substring(start, end + 1));
-      } else {
-        throw new Error('Invalid JSON format from Validator');
+    } catch (e) {
+      // 2. Try cleaning markdown markers
+      const cleanedText = text.replace(/```json/gi, '').replace(/```/gi, '').trim();
+      try {
+        parsed = JSON.parse(cleanedText);
+      } catch (e2) {
+        // 3. Try finding first { and last }
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        
+        if (start !== -1 && end !== -1 && end > start) {
+          const jsonString = text.substring(start, end + 1);
+          try {
+            parsed = JSON.parse(jsonString);
+          } catch (e3) {
+            console.error('[Omni-Validator] JSON block found but invalid:', jsonString);
+            throw new Error('Invalid JSON format from Validator');
+          }
+        } else {
+          console.error('[Omni-Validator] No JSON block found in text:', text);
+          throw new Error('No JSON block found from Validator');
+        }
       }
     }
 
