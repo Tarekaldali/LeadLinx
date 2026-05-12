@@ -29,6 +29,11 @@ export default function SettingsPage() {
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [weeklyReports, setWeeklyReports] = useState(false);
   const [newKeyword, setNewKeyword] = useState('');
+  
+  // Password Change
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Modals
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -65,6 +70,49 @@ export default function SettingsPage() {
     try {
       // Optimistic update
       showToast('Profile updated successfully');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    
+    if (!newPassword || !confirmPassword) {
+      showToast('Please fill in all password fields', 'error');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showToast('New passwords do not match', 'error');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      showToast('Password must be at least 8 characters', 'error');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch('/api/user/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showToast('Password updated successfully');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        showToast(data.error || 'Failed to update password', 'error');
+      }
+    } catch {
+      showToast('Network error', 'error');
     } finally {
       setSaving(false);
     }
@@ -157,17 +205,37 @@ export default function SettingsPage() {
                 
               <div className="changepass">
                 <label className="block text-sm font-medium text-on-surface mb-1.5">Current Password</label>
-                <input type="password" className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" />
-                <label className="block text-sm font-medium text-on-surface mb-1.5">New Password</label>
-                <input type="password" className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" />
-                <label className="block text-sm font-medium text-on-surface mb-1.5">Confirm Password</label>
-                <input type="password" className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" />
+                <input 
+                  type="password" 
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" 
+                />
+                <label className="block text-sm font-medium text-on-surface mb-1.5 mt-4">New Password</label>
+                <input 
+                  type="password" 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" 
+                />
+                <label className="block text-sm font-medium text-on-surface mb-1.5 mt-4">Confirm Password</label>
+                <input 
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" 
+                />
                 <br></br>
                 <br></br>
                 <button
+                  onClick={handleUpdatePassword}
+                  disabled={saving}
                   className="px-5 py-2 action-btn rounded-lg text-sm font-medium hover:opacity-90 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
-                  <span className="material-symbols-outlined text-[18px]">update</span>Update Password
+                  <span className="material-symbols-outlined text-[18px]">
+                    {saving ? 'hourglass_empty' : 'update'}
+                  </span>
+                  {saving ? 'Updating...' : 'Update Password'}
                 </button>
               </div>
               
