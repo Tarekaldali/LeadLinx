@@ -10,8 +10,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
-
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+import { stripe } from '@/lib/stripe';
 
 export async function POST(request) {
   try {
@@ -22,28 +21,46 @@ export async function POST(request) {
     
     // If webhook secret is set, verify signature; otherwise accept (dev mode)
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    if (webhookSecret) {
-      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    
+    if (webhookSecret && sig) {
+      try {
+        event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+      } catch (err) {
+        console.error(`❌ [WEBHOOK] Signature verification failed: ${err.message}`);
+        return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
+      }
     } else {
+      console.log('⚠️ [WEBHOOK] No signature or secret found, parsing body directly');
       event = JSON.parse(body);
     }
 
     const db = await getDb();
+    console.log(`🔔 [WEBHOOK] Received event: ${event.type}`);
 
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
         const userId = session.metadata?.userId;
-        if (!userId) break;
+        const planKey = session.metadata?.planKey;
+        const credits = parseInt(session.metadata?.credits || '1000');
 
-        const planKey = session.metadata.planKey || 'plus';
-        const credits = parseInt(session.metadata.credits || '1000');
+        console.log(`📦 [WEBHOOK] Checkout session completed for user: ${userId}, plan: ${planKey}`);
 
-        await db.collection('users').updateOne(
+        if (!userId) {
+          console.error('❌ [WEBHOOK] No userId found in session metadata');
+          break;
+        }
+
+        if (!planKey) {
+          console.warn('⚠️ [WEBHOOK] No planKey found in session metadata, defaulting to plus');
+        }
+
+        // Update User
+        const userUpdateResult = await db.collection('users').updateOne(
           { _id: new ObjectId(userId) },
           {
             $set: {
-              plan: planKey,
+              plan: planKey || 'plus',
               credits: credits,
               stripeCustomerId: session.customer,
               stripeSubscriptionId: session.subscription,
@@ -53,6 +70,12 @@ export async function POST(request) {
           }
         );
 
+        if (userUpdateResult.matchedCount === 0) {
+          console.error(`❌ [WEBHOOK] No user found in DB with ID: ${userId}`);
+        } else {
+          console.log(`✅ [WEBHOOK] User plan updated in DB: ${userId}`);
+        }
+
         // Save subscription record
         await db.collection('subscriptions').updateOne(
           { userId: new ObjectId(userId) },
@@ -61,7 +84,7 @@ export async function POST(request) {
               userId: new ObjectId(userId),
               stripeSubscriptionId: session.subscription,
               stripeCustomerId: session.customer,
-              planKey,
+              planKey: planKey || 'plus',
               credits,
               status: 'active',
               activatedAt: new Date(),
@@ -71,7 +94,7 @@ export async function POST(request) {
           { upsert: true }
         );
 
-        console.log(`✅ Subscription activated: user=${userId}, plan=${planKey}`);
+        console.log(`✅ [WEBHOOK] Subscription record saved for user: ${userId}`);
         break;
       }
 

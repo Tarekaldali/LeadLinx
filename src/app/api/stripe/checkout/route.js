@@ -64,6 +64,7 @@ export async function POST(request) {
       metadata: {
         userId: userId.toString(),
         planKey,
+        credits: plan.credits.toString(),
       },
       allow_promotion_codes: true,
     });

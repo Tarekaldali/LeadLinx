@@ -154,24 +154,23 @@ export default function SettingsPage() {
                 <p className="text-sm text-on-surface-variant">Update your personal information.</p>
               </div>
               <div className="p-6 space-y-6">
-                <div className="flex items-center gap-6">
-                  <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden shrink-0 border border-primary/30">
-                    {user?.image ? (
-                      <img src={user.image} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-2xl font-bold text-primary uppercase">
-                        {(name || user?.email || 'U')[0]}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <button className="px-4 py-2 bento-card border border-border-glass rounded-lg text-sm font-medium text-on-surface hover:bg-surface-container-low transition-colors shadow-sm">
-                      Upload Avatar
-                    </button>
-                    <p className="text-xs text-on-surface-variant mt-2">JPG, GIF or PNG. Max size of 2MB.</p>
-                  </div>
-                </div>
-
+                
+              <div className="changepass">
+                <label className="block text-sm font-medium text-on-surface mb-1.5">Current Password</label>
+                <input type="password" className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" />
+                <label className="block text-sm font-medium text-on-surface mb-1.5">New Password</label>
+                <input type="password" className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" />
+                <label className="block text-sm font-medium text-on-surface mb-1.5">Confirm Password</label>
+                <input type="password" className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" />
+                <br></br>
+                <br></br>
+                <button
+                  className="px-5 py-2 action-btn rounded-lg text-sm font-medium hover:opacity-90 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[18px]">update</span>Update Password
+                </button>
+              </div>
+              
                 <div className="space-y-4 max-w-lg">
                   <div>
                     <label className="block text-sm font-medium text-on-surface mb-1.5">Full Name</label>
