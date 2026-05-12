@@ -261,7 +261,8 @@ export default function DashboardLayout({ children }) {
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-sidebar-fg truncate">{user?.email}</div>
+            <div className="text-xs font-medium text-sidebar-fg truncate">Welcome back, {user?.name}</div>
+            <div className="text-[10px] text-sidebar-muted">{user?.role ? user?.role : 'unknown'}</div>
           </div>
           <button onClick={handleLogout} title="Logout" className="text-sidebar-muted hover:text-red-400 transition-colors shrink-0">
             <span className="material-symbols-outlined text-[18px]">logout</span>

@@ -19,9 +19,9 @@ export default function ConfirmationModal({ isOpen, onClose, onConfirm, title, m
     },
     info: {
       icon: 'info',
-      iconBg: 'bg-slate-50',
-      iconColor: 'text-slate-500',
-      actionBtn: 'bg-slate-900 hover:bg-slate-800 text-white shadow-sm',
+      iconBg: 'bg-surface-container-low',
+      iconColor: 'text-on-surface-variant',
+      actionBtn: 'bg-on-surface text-surface hover:opacity-90 shadow-sm',
     }
   };
 
@@ -39,8 +39,8 @@ export default function ConfirmationModal({ isOpen, onClose, onConfirm, title, m
               </div>
 
               {/* Text Block */}
-              <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">{title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed max-w-[280px]">
+              <h3 className="text-xl font-bold text-on-surface mb-3 tracking-tight">{title}</h3>
+              <p className="text-on-surface-variant text-sm leading-relaxed max-w-[280px]">
                 {message}
               </p>
             </div>
@@ -58,7 +58,7 @@ export default function ConfirmationModal({ isOpen, onClose, onConfirm, title, m
               </button>
               <button 
                 onClick={onClose}
-                className="w-full py-3 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all"
+                className="w-full py-3 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container transition-all"
               >
                 Cancel
               </button>

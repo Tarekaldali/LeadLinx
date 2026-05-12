@@ -68,8 +68,21 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      // Optimistic update
-      showToast('Profile updated successfully');
+      const res = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        showToast('Profile updated successfully');
+      } else {
+        showToast(data.error || 'Failed to update profile', 'error');
+      }
+    } catch {
+      showToast('Network error', 'error');
     } finally {
       setSaving(false);
     }
@@ -203,7 +216,7 @@ export default function SettingsPage() {
               </div>
               <div className="p-6 space-y-6">
                 
-              <div className="changepass">
+              {/* <div className="changepass">
                 <label className="block text-sm font-medium text-on-surface mb-1.5">Current Password</label>
                 <input 
                   type="password" 
@@ -237,7 +250,7 @@ export default function SettingsPage() {
                   </span>
                   {saving ? 'Updating...' : 'Update Password'}
                 </button>
-              </div>
+              </div> */}
               
                 <div className="space-y-4 max-w-lg">
                   <div>
@@ -269,7 +282,7 @@ export default function SettingsPage() {
                   disabled={saving}
                   className="px-5 py-2 action-btn rounded-lg text-sm font-medium hover:opacity-90 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
-                  {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {saving && <div className="savebutton" />}
                   Save Changes
                 </button>
               </div>
