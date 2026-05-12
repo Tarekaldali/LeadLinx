@@ -74,6 +74,18 @@ export async function POST(request) {
           console.error(`❌ [WEBHOOK] No user found in DB with ID: ${userId}`);
         } else {
           console.log(`✅ [WEBHOOK] User plan updated in DB: ${userId}`);
+          
+          // Send Thank You Email
+          try {
+            const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+            if (user?.email) {
+              const { sendThankYouEmail } = await import('@/lib/email');
+              const amount = (session.amount_total || 0) / 100;
+              await sendThankYouEmail(user.email, planKey.charAt(0).toUpperCase() + planKey.slice(1), amount);
+            }
+          } catch (e) {
+            console.error('Failed to send thank you email in webhook:', e);
+          }
         }
 
         // Save subscription record

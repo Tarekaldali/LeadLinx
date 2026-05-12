@@ -108,11 +108,9 @@ export default async function PricingPage() {
                </div>
             </div>
             
-            <div className="flex justify-center items-center gap-2 pt-6 opacity-60">
-              <span className="text-sm font-medium text-on-surface-variant">Secured by</span>
-              <svg viewBox="0 0 60 25" width="60" height="25" fill="currentColor" className="text-on-surface">
-                <path d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32c-1.15.58-2.82.96-4.73.96-3.8 0-6.62-2.14-6.62-6.47 0-4.16 2.72-6.52 6.18-6.52 3.84 0 5.98 2.65 5.98 6.08 0 .42-.03.74-.03 1.03zm-4.07-2.61c-.04-1.39-.89-2.22-2.02-2.22-1.36 0-2.34 1.03-2.55 2.22h4.57zM44.42 20V7.32h3.9v12.68h-3.9zM42.27 10.3c0-1.28.99-2.22 2.22-2.22s2.24.94 2.24 2.22c0 1.25-.99 2.22-2.24 2.22-1.23 0-2.22-.97-2.22-2.22zm-7.66 1.48c-.68-.53-1.66-.82-2.73-.82-1.75 0-2.98.92-2.98 2.36 0 1.34 1.03 2 2.63 2.3l.97.2c1.03.19 1.62.53 1.62 1.25 0 .86-.88 1.48-2.32 1.48-1.5 0-2.98-.53-4.11-1.34v3.52c1.28.6 3 1 4.53 1 3.52 0 6.08-1.6 6.08-4.57 0-3.32-2.82-3.8-5.32-4.24-.8-.16-1.36-.33-1.36-.8 0-.5.6-1 1.77-1 1.15 0 2.22.41 3.2 1.03v-3.37zm-20.9 8.22V7.32h4.09v12.68h-4.09zm0-16.14V.36h4.09v3.5h-4.09zm-8.82 5.06l-.5-1.36h-4V7.32h3.29V3.53l4.09-1.23v5.02h3.66v3.86h-3.66v5.82c0 1.05.5 1.5 1.54 1.5.7 0 1.38-.16 2.1-.47v3.52c-1.11.45-2.61.64-4.09.64-3.15 0-4.44-1.54-4.44-4.63v-6.38zM26.23 7.32h3.9v2.24c.95-1.42 2.55-2.43 4.67-2.43 3.32 0 5.61 2.38 5.61 6.54 0 4.14-2.29 6.52-5.61 6.52-2.12 0-3.72-1.01-4.67-2.45v6.52h-3.9V7.32zm4.11 6.36c0 2 1.36 3.19 3 3.19 1.62 0 2.94-1.21 2.94-3.19 0-2-1.32-3.21-2.94-3.21-1.64 0-3 1.21-3 3.21z"/>
-              </svg>
+            <div className="flex justify-center items-center gap-3 pt-6 opacity-80 group">
+              <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Secured by</span>
+              <img src="https://www.vectorlogo.zone/logos/stripe/stripe-ar21.svg" alt="Stripe Logo" className="w-34 h-14" />
             </div>
 
             <div className="space-y-4 pt-4 border-t border-border-glass">

@@ -15,17 +15,23 @@ async function simulateWebhook() {
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
     const db = client.db('leadlinx');
-    const user = await db.collection('users').findOne({ email: EMAIL });
+    let user = await db.collection('users').findOne({ email: EMAIL });
     
     if (!user) {
-      console.error(`❌ User with email ${EMAIL} not found in database.`);
+      console.warn(`⚠️ User with email ${EMAIL} not found. Falling back to the first user in the database...`);
+      user = await db.collection('users').findOne({});
+    }
+
+    if (!user) {
+      console.error(`❌ No users found in the database. Please sign in to the app first!`);
       process.exit(1);
     }
 
+    const currentEmail = user.email;
     const userId = user._id.toString();
     const credits = PLAN === 'plus' ? 1000 : PLAN === 'pro' ? 2000 : 5000;
 
-    console.log(`🚀 Simulating payment for ${EMAIL} (ID: ${userId})...`);
+    console.log(`🚀 Simulating payment for ${currentEmail} (ID: ${userId})...`);
 
     const payload = {
       type: 'checkout.session.completed',

@@ -173,3 +173,62 @@ export async function sendPaymentFailedEmail(email) {
     console.error('Failed to send payment failed email:', error);
   }
 }
+export async function sendThankYouEmail(email, planName, amount) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+
+  const mailOptions = {
+    from: `"LeadLinx AI" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `🚀 Welcome to LeadLinx ${planName}!`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h1 style="color: #dc2626; margin-bottom: 8px;">Thank You for Your Purchase!</h1>
+          <p style="color: #4b5563; font-size: 18px;">Your LeadLinx <strong>${planName}</strong> plan is now active.</p>
+        </div>
+
+        <div style="background-color: #f9fafb; padding: 24px; border-radius: 8px; margin-bottom: 24px;">
+          <h3 style="margin-top: 0; color: #111827;">Order Summary</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Plan</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #111827;">${planName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Amount Paid</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #111827;">$${amount.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Status</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #10b981;">Active</td>
+            </tr>
+          </table>
+        </div>
+
+        <p style="color: #4b5563; line-height: 1.6;">
+          We're excited to have you on board! You can now start generating high-intent leads with your new credits. 
+          If you have any questions or need help getting started, just reply to this email.
+        </p>
+
+        <div style="text-align: center; margin-top: 32px;">
+          <a href="${process.env.NEXTAUTH_URL}/dashboard" style="background-color: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+            Go to Dashboard
+          </a>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
+        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+          © 2024 LeadLinx. All rights reserved.<br/>
+          Secured by Stripe
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Thank you email sent to ${email}`);
+  } catch (error) {
+    console.error('Failed to send thank you email:', error);
+  }
+}
