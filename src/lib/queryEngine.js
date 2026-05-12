@@ -37,6 +37,8 @@ async function callGeminiJSON(systemPrompt, userPrompt) {
 }
 
 const BUYER_INTENT_MAP = {
+  // courses: ['courses', 'buy', 'learning', 'education', 'academic', 'school', 'college'],
+  // fastfood: ['fastfood', 'burger', 'buy', 'restaurant', 'food', 'delicacy', 'fast food'],
   ai_image: ['StableDiffusion', 'midjourney', 'aiArt', 'generativeAI', 'AIDiscussion', 'comfyui', 'artificial'],
   ai_writing: ['ChatGPT', 'artificial', 'AIAssistants', 'copywriting', 'marketing', 'Blogging', 'content_marketing'],
   ai_tools: ['ChatGPT', 'artificial', 'singularity', 'MachineLearning', 'AIDiscussion', 'productivity', 'SaaS', 'startups'],

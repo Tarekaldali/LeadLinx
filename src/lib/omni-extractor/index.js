@@ -39,7 +39,7 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   
   // 3. LLM Validation & Scoring (Concurrently for performance, limit batch size in prod)
   const validatedLeads = [];
-  const BATCH_SIZE = 5; // Process in small batches
+  const BATCH_SIZE = 50; // Process in larger batches for faster throughput
   
   for (let i = 0; i < rawLeads.length; i += BATCH_SIZE) {
     const batch = rawLeads.slice(i, i + BATCH_SIZE);
