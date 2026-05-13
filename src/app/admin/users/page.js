@@ -11,6 +11,10 @@ export default function AdminUsersPage() {
   const [editFormData, setEditFormData] = useState({ plan: 'free', credits: 400 });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
+  
+  // Search and Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [creditFilter, setCreditFilter] = useState('all'); // all, zero, low, high
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -64,6 +68,19 @@ export default function AdminUsersPage() {
     setShowConfirmBan(null);
   };
 
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = 
+      (user.name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user.email?.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    let matchesCredits = true;
+    if (creditFilter === 'zero') matchesCredits = (user.credits || 0) === 0;
+    if (creditFilter === 'low') matchesCredits = (user.credits || 0) > 0 && (user.credits || 0) < 500;
+    if (creditFilter === 'high') matchesCredits = (user.credits || 0) >= 1000;
+
+    return matchesSearch && matchesCredits;
+  });
+
   if (loading) return <div className="space-y-4">{[1,2,3].map(i => <div key={i} className="skeleton h-16 w-full"></div>)}</div>;
 
   return (
@@ -71,13 +88,57 @@ export default function AdminUsersPage() {
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-headline mb-2 text-on-surface">User Management</h1>
-          <p className="text-on-surface-variant font-body">{users.length} total registered users</p>
+          <p className="text-on-surface-variant font-body">{filteredUsers.length} users found {searchQuery && `for "${searchQuery}"`}</p>
         </div>
-        <button onClick={fetchUsers} className="btn-ghost flex items-center gap-2">
-          <span className="material-symbols-outlined text-sm">refresh</span>
-          Refresh
-        </button>
+        <div className="flex gap-3">
+          <button onClick={fetchUsers} className="btn-ghost flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm">refresh</span>
+            Refresh
+          </button>
+        </div>
       </header>
+
+      {/* Filters & Search Bar */}
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-surface-container/50 p-4 rounded-2xl border border-border-glass">
+        <div className="relative w-full md:w-96 group">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[20px] text-on-surface-variant group-focus-within:text-primary transition-colors pointer-events-none">search</span>
+          <input 
+            type="text" 
+            placeholder="Search by name or email..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input-field pl-14 w-full bg-surface border-border-glass focus:border-primary/50"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 w-full md:w-auto">
+          <span className="text-xs font-data-label text-on-surface-variant mr-2 whitespace-nowrap">FILTER BY CREDITS:</span>
+          <button 
+            onClick={() => setCreditFilter('all')}
+            className={`btn-ghost text-xs py-1.5 px-4 rounded-full border ${creditFilter === 'all' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-surface border-border-glass'}`}
+          >
+            All
+          </button>
+          <button 
+            onClick={() => setCreditFilter('zero')}
+            className={`btn-ghost text-xs py-1.5 px-4 rounded-full border ${creditFilter === 'zero' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-surface border-border-glass'}`}
+          >
+            0 Credits
+          </button>
+          <button 
+            onClick={() => setCreditFilter('low')}
+            className={`btn-ghost text-xs py-1.5 px-4 rounded-full border ${creditFilter === 'low' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-surface border-border-glass'}`}
+          >
+            &lt; 500
+          </button>
+          <button 
+            onClick={() => setCreditFilter('high')}
+            className={`btn-ghost text-xs py-1.5 px-4 rounded-full border ${creditFilter === 'high' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-surface border-border-glass'}`}
+          >
+            1,000+
+          </button>
+        </div>
+      </div>
 
       <div className="bento-card overflow-hidden">
         <div className="overflow-x-auto">
@@ -92,7 +153,7 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
+              {filteredUsers.map(user => (
                 <tr key={user._id}>
                   <td>
                     <div className="flex items-center gap-3">
@@ -128,6 +189,22 @@ export default function AdminUsersPage() {
                   </td>
                 </tr>
               ))}
+              {filteredUsers.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="py-20 text-center text-on-surface-variant">
+                    <div className="flex flex-col items-center gap-3">
+                      <span className="material-symbols-outlined text-4xl opacity-20">search_off</span>
+                      <p>No users found matching your criteria</p>
+                      <button 
+                        onClick={() => { setSearchQuery(''); setCreditFilter('all'); }}
+                        className="text-primary text-sm font-bold hover:underline"
+                      >
+                        Reset All Filters
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
