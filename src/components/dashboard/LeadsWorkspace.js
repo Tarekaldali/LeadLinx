@@ -269,12 +269,14 @@ export default function LeadsWorkspace() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button 
-              onClick={handleExport}
-              className="px-4 py-2 bg-surface border border-border-glass rounded-xl text-xs font-bold shadow-sm hover:border-primary/30 transition-all flex items-center gap-2"
-            >
-              <Download size={14} /> Export CSV
-            </button>
+            {view === 'leads' && (
+              <button 
+                onClick={handleExport}
+                className="px-4 py-2 bg-surface border border-border-glass rounded-xl text-xs font-bold shadow-sm hover:border-primary/30 transition-all flex items-center gap-2"
+              >
+                <Download size={14} /> Export CSV
+              </button>
+            )}
             {selectedLeads.length > 0 && (
               <button 
                 onClick={handleBulkDelete}
