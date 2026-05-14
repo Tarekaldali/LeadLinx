@@ -258,9 +258,6 @@ export default function DashboardPage() {
     finally { setLoadingMonitors(false); }
   }, []);
 
-  useEffect(() => {
-    if (activeTab === 'monitors') fetchMonitors();
-  }, [activeTab, fetchMonitors]);
 
   const handleCreateMonitor = async () => {
     if (!monitorGoal.trim()) return;
@@ -322,6 +319,26 @@ export default function DashboardPage() {
     } catch { showToast('Failed to delete monitor', 'error'); }
   };
 
+  useEffect(() => {
+    // Initial fetch
+    fetchMonitors();
+
+    // Auto-surveillance background loop (processes monitors every 60 seconds)
+    const surveillanceInterval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/monitors/process');
+        if (res.ok) {
+          // Refresh monitors to show updated lead counts/last run times
+          fetchMonitors();
+        }
+      } catch (error) {
+        console.error('Auto-surveillance error:', error);
+      }
+    }, 60000);
+
+    return () => clearInterval(surveillanceInterval);
+  }, [fetchMonitors]);
+
   const renderLeads = () => <LeadsWorkspace />;
 
   const renderMonitors = () => (
@@ -332,24 +349,6 @@ export default function DashboardPage() {
           <p className="text-sm text-[#86868b] mt-1">Real-time background listeners watching subreddits for buying signals.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={async () => {
-              setLoadingMonitors(true);
-              try {
-                const res = await fetch('/api/monitors/process');
-                const data = await res.json();
-                if (res.ok) {
-                  showToast(data.processed > 0 ? `Processed ${data.processed} monitors!` : 'No monitors due for processing yet.');
-                  fetchMonitors();
-                }
-              } catch { showToast('Failed to trigger monitors', 'error'); }
-              finally { setLoadingMonitors(false); }
-            }}
-            disabled={loadingMonitors}
-            className="px-6 py-3 bg-white border border-[#e5e5e7] text-[#1d1d1f] rounded-2xl text-sm font-bold shadow-sm hover:border-[#ff3b30]/30 transition-all flex items-center gap-2"
-          >
-            <span className={`material-symbols-outlined text-[20px] ${loadingMonitors ? 'animate-spin' : ''}`}>sync</span> Run All
-          </button>
           <button 
             onClick={() => setShowMonitorModal(true)}
             className="px-6 py-3 bg-[#ff3b30] text-white rounded-2xl text-sm font-bold shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
