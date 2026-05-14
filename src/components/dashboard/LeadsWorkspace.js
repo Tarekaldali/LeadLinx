@@ -27,6 +27,7 @@ export default function LeadsWorkspace() {
   const [sortOrder, setSortOrder] = useState('desc');
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null); // For drawer
+  const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null, type: 'danger' });
 
   // Data Fetching
   const fetchUrl = selectedGroup 
@@ -69,22 +70,55 @@ export default function LeadsWorkspace() {
     );
   };
 
-  const handleBulkDelete = async () => {
-    if (!selectedLeads.length || !confirm(`Delete ${selectedLeads.length} leads?`)) return;
-    try {
-      const res = await fetch('/api/leads', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: selectedLeads, tab: activeTab })
-      });
-      if (res.ok) {
-        mutate();
-        mutateGroups();
-        setSelectedLeads([]);
+  const handleBulkDelete = () => {
+    if (!selectedLeads.length) return;
+    setConfirmModal({
+      open: true,
+      title: 'Delete Leads',
+      message: `Are you sure you want to delete ${selectedLeads.length} leads? This action cannot be undone.`,
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          const res = await fetch('/api/leads', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: selectedLeads, tab: activeTab })
+          });
+          if (res.ok) {
+            mutate();
+            mutateGroups();
+            setSelectedLeads([]);
+            setConfirmModal(prev => ({ ...prev, open: false }));
+          }
+        } catch (err) {
+          console.error(err);
+        }
       }
-    } catch (err) {
-      console.error(err);
-    }
+    });
+  };
+
+  const handleDeleteGroup = (e, group) => {
+    e.stopPropagation(); // Don't trigger group selection
+    setConfirmModal({
+      open: true,
+      title: `Delete ${group.sourceType}`,
+      message: `Are you sure you want to delete "${group.title}" and all its ${group.leadCount} leads? This cannot be undone.`,
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/leads/groups?id=${group.id}&type=${group.type}`, {
+            method: 'DELETE'
+          });
+          if (res.ok) {
+            mutateGroups();
+            mutate();
+            setConfirmModal(prev => ({ ...prev, open: false }));
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    });
   };
 
   const handleSaveLead = async (lead) => {
@@ -281,7 +315,10 @@ export default function LeadsWorkspace() {
                   />
                 </div>
                 
-                <button className="relative p-2 bg-surface-container-low border border-border-glass rounded-xl text-gray-500 hover:text-primary hover:border-primary/30 transition-all">
+                <button 
+                  title="Filter Leads"
+                  className="relative p-2 bg-surface-container-low border border-border-glass rounded-xl text-gray-500 hover:text-primary hover:border-primary/30 transition-all"
+                >
                   <Filter size={16} />
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border-2 border-surface animate-pulse" />
                 </button>
@@ -307,11 +344,20 @@ export default function LeadsWorkspace() {
                   </div>
                 ) : (
                   groupsData?.groups.map((group) => (
-                    <button 
+                    <div 
                       key={group.id}
                       onClick={() => handleSelectGroup(group)}
-                      className="group flex flex-col bg-surface-container-low border border-border-glass rounded-[2.5rem] p-6 hover:border-primary/30 hover:bg-surface-container-high transition-all text-left shadow-sm hover:shadow-xl hover:shadow-primary/5 active:scale-[0.98]"
+                      className="group relative flex flex-col bg-surface-container-low border border-border-glass rounded-[2.5rem] p-6 hover:border-primary/30 hover:bg-surface-container-high transition-all text-left shadow-sm hover:shadow-xl hover:shadow-primary/5 active:scale-[0.98] cursor-pointer"
                     >
+                      {/* Delete Group Button */}
+                      <button 
+                        onClick={(e) => handleDeleteGroup(e, group)}
+                        className="absolute top-4 right-4 p-2 bg-white/50 dark:bg-black/20 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-full transition-all opacity-0 group-hover:opacity-100 z-10"
+                        title="Delete this group and all its leads"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+
                       <div className="flex justify-between items-start mb-4">
                         <div className={cn(
                           "p-4 rounded-[1.5rem] shadow-inner",
@@ -319,7 +365,7 @@ export default function LeadsWorkspace() {
                         )}>
                           {group.type === 'monitor' ? <Zap size={24} fill="currentColor" /> : <Search size={24} />}
                         </div>
-                        <div className="flex flex-col items-end">
+                        <div className="flex flex-col items-end mr-6">
                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{group.sourceType}</span>
                           <div className={cn(
                             "px-2 py-0.5 rounded-full text-[10px] font-bold capitalize",
@@ -330,7 +376,7 @@ export default function LeadsWorkspace() {
                         </div>
                       </div>
 
-                      <h3 className="text-lg font-bold text-on-surface line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                      <h3 className="text-lg font-bold text-on-surface line-clamp-2 mb-2 group-hover:text-primary transition-colors pr-4">
                         {group.title}
                       </h3>
 
@@ -350,7 +396,7 @@ export default function LeadsWorkspace() {
                           <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                         </div>
                       </div>
-                    </button>
+                    </div>
                   ))
                 )}
               </div>
