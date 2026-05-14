@@ -22,7 +22,9 @@ export default function LeadsWorkspace() {
   const [activeTab, setActiveTab] = useState('generated'); // generated | saved
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [groupPage, setGroupPage] = useState(1);
   const [limit, setLimit] = useState(20);
+  const [groupLimit] = useState(12);
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [selectedLeads, setSelectedLeads] = useState([]);
@@ -37,34 +39,33 @@ export default function LeadsWorkspace() {
   const { data, error, isLoading, mutate } = useSWR(fetchUrl, fetcher, { keepPreviousData: true });
 
   const { data: groupsData, isLoading: groupsLoading, mutate: mutateGroups } = useSWR(
-    activeTab === 'generated' ? '/api/leads/groups' : null, 
+    activeTab === 'generated' ? `/api/leads/groups?page=${groupPage}&limit=${groupLimit}` : null, 
     fetcher
   );
 
   const { data: stats, isLoading: statsLoading, mutate: mutateStats } = useSWR('/api/leads/stats', fetcher);
 
   // Pagination Logic
-  const getPageNumbers = () => {
-    const totalPages = data?.pagination.totalPages || 0;
+  const getPageNumbers = (currentPage, totalPages) => {
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
     
     const pages = [];
-    if (page <= 4) {
+    if (currentPage <= 4) {
       for (let i = 1; i <= 5; i++) pages.push(i);
       pages.push('...');
       pages.push(totalPages);
-    } else if (page >= totalPages - 3) {
+    } else if (currentPage >= totalPages - 3) {
       pages.push(1);
       pages.push('...');
       for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
     } else {
       pages.push(1);
       pages.push('...');
-      pages.push(page - 1);
-      pages.push(page);
-      pages.push(page + 1);
+      pages.push(currentPage - 1);
+      pages.push(currentPage);
+      pages.push(currentPage + 1);
       pages.push('...');
       pages.push(totalPages);
     }
@@ -594,43 +595,87 @@ export default function LeadsWorkspace() {
         </div>
 
           {/* Pagination */}
-          <div className="px-6 py-4 bg-surface-container-low border-t border-border-glass flex items-center justify-between">
-            <p className="text-[11px] text-on-surface-variant font-medium">
-              Showing <span className="font-bold text-on-surface">{(page - 1) * limit + 1}</span> to <span className="font-bold text-on-surface">{Math.min(page * limit, data?.pagination.total || 0)}</span> of <span className="font-bold text-on-surface">{data?.pagination.total || 0}</span> results
-            </p>
-            <div className="flex items-center gap-2">
-              <button 
-                disabled={page === 1}
-                onClick={() => setPage(p => p - 1)}
-                className="p-1.5 bg-surface border border-border-glass rounded-lg text-gray-500 hover:text-primary disabled:opacity-30 disabled:hover:text-gray-500 transition-all shadow-sm"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <div className="flex items-center gap-1">
-                {getPageNumbers().map((p, i) => (
+          {view === 'groups' && activeTab === 'generated' ? (
+            groupsData?.pagination?.totalPages > 1 && (
+              <div className="px-6 py-4 bg-surface-container-low border-t border-border-glass flex items-center justify-between">
+                <p className="text-[11px] text-on-surface-variant font-medium">
+                  Showing <span className="font-bold text-on-surface">{(groupPage - 1) * groupLimit + 1}</span> to <span className="font-bold text-on-surface">{Math.min(groupPage * groupLimit, groupsData?.pagination.total || 0)}</span> of <span className="font-bold text-on-surface">{groupsData?.pagination.total || 0}</span> groups
+                </p>
+                <div className="flex items-center gap-2">
                   <button 
-                    key={i}
-                    onClick={() => typeof p === 'number' && setPage(p)}
-                    disabled={p === '...'}
-                    className={cn(
-                      "w-8 h-8 rounded-lg text-xs font-bold transition-all",
-                      page === p ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface border border-border-glass text-gray-500 hover:border-primary/30",
-                      p === '...' && "border-none bg-transparent cursor-default"
-                    )}
+                    disabled={groupPage === 1}
+                    onClick={() => setGroupPage(p => p - 1)}
+                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-gray-500 hover:text-primary disabled:opacity-30 disabled:hover:text-gray-500 transition-all shadow-sm"
                   >
-                    {p}
+                    <ChevronLeft size={16} />
                   </button>
-                ))}
+                  <div className="flex items-center gap-1">
+                    {getPageNumbers(groupPage, groupsData?.pagination.totalPages || 0).map((p, i) => (
+                      <button 
+                        key={i}
+                        onClick={() => typeof p === 'number' && setGroupPage(p)}
+                        disabled={p === '...'}
+                        className={cn(
+                          "w-8 h-8 rounded-lg text-xs font-bold transition-all",
+                          groupPage === p ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface border border-border-glass text-gray-500 hover:border-primary/30",
+                          p === '...' && "border-none bg-transparent cursor-default"
+                        )}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                  <button 
+                    disabled={groupPage === groupsData?.pagination.totalPages}
+                    onClick={() => setGroupPage(p => p + 1)}
+                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-gray-500 hover:text-primary disabled:opacity-30 disabled:hover:text-gray-500 transition-all shadow-sm"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
               </div>
-              <button 
-                disabled={page === data?.pagination.totalPages}
-                onClick={() => setPage(p => p + 1)}
-                className="p-1.5 bg-surface border border-border-glass rounded-lg text-gray-500 hover:text-primary disabled:opacity-30 disabled:hover:text-gray-500 transition-all shadow-sm"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
+            )
+          ) : (
+            data?.pagination?.totalPages > 1 && (
+              <div className="px-6 py-4 bg-surface-container-low border-t border-border-glass flex items-center justify-between">
+                <p className="text-[11px] text-on-surface-variant font-medium">
+                  Showing <span className="font-bold text-on-surface">{(page - 1) * limit + 1}</span> to <span className="font-bold text-on-surface">{Math.min(page * limit, data?.pagination.total || 0)}</span> of <span className="font-bold text-on-surface">{data?.pagination.total || 0}</span> results
+                </p>
+                <div className="flex items-center gap-2">
+                  <button 
+                    disabled={page === 1}
+                    onClick={() => setPage(p => p - 1)}
+                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-gray-500 hover:text-primary disabled:opacity-30 disabled:hover:text-gray-500 transition-all shadow-sm"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {getPageNumbers(page, data?.pagination.totalPages || 0).map((p, i) => (
+                      <button 
+                        key={i}
+                        onClick={() => typeof p === 'number' && setPage(p)}
+                        disabled={p === '...'}
+                        className={cn(
+                          "w-8 h-8 rounded-lg text-xs font-bold transition-all",
+                          page === p ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface border border-border-glass text-gray-500 hover:border-primary/30",
+                          p === '...' && "border-none bg-transparent cursor-default"
+                        )}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                  <button 
+                    disabled={page === data?.pagination.totalPages}
+                    onClick={() => setPage(p => p + 1)}
+                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-gray-500 hover:text-primary disabled:opacity-30 disabled:hover:text-gray-500 transition-all shadow-sm"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )
+          )}
         </div>
       </div>
 

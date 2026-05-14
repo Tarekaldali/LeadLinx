@@ -62,13 +62,29 @@ export async function GET(request) {
     }));
 
     // Combine and sort by latest activity
-    const groups = [...monitorGroups, ...searchGroups].sort((a, b) => {
+    const allGroups = [...monitorGroups, ...searchGroups].sort((a, b) => {
       const dateA = new Date(a.updatedAt || a.createdAt);
       const dateB = new Date(b.updatedAt || b.createdAt);
       return dateB - dateA;
     });
 
-    return NextResponse.json({ groups });
+    // Pagination
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '12');
+    const skip = (page - 1) * limit;
+    
+    const groups = allGroups.slice(skip, skip + limit);
+
+    return NextResponse.json({ 
+      groups,
+      pagination: {
+        total: allGroups.length,
+        page,
+        limit,
+        totalPages: Math.ceil(allGroups.length / limit)
+      }
+    });
   } catch (error) {
     console.error('Fetch lead groups error:', error);
     return NextResponse.json({ error: 'Failed to fetch lead groups' }, { status: 500 });
