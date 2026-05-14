@@ -444,7 +444,7 @@ export default function LeadsWorkspace() {
                       </td>
                       <td>
                         <div className="flex flex-col">
-                          <span className="text-xs font-medium text-on-surface">r/{lead.subreddit || lead.source}</span>
+                          <span className="text-xs font-medium text-on-surface">{'r/'}{lead.subreddit || lead.source}</span>
                           {lead.isFromMonitor && (
                             <span className="text-[9px] font-bold text-lime-green uppercase tracking-tighter flex items-center gap-1">
                               <Zap size={8} fill="currentColor" /> Monitor
@@ -490,7 +490,8 @@ export default function LeadsWorkspace() {
                 )}
               </tbody>
             </table>
-          </div>
+          )}
+        </div>
 
           {/* Pagination */}
           <div className="px-6 py-4 bg-surface-container-low border-t border-border-glass flex items-center justify-between">
