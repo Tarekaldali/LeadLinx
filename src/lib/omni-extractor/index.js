@@ -12,8 +12,15 @@ import { runLocalExtraction } from './sources/local.js';
 export async function extractOmniLeads(query, options = { isPremium: false }) {
   console.log(`\n🚀 [Omni-Extractor] Starting extraction for: "${query}" | Premium: ${options.isPremium}`);
   
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+
   // 1. Intelligent Routing
-  const routeData = await routeQuery(query);
+  const routerResult = await routeQuery(query, true); // Modified to return tokens
+  const routeData = routerResult.data;
+  totalInputTokens += routerResult.usage.prompt_tokens;
+  totalOutputTokens += routerResult.usage.completion_tokens;
+
   console.log(`🗺️ [Omni-Router] Target: ${routeData.targetType.toUpperCase()} | Sources: ${routeData.sources.join(', ')}`);
   
   const rawLeads = [];
@@ -37,28 +44,32 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   
   console.log(`🔎 [Omni-Extractor] Found ${rawLeads.length} raw potential leads across sources.`);
   
-  // 3. LLM Validation & Scoring (Concurrently for performance, limit batch size in prod)
+  // 3. LLM Validation & Scoring
   const validatedLeads = [];
-  const BATCH_SIZE = 50; // Process in larger batches for faster throughput
+  const BATCH_SIZE = 50; 
   
   for (let i = 0; i < rawLeads.length; i += BATCH_SIZE) {
     const batch = rawLeads.slice(i, i + BATCH_SIZE);
     
     const validations = await Promise.all(batch.map(async (rawLead) => {
-      // If there are no contacts at all, skip LLM validation to save costs
       const contactCount = rawLead.raw_contacts.emails.length + 
                            rawLead.raw_contacts.phones.length + 
                            rawLead.raw_contacts.socials.length;
-                           
+                            
       if (contactCount === 0 && rawLead.source !== 'local_maps') {
          return null; 
       }
       
-      const validation = await validateLeadIntent(
+      const valResult = await validateLeadIntent(
         rawLead.context, 
         rawLead.raw_contacts, 
-        routeData.searchIntent
+        routeData.searchIntent,
+        true // Modified to return tokens
       );
+
+      const validation = valResult.data;
+      totalInputTokens += valResult.usage.prompt_tokens;
+      totalOutputTokens += valResult.usage.completion_tokens;
       
       if (validation.is_valid_lead) {
         return {
@@ -69,6 +80,7 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
           title: routeData.searchIntent,
           link: rawLead.link,
           source: rawLead.source,
+          subreddit: rawLead.subreddit || rawLead.source,
           emails: validation.verified_contacts.emails || [],
           phones: validation.verified_contacts.phones || [],
           socials: validation.verified_contacts.socials || [],
@@ -81,15 +93,18 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
     validatedLeads.push(...validations.filter(Boolean));
   }
   
-  // Sort by score
   validatedLeads.sort((a, b) => b.score - a.score);
   
-  console.log(`✅ [Omni-Extractor] Successfully validated ${validatedLeads.length} high-intent leads.`);
+  console.log(`✅ [Omni-Extractor] Successfully validated ${validatedLeads.length} leads. Tokens: In=${totalInputTokens}, Out=${totalOutputTokens}`);
   
   return {
     jobId: `omni_${Date.now()}`,
     query: query,
     route_data: routeData,
+    usage: {
+      prompt_tokens: totalInputTokens,
+      completion_tokens: totalOutputTokens
+    },
     stats: {
       rawFound: rawLeads.length,
       validated: validatedLeads.length

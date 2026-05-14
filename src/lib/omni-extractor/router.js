@@ -17,16 +17,19 @@ Then select the most effective extraction sources from:
 - "social": Reddit / Community forums (best for high-intent B2C users asking questions or product recommendations)
 - "local": Maps / Local Business data (best for B2B brick-and-mortar stores)
 
+If "social" is recommended, you MUST also identify the 5 most relevant subreddits for high-intent conversations.
+
 Return ONLY valid JSON:
 {
   "target_type": "b2c" | "b2b",
   "recommended_sources": ["dorking", "social", "local"],
   "search_intent": "concise description of what they are looking for",
-  "keywords": ["keyword1", "keyword2"]
+  "keywords": ["keyword1", "keyword2"],
+  "subreddits": ["SubredditName1", "SubredditName2"]
 }
 `;
 
-export async function routeQuery(query) {
+export async function routeQuery(query, returnUsage = false) {
   try {
     const messages = [
       { role: 'system', content: ROUTER_PROMPT },
@@ -49,20 +52,31 @@ export async function routeQuery(query) {
       }
     }
 
-    return {
+    const data = {
       targetType: parsed.target_type || 'b2b',
       sources: parsed.recommended_sources || ['dorking'],
       searchIntent: parsed.search_intent || query,
-      keywords: parsed.keywords || [query]
+      keywords: parsed.keywords || [query],
+      subreddits: parsed.subreddits || []
     };
+
+    if (returnUsage) {
+      return {
+        data: data,
+        usage: { prompt_tokens: res.inputTokens || 0, completion_tokens: res.outputTokens || 0 }
+      };
+    }
+
+    return data;
   } catch (error) {
     console.error('[Omni-Router] Failed to route query:', error);
-    // Fallback strategy: try everything
-    return {
+    const fallback = {
       targetType: 'b2b',
       sources: ['dorking', 'social'],
       searchIntent: query,
-      keywords: [query]
+      keywords: [query],
+      subreddits: []
     };
+    return returnUsage ? { data: fallback, usage: { prompt_tokens: 0, completion_tokens: 0 } } : fallback;
   }
 }

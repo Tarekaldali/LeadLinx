@@ -57,6 +57,31 @@ export function calculateCreditsToDeduct(model, usage, plan = 'free') {
   return Math.max(1, Math.min(50, credits));
 }
 
+export const PRO_RATE = 0.003995;
+export const SURVEILLANCE_PROFIT_BUFFER = 1.5; // 50% profit margin
+
+/**
+ * Calculates credits for background surveillance monitors.
+ * Uses a dedicated formula to handle long-running background tasks.
+ * Formula: ((raw_usd_cost / pro_rate) * profit_buffer)
+ */
+export function calculateMonitorCredits(model, usage) {
+  if (!usage) return 2; // Baseline for background overhead
+
+  const pricing = MODEL_PRICES[model] || MODEL_PRICES.default;
+  const rawCost = (usage.prompt_tokens * (pricing.input / 1000000)) + 
+                  (usage.completion_tokens * (pricing.output / 1000000));
+
+  // Step 1: Convert USD to Credits using the Pro Plan Rate ($0.003995/credit)
+  const baseCredits = rawCost / PRO_RATE;
+  
+  // Step 2: Apply the Surveillance Profit Buffer (50% markup)
+  const finalCredits = Math.ceil(baseCredits * SURVEILLANCE_PROFIT_BUFFER);
+
+  // Minimum 1 credit per scan to cover infrastructure and API overhead
+  return Math.max(1, finalCredits);
+}
+
 /**
  * Helper to get the raw USD cost for admin tracking
  */

@@ -115,7 +115,7 @@ export default function DashboardLayout({ children }) {
   const Sidebar = (
     <aside className="w-72 h-full bg-[#f5f5f7] flex flex-col border-r border-[#e5e5e7] overflow-hidden">
       {/* Logo + collapse */}
-      <div className="flex items-center justify-between px-6 py-8 shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 shrink-0">
         <Link href="/dashboard">
           <div className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff3b30] to-[#ff2d55] flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform">
@@ -297,7 +297,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <DashboardContext.Provider value={{ user, refreshUser, updateCredits, addChat, activeTab, setActiveTab }}>
-      <div className="flex h-screen overflow-hidden bg-[#ffffff] text-[#1d1d1f] selection:bg-[#0071e3]/10 selection:text-[#0071e3]">
+      <div className="flex h-screen overflow-hidden bg-[#ffffff] text-[#1d1d1f] selection:bg-[#ff3b30]/10 selection:text-[#ff3b30]">
         {/* Mobile overlay */}
         {sidebarOpen && (
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] md:hidden" onClick={() => setSidebarOpen(false)} />
@@ -376,17 +376,17 @@ export default function DashboardLayout({ children }) {
             <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-white">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredPrompts.map((p, i) => (
-                  <div key={i} className="group relative bg-[#fbfbfd] border border-[#e5e5e7] rounded-2xl p-6 hover:bg-white hover:border-[#0071e3]/30 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                  <div key={i} className="group relative bg-[#fbfbfd] border border-[#e5e5e7] rounded-2xl p-6 hover:bg-white hover:border-[#ff3b30]/30 transition-all cursor-pointer shadow-sm hover:shadow-md"
                     onClick={() => {
                       setPromptLibraryOpen(false);
                       router.push('/dashboard');
                       setTimeout(() => window.dispatchEvent(new CustomEvent('usePrompt', { detail: { prompt: p.prompt } })), 200);
                     }}
                   >
-                    <div className="text-[10px] font-black text-[#0071e3] mb-3 uppercase tracking-widest">{p.category}</div>
-                    <div className="text-base font-bold text-[#1d1d1f] mb-2 group-hover:text-[#0071e3] transition-colors">{p.title}</div>
+                    <div className="text-[10px] font-black text-[#ff3b30] mb-3 uppercase tracking-widest">{p.category}</div>
+                    <div className="text-base font-bold text-[#1d1d1f] mb-2 group-hover:text-[#ff3b30] transition-colors">{p.title}</div>
                     <div className="text-xs text-[#86868b] line-clamp-2 italic leading-relaxed font-medium">"{p.prompt}"</div>
-                    <div className="mt-6 flex items-center gap-2 text-[10px] text-[#0071e3] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0">
+                    <div className="mt-6 flex items-center gap-2 text-[10px] text-[#ff3b30] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0">
                       <span>Inject into engine</span>
                       <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                     </div>

@@ -71,34 +71,42 @@
   --radius-2xl: 1.5rem;
   --radius-bento: 14px;
 
-  /* Dark Sidebar */
-  --color-sidebar: #0f1117;
-  --color-sidebar-fg: #f1f3f9;
-  --color-sidebar-muted: #6b7280;
-  --color-sidebar-hover: rgba(255, 255, 255, 0.07);
-  --color-sidebar-active: rgba(220, 38, 38, 0.15);
-  --color-sidebar-border: rgba(255, 255, 255, 0.07);
+  /* Sidebar — LIGHT THEME (Apple-Inspired) */
+  --color-sidebar: #f5f5f7;
+  --color-sidebar-fg: #1d1d1f;
+  --color-sidebar-muted: #86868b;
+  --color-sidebar-hover: rgba(0, 0, 0, 0.04);
+  --color-sidebar-active: #ffffff;
+  --color-sidebar-border: #e5e5e7;
 }
 
 .dark {
-  --color-background: #121214;
-  --color-surface: #1e1e21;
-  --color-surface-dim: #121214;
-  --color-surface-bright: #2d2d30;
-  --color-surface-container-lowest: #0c0c0e;
-  --color-surface-container-low: #18181b;
-  --color-surface-container: #1e1e21;
-  --color-surface-container-high: #2d2d30;
-  --color-surface-container-highest: #4a4a4f;
+  --color-background: #09090b;
+  --color-surface: #18181b;
+  --color-surface-dim: #09090b;
+  --color-surface-bright: #27272a;
+  --color-surface-container-lowest: #020617;
+  --color-surface-container-low: #0f172a;
+  --color-surface-container: #1e293b;
+  --color-surface-container-high: #334155;
+  --color-surface-container-highest: #475569;
 
-  --color-on-surface: #f4f4f5;
-  --color-on-surface-variant: #a1a1aa;
+  --color-on-surface: #f8fafc;
+  --color-on-surface-variant: #94a3b8;
   --color-inverse-surface: #ffffff;
-  --color-inverse-on-surface: #121214;
+  --color-inverse-on-surface: #020617;
 
-  --color-border-glass: #2d2d30;
-  --color-outline: #52525b;
-  --color-outline-variant: #3f3f46;
+  --color-border-glass: rgba(255, 255, 255, 0.1);
+  --color-outline: #475569;
+  --color-outline-variant: #1e293b;
+
+  /* Sidebar — DARK THEME (Midnight) */
+  --color-sidebar: #0f1117;
+  --color-sidebar-fg: #f1f3f9;
+  --color-sidebar-muted: #6b7280;
+  --color-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --color-sidebar-active: rgba(239, 68, 68, 0.12);
+  --color-sidebar-border: rgba(255, 255, 255, 0.08);
 }
 
 /* === BASE STYLES === */

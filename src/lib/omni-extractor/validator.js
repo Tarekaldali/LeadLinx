@@ -30,7 +30,7 @@ REQUIRED JSON STRUCTURE:
 }
 `;
 
-export async function validateLeadIntent(contextText, extractedContacts, searchIntent) {
+export async function validateLeadIntent(contextText, extractedContacts, searchIntent, returnUsage = false) {
   try {
     const messages = [
       { role: 'system', content: VALIDATOR_PROMPT },
@@ -43,45 +43,42 @@ export async function validateLeadIntent(contextText, extractedContacts, searchI
     const res = await callGemini(messages, { temperature: 0, responseFormat: 'json' });
     let text = res.text.trim();
     
-    // Attempt to extract JSON if it's wrapped in markers or surrounded by text
     let parsed;
     try {
-      // 1. Try direct parse
       parsed = JSON.parse(text);
     } catch (e) {
-      // 2. Try cleaning markdown markers
       const cleanedText = text.replace(/```json/gi, '').replace(/```/gi, '').trim();
       try {
         parsed = JSON.parse(cleanedText);
       } catch (e2) {
-        // 3. Try finding first { and last }
         const start = text.indexOf('{');
         const end = text.lastIndexOf('}');
-        
         if (start !== -1 && end !== -1 && end > start) {
           const jsonString = text.substring(start, end + 1);
-          try {
-            parsed = JSON.parse(jsonString);
-          } catch (e3) {
-            console.error('[Omni-Validator] JSON block found but invalid:', jsonString);
-            throw new Error('Invalid JSON format from Validator');
-          }
+          parsed = JSON.parse(jsonString);
         } else {
-          console.error('[Omni-Validator] No JSON block found in text:', text);
-          throw new Error('No JSON block found from Validator');
+          throw new Error('No JSON block found');
         }
       }
+    }
+
+    if (returnUsage) {
+      return {
+        data: parsed,
+        usage: { prompt_tokens: res.inputTokens, completion_tokens: res.outputTokens }
+      };
     }
 
     return parsed;
   } catch (error) {
     console.error('[Omni-Validator] Failed to validate lead:', error);
-    return {
+    const fallback = {
       is_valid_lead: false,
       confidence_score: 0,
       lead_name: "Unknown",
       reasoning: "Failed to validate via LLM.",
       verified_contacts: extractedContacts
     };
+    return returnUsage ? { data: fallback, usage: { prompt_tokens: 0, completion_tokens: 0 } } : fallback;
   }
 }

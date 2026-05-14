@@ -4,6 +4,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import ChatMessage from '@/components/ChatMessage';
+import SettingsContent from '@/components/dashboard/SettingsContent';
+import LeadsWorkspace from '@/components/dashboard/LeadsWorkspace';
+import ConfirmationModal from '@/components/ConfirmationModal';
 import { useDashboard } from './layout';
 
 import './dashboard.css';
@@ -20,6 +23,19 @@ export default function DashboardPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  
+  // Monitor States
+  const [monitors, setMonitors] = useState([]);
+  const [loadingMonitors, setLoadingMonitors] = useState(false);
+  const [showMonitorModal, setShowMonitorModal] = useState(false);
+  const [monitorGoal, setMonitorGoal] = useState('');
+  const [creatingMonitor, setCreatingMonitor] = useState(false);
+  
+  // New Monitor Settings
+  const [monitorFrequency, setMonitorFrequency] = useState(60); // minutes
+  const [emailAlertEnabled, setEmailAlertEnabled] = useState(false);
+  const [emailAlertThreshold, setEmailAlertThreshold] = useState(10);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null); // monitorId
 
   const messagesRef = useRef(messages);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
@@ -230,78 +246,83 @@ export default function DashboardPage() {
     </div>
   );
 
-  const [savedLeads, setSavedLeads] = useState([]);
-  const [loadingLeads, setLoadingLeads] = useState(false);
+  // Monitors Logic
 
-  const fetchSavedLeads = useCallback(async () => {
-    setLoadingLeads(true);
+  const fetchMonitors = useCallback(async () => {
+    setLoadingMonitors(true);
     try {
-      const res = await fetch('/api/leads/saved');
+      const res = await fetch('/api/monitors');
       const data = await res.json();
-      if (res.ok) setSavedLeads(data.leads || []);
-    } catch { showToast('Failed to load leads', 'error'); }
-    finally { setLoadingLeads(false); }
+      if (res.ok) setMonitors(data.monitors || []);
+    } catch { showToast('Failed to load monitors', 'error'); }
+    finally { setLoadingMonitors(false); }
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'leads') fetchSavedLeads();
-  }, [activeTab, fetchSavedLeads]);
+    if (activeTab === 'monitors') fetchMonitors();
+  }, [activeTab, fetchMonitors]);
 
-  const renderLeads = () => (
-    <div className="p-8 max-w-7xl mx-auto animate-in">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-[#1d1d1f]">Leads CRM</h2>
-          <p className="text-sm text-[#86868b] mt-1">Every prospect extracted across all intelligence sessions.</p>
-        </div>
-        <button className="px-4 py-2 bg-[#ff3b30] text-white rounded-xl text-sm font-bold shadow-sm hover:bg-[#d72f25] transition-all flex items-center gap-2">
-          <span className="material-symbols-outlined text-[20px]">download</span> Export All
-        </button>
-      </div>
+  const handleCreateMonitor = async () => {
+    if (!monitorGoal.trim()) return;
+    setCreatingMonitor(true);
+    try {
+      const res = await fetch('/api/monitors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          goal: monitorGoal,
+          frequency: monitorFrequency,
+          emailAlert: {
+            enabled: emailAlertEnabled,
+            threshold: emailAlertThreshold
+          }
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMonitors(prev => [data.monitor, ...prev]);
+        setShowMonitorModal(false);
+        setMonitorGoal('');
+        setMonitorFrequency(60);
+        setEmailAlertEnabled(false);
+        showToast('Monitor initiated successfully!');
+      } else {
+        throw new Error(data.error || 'Failed to create monitor');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setCreatingMonitor(false);
+    }
+  };
 
-      <div className="bg-white rounded-2xl border border-[#e5e5e7] shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#f5f5f7] border-b border-[#e5e5e7]">
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Prospect</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Intent</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Subreddit</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#e5e5e7]">
-              {loadingLeads ? (
-                <tr><td colSpan="4" className="px-6 py-10 text-center text-sm text-[#86868b]">Loading intelligence data...</td></tr>
-              ) : savedLeads.length === 0 ? (
-                <tr><td colSpan="4" className="px-6 py-10 text-center text-sm text-[#86868b]">No prospects saved yet. Use Discovery to find leads.</td></tr>
-              ) : (
-                savedLeads.map((lead) => (
-                  <tr key={lead._id} className="hover:bg-[#fbfbfd] transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-[#1d1d1f]">u/{lead.author}</div>
-                      <div className="text-[11px] text-[#86868b] line-clamp-1 italic">"{lead.postTitle || lead.content}"</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 ${lead.score >= 8 ? 'bg-[#28cd41]/10 text-[#28cd41] border-[#28cd41]/20' : 'bg-[#ff3b30]/10 text-[#ff3b30] border-[#ff3b30]/20'} text-[10px] font-bold rounded-full border`}>
-                        {lead.score || lead.intentScore || '0'}/10
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-xs font-medium text-[#86868b]">r/{lead.subreddit}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="p-2 text-[#ff3b30] hover:bg-[#ff3b30]/5 rounded-lg">
-                        <span className="material-symbols-outlined text-[20px]">edit_note</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+  const handleToggleMonitor = async (monitorId, currentStatus) => {
+    const newStatus = currentStatus === 'active' ? 'paused' : 'active';
+    try {
+      const res = await fetch(`/api/monitors/${monitorId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        setMonitors(prev => prev.map(m => m._id === monitorId ? { ...m, status: newStatus } : m));
+        showToast(`Monitor ${newStatus === 'active' ? 'resumed' : 'stopped'}.`);
+      }
+    } catch { showToast('Failed to update monitor', 'error'); }
+  };
+
+  const handleDeleteMonitor = async (monitorId) => {
+    if (!confirm('Are you sure you want to delete this surveillance monitor?')) return;
+    try {
+      const res = await fetch(`/api/monitors/${monitorId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setMonitors(prev => prev.filter(m => m._id !== monitorId));
+        showToast('Monitor removed.');
+      }
+    } catch { showToast('Failed to delete monitor', 'error'); }
+  };
+
+  const renderLeads = () => <LeadsWorkspace />;
 
   const renderMonitors = () => (
     <div className="p-8 max-w-7xl mx-auto animate-in">
@@ -310,41 +331,114 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-bold text-[#1d1d1f]">Surveillance Monitors</h2>
           <p className="text-sm text-[#86868b] mt-1">Real-time background listeners watching subreddits for buying signals.</p>
         </div>
-        <button className="px-6 py-3 bg-[#ff3b30] text-white rounded-2xl text-sm font-bold shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
-          <span className="material-symbols-outlined text-[20px]">sensors</span> Create Live Monitor
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={async () => {
+              setLoadingMonitors(true);
+              try {
+                const res = await fetch('/api/monitors/process');
+                const data = await res.json();
+                if (res.ok) {
+                  showToast(data.processed > 0 ? `Processed ${data.processed} monitors!` : 'No monitors due for processing yet.');
+                  fetchMonitors();
+                }
+              } catch { showToast('Failed to trigger monitors', 'error'); }
+              finally { setLoadingMonitors(false); }
+            }}
+            disabled={loadingMonitors}
+            className="px-6 py-3 bg-white border border-[#e5e5e7] text-[#1d1d1f] rounded-2xl text-sm font-bold shadow-sm hover:border-[#ff3b30]/30 transition-all flex items-center gap-2"
+          >
+            <span className={`material-symbols-outlined text-[20px] ${loadingMonitors ? 'animate-spin' : ''}`}>sync</span> Run All
+          </button>
+          <button 
+            onClick={() => setShowMonitorModal(true)}
+            className="px-6 py-3 bg-[#ff3b30] text-white rounded-2xl text-sm font-bold shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-[20px]">sensors</span> Create Live Monitor
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div className="bg-white p-6 rounded-[28px] border border-[#e5e5e7] shadow-sm relative overflow-hidden group hover:border-[#0071e3]/30 transition-all">
-          <div className="absolute top-0 right-0 p-4">
-             <div className="flex items-center gap-1.5 px-2 py-1 bg-[#28cd41]/10 rounded-full border border-[#28cd41]/20">
-               <span className="w-1.5 h-1.5 bg-[#28cd41] rounded-full animate-pulse" />
-               <span className="text-[9px] font-bold text-[#28cd41] uppercase">Live</span>
-             </div>
+        {loadingMonitors ? (
+          <div className="col-span-full py-20 text-center text-[#86868b]">Waking up surveillance agents...</div>
+        ) : monitors.length === 0 ? (
+          <div className="col-span-full py-20 text-center border-2 border-dashed border-[#e5e5e7] rounded-[32px] bg-[#fbfbfd]">
+             <span className="material-symbols-outlined text-[48px] text-[#e5e5e7] mb-4">sensors_off</span>
+             <p className="text-[#86868b]">No active surveillance. Create your first monitor to find leads 24/7.</p>
           </div>
-          <div className="w-12 h-12 bg-[#f5f5f7] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <span className="material-symbols-outlined text-[#ff3b30]">search</span>
-          </div>
-          <h3 className="text-lg font-bold text-[#1d1d1f] mb-1">r/SaaS Keywords</h3>
-          <p className="text-[11px] text-[#86868b] mb-6 font-medium">Watching: "CRM", "Email Marketing", "Frustrated"</p>
-          
-          <div className="flex items-center justify-between pt-6 border-t border-[#f2f2f2]">
-            <div>
-              <div className="text-xl font-bold text-[#1d1d1f]">24</div>
-              <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Leads Today</div>
-            </div>
-            <button className="w-10 h-10 rounded-xl bg-[#f5f5f7] hover:bg-[#e5e5e7] flex items-center justify-center transition-colors">
-              <span className="material-symbols-outlined text-[18px] text-[#1d1d1f]">settings</span>
-            </button>
-          </div>
-        </div>
+        ) : (
+          monitors.map((monitor) => (
+            <div key={monitor._id} className={`bg-white p-6 rounded-[28px] border ${monitor.status === 'active' ? 'border-[#ff3b30]/20 shadow-red-500/5' : 'border-[#e5e5e7]'} shadow-sm relative overflow-hidden group hover:shadow-xl transition-all`}>
+              <div className="absolute top-0 right-0 p-4 flex gap-2">
+                 {monitor.status === 'active' && (
+                   <div className="flex items-center gap-1.5 px-2 py-1 bg-[#28cd41]/10 rounded-full border border-[#28cd41]/20">
+                     <span className="w-1.5 h-1.5 bg-[#28cd41] rounded-full animate-pulse" />
+                     <span className="text-[9px] font-bold text-[#28cd41] uppercase tracking-widest">Live</span>
+                   </div>
+                 )}
+                 {monitor.status === 'paused' && (
+                   <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-full border border-gray-200">
+                     <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
+                     <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Paused</span>
+                   </div>
+                 )}
+              </div>
+              <div className="w-12 h-12 bg-[#f5f5f7] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="material-symbols-outlined text-[#ff3b30]">search</span>
+              </div>
+              <h3 className="text-lg font-bold text-[#1d1d1f] mb-1 line-clamp-1">{monitor.goal}</h3>
+              <p className="text-[11px] text-[#86868b] mb-6 font-medium line-clamp-1">
+                {monitor.strategy?.subreddits?.length > 0 
+                  ? `Watching: ${monitor.strategy.subreddits.join(', ')}` 
+                  : 'Identifying target subreddits...'}
+              </p>
+              
+              <div className="flex items-center justify-between pt-6 border-t border-[#f2f2f2]">
+                <div className="flex flex-col">
+                  <div className="text-xl font-bold text-[#1d1d1f]">{monitor.stats?.leadsFound || 0}</div>
+                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Leads Found</div>
+                </div>
+                <div className="flex flex-col items-end">
+                   <div className="text-[10px] font-bold text-[#1d1d1f]">{monitor.frequency || 60}m</div>
+                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Frequency</div>
+                </div>
+              </div>
 
-        <button className="bg-[#fbfbfd] p-8 rounded-[28px] border-2 border-dashed border-[#e5e5e7] flex flex-col items-center justify-center text-center hover:bg-white hover:border-[#0071e3]/40 transition-all group">
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-[10px] text-[#86868b] flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">history</span>
+                  {monitor.stats?.lastRun ? new Date(monitor.stats.lastRun).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never run'}
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleToggleMonitor(monitor._id, monitor.status)}
+                    className="w-10 h-10 rounded-xl bg-[#f5f5f7] hover:bg-[#ff3b30]/10 flex items-center justify-center transition-all group/btn"
+                  >
+                    <span className={`material-symbols-outlined text-[18px] ${monitor.status === 'active' ? 'text-[#ff3b30]' : 'text-gray-400'} group-hover/btn:text-[#ff3b30]`}>
+                      {monitor.status === 'active' ? 'pause' : 'play_arrow'}
+                    </span>
+                  </button>
+                  <button 
+                    onClick={() => setShowDeleteConfirm(monitor._id)}
+                    className="w-10 h-10 rounded-xl bg-[#f5f5f7] hover:bg-red-50 flex items-center justify-center transition-all group/del"
+                  >
+                    <span className="material-symbols-outlined text-[18px] text-gray-400 group-hover/del:text-red-500">delete</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+
+        <button 
+          onClick={() => setShowMonitorModal(true)}
+          className="bg-[#fbfbfd] p-8 rounded-[28px] border-2 border-dashed border-[#e5e5e7] flex flex-col items-center justify-center text-center hover:bg-white hover:border-[#ff3b30]/40 transition-all group"
+        >
           <div className="w-14 h-14 rounded-full bg-white border border-[#e5e5e7] flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
             <span className="material-symbols-outlined text-[#86868b] group-hover:text-[#ff3b30]">add_circle</span>
           </div>
-          <h4 className="text-sm font-bold text-[#1d1d1f]">Monitor a Subreddit</h4>
+          <h4 className="text-sm font-bold text-[#1d1d1f]">Create New Monitor</h4>
           <p className="text-[11px] text-[#86868b] mt-1 max-w-[180px]">Automate your growth by listening to specific communities 24/7.</p>
         </button>
       </div>
@@ -419,8 +513,139 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* Create Monitor Modal */}
+      {showMonitorModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-[#1d1d1f]/40 backdrop-blur-sm" onClick={() => !creatingMonitor && setShowMonitorModal(false)} />
+          <div className="bg-white rounded-[32px] w-full max-w-lg relative z-10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-8 border-b border-[#f2f2f2]">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-12 h-12 rounded-2xl bg-[#ff3b30] flex items-center justify-center shadow-lg shadow-red-500/20">
+                  <span className="material-symbols-outlined text-white text-[24px]">sensors</span>
+                </div>
+                <h3 className="text-2xl font-bold text-[#1d1d1f]">New Surveillance Mission</h3>
+              </div>
+              <p className="text-sm text-[#86868b]">Describe your business goal, and our engine will find the best subreddits to monitor 24/7.</p>
+            </div>
+            
+            <div className="p-8">
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Business Goal / Target Audience</label>
+              <textarea 
+                className="w-full bg-[#f5f5f7] border border-[#e5e5e7] rounded-2xl p-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#ff3b30]/20 focus:border-[#ff3b30] transition-all min-h-[100px]"
+                placeholder="e.g., I sell a website builder for lawyers and I'm looking for people complaining about their current slow sites."
+                value={monitorGoal}
+                onChange={(e) => setMonitorGoal(e.target.value)}
+                disabled={creatingMonitor}
+              />
+
+              <div className="mt-6 space-y-6">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">Extraction Frequency</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { val: 1, label: '1m', cost: '600c/h' },
+                      { val: 5, label: '5m', cost: '120c/h' },
+                      { val: 10, label: '10m', cost: '60c/h' },
+                      { val: 30, label: '30m', cost: '20c/h' },
+                      { val: 60, label: '1h', cost: '10c/h' },
+                      { val: 120, label: '2h', cost: '5c/h' },
+                      { val: 180, label: '3h', cost: '3c/h' },
+                      { val: 240, label: '4h', cost: '2c/h' }
+                    ].map((opt) => (
+                      <button
+                        key={opt.val}
+                        onClick={() => setMonitorFrequency(opt.val)}
+                        className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
+                          monitorFrequency === opt.val 
+                            ? 'bg-[#ff3b30] border-[#ff3b30] text-white shadow-md' 
+                            : 'bg-white border-[#e5e5e7] text-[#1d1d1f] hover:border-[#ff3b30]/40'
+                        }`}
+                      >
+                        <span className="text-xs font-bold">{opt.label}</span>
+                        <span className={`text-[8px] font-medium ${monitorFrequency === opt.val ? 'text-white/80' : 'text-[#86868b]'}`}>
+                          {opt.cost}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Email Notifications</label>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={emailAlertEnabled}
+                        onChange={(e) => setEmailAlertEnabled(e.target.checked)}
+                      />
+                      <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#ff3b30]"></div>
+                    </label>
+                  </div>
+                  {emailAlertEnabled && (
+                    <div className="p-4 bg-[#f5f5f7] rounded-2xl border border-[#e5e5e7] animate-in slide-in-from-top-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-medium text-[#86868b]">Alert me when leads reach:</span>
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="number" 
+                            className="w-16 bg-white border border-[#e5e5e7] rounded-lg px-2 py-1 text-xs font-bold focus:outline-none"
+                            value={emailAlertThreshold}
+                            onChange={(e) => setEmailAlertThreshold(parseInt(e.target.value))}
+                          />
+                          <span className="text-[11px] font-bold text-[#1d1d1f]">leads</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 bg-[#fbfbfd] border-t border-[#f2f2f2] flex gap-3">
+               <button 
+                 onClick={() => setShowMonitorModal(false)}
+                 disabled={creatingMonitor}
+                 className="flex-1 px-6 py-3 rounded-2xl text-sm font-bold text-[#86868b] hover:bg-[#f5f5f7] transition-all"
+               >
+                 Cancel
+               </button>
+               <button 
+                 onClick={handleCreateMonitor}
+                 disabled={creatingMonitor || !monitorGoal.trim()}
+                 className="flex-1 px-6 py-3 rounded-2xl bg-[#ff3b30] text-white text-sm font-bold shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+               >
+                 {creatingMonitor ? (
+                   <>
+                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                     Initializing...
+                   </>
+                 ) : (
+                   <>Start Surveillance</>
+                 )}
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Monitor Deletion Confirmation */}
+      <ConfirmationModal 
+        isOpen={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={() => {
+          handleDeleteMonitor(showDeleteConfirm);
+          setShowDeleteConfirm(null);
+        }}
+        title="Remove Surveillance"
+        message="Are you sure you want to shut down this monitor? All historical surveillance data for this mission will be archived."
+        confirmText="Shut Down"
+        type="danger"
+      />
+
       {toast && (
-        <div className={`fixed bottom-12 right-6 z-[100] px-6 py-4 rounded-2xl text-sm font-bold shadow-2xl animate-in border ${
+        <div className={`fixed bottom-12 right-6 z-[120] px-6 py-4 rounded-2xl text-sm font-bold shadow-2xl animate-in border ${
           toast.type === 'error' 
             ? 'bg-red-50 text-red-600 border-red-100' 
             : 'bg-[#1d1d1f] text-white border-white/10'
