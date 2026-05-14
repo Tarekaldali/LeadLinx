@@ -84,6 +84,7 @@ export async function sendVerificationCode(email, code) {
     throw new Error('Failed to send email');
   }
 }
+
 export async function sendSearchCompletionEmail(email, leadCount, query) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
@@ -173,6 +174,7 @@ export async function sendPaymentFailedEmail(email) {
     console.error('Failed to send payment failed email:', error);
   }
 }
+
 export async function sendThankYouEmail(email, planName, amount) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
@@ -232,8 +234,9 @@ export async function sendThankYouEmail(email, planName, amount) {
     console.error('Failed to send thank you email:', error);
   }
 }
+
 export async function sendMonitorThresholdEmail(email, monitor, leadCount) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return false;
 
   const mailOptions = {
     from: `"LeadLinx Surveillance" <${process.env.EMAIL_USER}>`,
@@ -267,6 +270,7 @@ export async function sendMonitorThresholdEmail(email, monitor, leadCount) {
       </div>
     `,
   };
+
   try {
     await transporter.sendMail(mailOptions);
     console.log(`Monitor threshold alert sent to ${email}`);
