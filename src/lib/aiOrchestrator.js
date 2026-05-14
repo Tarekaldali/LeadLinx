@@ -89,10 +89,11 @@ export async function classifyIntent(query) {
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
-    return extractAndParseJSON(content, 'object');
+    const parsed = extractAndParseJSON(content, 'object');
+    return { data: parsed, usage: data.usage || { prompt_tokens: 0, completion_tokens: 0 } };
   } catch (error) {
     console.error("⚠️ Intent Classification Error:", error);
-    return { intent: "SEARCH", response_message: "" }; // Default to search to be safe
+    return { data: { intent: "SEARCH", response_message: "" }, usage: { prompt_tokens: 0, completion_tokens: 0 } };
   }
 }
 

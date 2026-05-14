@@ -18,6 +18,8 @@ export async function GET(request) {
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 20;
     const skip = (page - 1) * limit;
+    const groupId = searchParams.get('groupId');
+    const groupType = searchParams.get('groupType'); // 'monitor' or 'search'
 
     const db = await getDb();
     const userId = new ObjectId(authResult.user.id);
@@ -29,6 +31,14 @@ export async function GET(request) {
     // Build Query
     let query = { userId };
     
+    if (groupId) {
+      if (groupType === 'monitor') {
+        query.monitorId = new ObjectId(groupId);
+      } else if (groupType === 'search') {
+        query.searchId = new ObjectId(groupId);
+      }
+    }
+
     if (search) {
       query.$or = [
         { author: { $regex: search, $options: 'i' } },

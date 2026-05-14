@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { extractOmniLeads } from '@/lib/omni-extractor/index.js';
 import { calculateMonitorCredits } from '@/lib/creditManager';
+import { sendMonitorThresholdEmail } from '@/lib/email';
 import { ObjectId } from 'mongodb';
 
 export const dynamic = 'force-dynamic';
@@ -97,7 +98,24 @@ export async function GET(request) {
         }
       }
 
-      // 5. Update Monitor Metadata
+      // 5. Check Threshold Alert
+      const totalLeadsNow = (monitor.stats?.leadsFound || 0) + sessionLeads.length;
+      if (
+        monitor.emailAlert?.enabled && 
+        totalLeadsNow >= monitor.emailAlert.threshold && 
+        !monitor.emailAlert?.alertSent
+      ) {
+        console.log(`📧 [Alert] Threshold reached for monitor ${monitor._id}. Sending email.`);
+        await sendMonitorThresholdEmail(user.email, monitor, totalLeadsNow);
+        
+        // Mark alert as sent to avoid spamming
+        await db.collection('monitors').updateOne(
+          { _id: monitor._id },
+          { $set: { 'emailAlert.alertSent': true } }
+        );
+      }
+
+      // 6. Update Monitor Metadata
       await db.collection('monitors').updateOne(
         { _id: monitor._id },
         { 

@@ -50,8 +50,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Insufficient credits. Please top up your balance or upgrade your plan.' }, { status: 402 });
     }
 
-    // 2. Intent Classification
-    const classification = await classifyIntent(query);
+    // 2. Intent Classification (DeepSeek V3)
+    const classificationResult = await classifyIntent(query);
+    const classification = classificationResult.data;
     console.log('🎯 Intent Classification:', classification);
 
     if (classification.intent === 'CHAT') {
@@ -68,14 +69,20 @@ export async function POST(request) {
     // Pass isPremium flag to allow aggressive fetching
     const result = await extractOmniLeads(query, { isPremium });
 
-    // 4. Smart Credit Deduction (1 credit base + 1 per 5 high-intent leads)
-    const baseCost = 1;
-    const leadCost = Math.floor(result.leads.length / 5);
-    const totalCost = baseCost + leadCost;
+    // Aggregate usage from both Classification and Extraction
+    const combinedUsage = {
+      prompt_tokens: (classificationResult.usage?.prompt_tokens || 0) + (result.usage?.prompt_tokens || 0),
+      completion_tokens: (classificationResult.usage?.completion_tokens || 0) + (result.usage?.completion_tokens || 0)
+    };
+
+    // 4. Dynamic Credit Deduction (Based on Combined Token Usage + 10x Margin)
+    const { calculateCreditsToDeduct } = await import('@/lib/creditManager.js');
+    const totalCost = calculateCreditsToDeduct('google/gemini-2.0-flash-001', combinedUsage, user.plan);
+
+    console.log(`💰 [Billing] Deducting ${totalCost} credits for discovery.`);
 
     // Prevent negative balance
-    const currentUser = await db.collection('users').findOne({ _id: userId });
-    const safeDeduction = Math.min(totalCost, currentUser?.credits || 0);
+    const safeDeduction = Math.min(totalCost, user?.credits || 0);
 
     if (safeDeduction > 0) {
       await db.collection('users').updateOne(
@@ -110,10 +117,31 @@ export async function POST(request) {
       leadType: result.route_data?.targetType === 'b2c' ? 'B2C (Consumer)' : 'B2B (Business)',
     }));
 
+    // 6. Log search for analytics and get searchId
+    const searchLog = {
+      userId,
+      query,
+      chatId: chatId || null,
+      status: 'completed',
+      searchPlan: {
+        mode: result.mode,
+        discoveredUrls: result.stats.urlsDiscovered,
+        search_queries: [query],
+      },
+      leadCount: leads.length,
+      stats: result.stats,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const searchResult = await db.collection('searches').insertOne(searchLog);
+    const searchId = searchResult.insertedId;
+
     // 5b. Store leads in the 'leads' collection in MongoDB
     if (leads.length > 0) {
       const leadsToStore = leads.map(l => ({
         userId,
+        searchId, // Link to the specific search event
         chatId: chatId || null,
         searchQuery: query,
         leadId: l.id,
@@ -138,23 +166,6 @@ export async function POST(request) {
         if (e.code !== 11000) console.error('Lead storage error:', e);
       }
     }
-
-    // 6. Log search for analytics
-    await db.collection('searches').insertOne({
-      userId,
-      query,
-      chatId: chatId || null,
-      status: 'completed',
-      searchPlan: {
-        mode: result.mode,
-        discoveredUrls: result.stats.urlsDiscovered,
-        search_queries: [query],
-      },
-      leadCount: leads.length,
-      stats: result.stats,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
 
     // 7. Build insights from results
     const insights = generateInsights(result);

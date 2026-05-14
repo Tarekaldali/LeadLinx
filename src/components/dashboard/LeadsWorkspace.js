@@ -17,6 +17,8 @@ import Link from 'next/link';
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
 export default function LeadsWorkspace() {
+  const [view, setView] = useState('groups'); // groups | leads
+  const [selectedGroup, setSelectedGroup] = useState(null);
   const [activeTab, setActiveTab] = useState('generated'); // generated | saved
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -27,15 +29,32 @@ export default function LeadsWorkspace() {
   const [selectedLead, setSelectedLead] = useState(null); // For drawer
 
   // Data Fetching
-  const { data, error, isLoading, mutate } = useSWR(
-    `/api/leads?tab=${activeTab}&search=${search}&sortBy=${sortBy}&sortOrder=${sortOrder}&page=${page}&limit=${limit}`,
-    fetcher,
-    { keepPreviousData: true }
+  const fetchUrl = selectedGroup 
+    ? `/api/leads?tab=${activeTab}&search=${search}&sortBy=${sortBy}&sortOrder=${sortOrder}&page=${page}&limit=${limit}&groupId=${selectedGroup.id}&groupType=${selectedGroup.type}`
+    : `/api/leads?tab=${activeTab}&search=${search}&sortBy=${sortBy}&sortOrder=${sortOrder}&page=${page}&limit=${limit}`;
+
+  const { data, error, isLoading, mutate } = useSWR(fetchUrl, fetcher, { keepPreviousData: true });
+
+  const { data: groupsData, isLoading: groupsLoading, mutate: mutateGroups } = useSWR(
+    activeTab === 'generated' ? '/api/leads/groups' : null, 
+    fetcher
   );
 
   const { data: stats, isLoading: statsLoading } = useSWR('/api/leads/stats', fetcher);
 
   // Handlers
+  const handleSelectGroup = (group) => {
+    setSelectedGroup(group);
+    setView('leads');
+    setPage(1);
+  };
+
+  const handleBackToGroups = () => {
+    setView('groups');
+    setSelectedGroup(null);
+    setSearch('');
+  };
+
   const handleToggleSelectAll = () => {
     if (selectedLeads.length === data?.leads.length) {
       setSelectedLeads([]);
@@ -60,6 +79,7 @@ export default function LeadsWorkspace() {
       });
       if (res.ok) {
         mutate();
+        mutateGroups();
         setSelectedLeads([]);
       }
     } catch (err) {
@@ -74,7 +94,10 @@ export default function LeadsWorkspace() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(lead)
       });
-      if (res.ok) mutate();
+      if (res.ok) {
+        mutate();
+        mutateGroups();
+      }
     } catch (err) {
       console.error(err);
     }
@@ -89,6 +112,7 @@ export default function LeadsWorkspace() {
       });
       if (res.ok) {
         mutate();
+        mutateGroups();
         if (selectedLead && selectedLead._id === id) {
           setSelectedLead({ ...selectedLead, ...updates });
         }
@@ -133,9 +157,35 @@ export default function LeadsWorkspace() {
         
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-on-surface tracking-tight">Leads Workspace</h1>
-            <p className="text-on-surface-variant mt-1 text-sm">Manage, filter, and curate your AI-generated intelligence.</p>
+          <div className="flex items-center gap-4">
+            {view === 'leads' && (
+              <button 
+                onClick={handleBackToGroups}
+                className="p-3 bg-surface border border-border-glass rounded-2xl hover:bg-surface-container-low transition-all text-on-surface-variant hover:text-primary"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            )}
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl font-bold text-on-surface tracking-tight">
+                  {selectedGroup ? selectedGroup.title : 'Leads Workspace'}
+                </h1>
+                {selectedGroup && (
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider",
+                    selectedGroup.type === 'monitor' ? "bg-lime-green/10 text-lime-green" : "bg-primary/10 text-primary"
+                  )}>
+                    {selectedGroup.sourceType}
+                  </span>
+                )}
+              </div>
+              <p className="text-on-surface-variant mt-1 text-sm">
+                {selectedGroup 
+                  ? `Viewing leads from ${selectedGroup.title}. Total: ${selectedGroup.leadCount}`
+                  : 'Manage, filter, and curate your AI-generated intelligence.'}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <button 
@@ -166,7 +216,7 @@ export default function LeadsWorkspace() {
             <div className="px-6 flex items-center justify-between h-16">
               <div className="flex items-center gap-8">
                 <button 
-                  onClick={() => { setActiveTab('generated'); setPage(1); }}
+                  onClick={() => { setActiveTab('generated'); setView('groups'); setSelectedGroup(null); setPage(1); }}
                   className={cn(
                     "relative h-16 flex items-center text-sm font-bold transition-colors",
                     activeTab === 'generated' ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
@@ -181,7 +231,7 @@ export default function LeadsWorkspace() {
                   )}
                 </button>
                 <button 
-                  onClick={() => { setActiveTab('saved'); setPage(1); }}
+                  onClick={() => { setActiveTab('saved'); setView('leads'); setSelectedGroup(null); setPage(1); }}
                   className={cn(
                     "relative h-16 flex items-center text-sm font-bold transition-colors",
                     activeTab === 'saved' ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
@@ -239,9 +289,73 @@ export default function LeadsWorkspace() {
             </div>
           </div>
 
-          {/* Table Container */}
-          <div className="flex-1 overflow-auto custom-scrollbar">
-            <table className="data-table">
+          {/* Table Container or Groups Grid */}
+          <div className="flex-1 overflow-auto custom-scrollbar p-6">
+            {view === 'groups' && activeTab === 'generated' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {groupsLoading ? (
+                  Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="h-48 skeleton rounded-3xl" />
+                  ))
+                ) : groupsData?.groups.length === 0 ? (
+                  <div className="col-span-full py-24 text-center opacity-50">
+                    <div className="p-6 bg-surface-container-low rounded-full w-fit mx-auto mb-4">
+                      <BarChart3 size={48} className="text-gray-400" />
+                    </div>
+                    <p className="font-bold text-lg">No lead groups yet</p>
+                    <p className="text-xs">Start a manual search or create a monitor to see grouped results.</p>
+                  </div>
+                ) : (
+                  groupsData?.groups.map((group) => (
+                    <button 
+                      key={group.id}
+                      onClick={() => handleSelectGroup(group)}
+                      className="group flex flex-col bg-surface-container-low border border-border-glass rounded-[2.5rem] p-6 hover:border-primary/30 hover:bg-surface-container-high transition-all text-left shadow-sm hover:shadow-xl hover:shadow-primary/5 active:scale-[0.98]"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div className={cn(
+                          "p-4 rounded-[1.5rem] shadow-inner",
+                          group.type === 'monitor' ? "bg-lime-green/10 text-lime-green" : "bg-primary/10 text-primary"
+                        )}>
+                          {group.type === 'monitor' ? <Zap size={24} fill="currentColor" /> : <Search size={24} />}
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{group.sourceType}</span>
+                          <div className={cn(
+                            "px-2 py-0.5 rounded-full text-[10px] font-bold capitalize",
+                            group.status === 'active' ? "bg-lime-green/20 text-lime-green" : "bg-gray-400/20 text-gray-400"
+                          )}>
+                            {group.status}
+                          </div>
+                        </div>
+                      </div>
+
+                      <h3 className="text-lg font-bold text-on-surface line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                        {group.title}
+                      </h3>
+
+                      <div className="mt-auto space-y-3 pt-4 border-t border-border-glass/50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-on-surface-variant">
+                            <Hash size={14} />
+                            <span className="text-xs font-bold">Total Leads</span>
+                          </div>
+                          <span className="text-lg font-data-value text-on-surface">{group.leadCount}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Clock size={12} />
+                            <span>Last update: {formatDate(group.updatedAt)}</span>
+                          </div>
+                          <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            ) : (
+              <table className="data-table">
               <thead className="sticky top-0 z-10">
                 <tr>
                   <th className="w-12">

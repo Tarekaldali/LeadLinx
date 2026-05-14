@@ -232,3 +232,46 @@ export async function sendThankYouEmail(email, planName, amount) {
     console.error('Failed to send thank you email:', error);
   }
 }
+export async function sendMonitorThresholdEmail(email, monitor, leadCount) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+
+  const mailOptions = {
+    from: `"LeadLinx Surveillance" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `🎯 Goal Reached: ${leadCount} Leads Found for "${monitor.goal}"`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+        <h2 style="color: #ff3b30;">Surveillance Alert</h2>
+        <p>Your monitor for <strong>"${monitor.goal}"</strong> has reached your target threshold.</p>
+        
+        <div style="background-color: #f9fafb; padding: 24px; border-radius: 8px; margin: 24px 0; text-align: center;">
+          <div style="font-size: 48px; font-weight: bold; color: #111827; margin-bottom: 8px;">${leadCount}</div>
+          <div style="text-transform: uppercase; letter-spacing: 2px; font-size: 12px; font-weight: bold; color: #6b7280;">High-Intent Leads Found</div>
+        </div>
+
+        <p style="color: #4b5563; line-height: 1.6;">
+          Our AI agents have successfully identified these leads across targeted communities. You can now view, contact, and qualify them directly from your LeadLinx Workspace.
+        </p>
+
+        <div style="text-align: center; margin-top: 32px;">
+          <a href="${process.env.NEXTAUTH_URL}/dashboard" style="background-color: #ff3b30; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+            View Leads Now
+          </a>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
+        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+          You are receiving this because you enabled threshold alerts for this monitor.<br/>
+          © 2024 LeadLinx AI
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Monitor threshold alert sent to ${email}`);
+  } catch (error) {
+    console.error('Failed to send monitor alert email:', error);
+  }
+}

@@ -53,17 +53,17 @@ export function calculateCreditsToDeduct(model, usage, plan = 'free') {
   // If priceToUser is 0 (e.g. extremely small query), minimum 1 credit
   let credits = Math.ceil(priceToUser / creditValue);
   
-  // Enforce a minimum of 1 credit and a maximum of 50 per batch to prevent weird spikes
-  return Math.max(1, Math.min(50, credits));
+  // Enforce a minimum of 1 credit. Remove maximum cap to ensure fair billing for high-volume results.
+  return Math.max(1, credits);
 }
 
 export const PRO_RATE = 0.003995;
-export const SURVEILLANCE_PROFIT_BUFFER = 1.5; // 50% profit margin
+export const SURVEILLANCE_PROFIT_MARGIN = 10; // 10x margin for business viability
 
 /**
  * Calculates credits for background surveillance monitors.
  * Uses a dedicated formula to handle long-running background tasks.
- * Formula: ((raw_usd_cost / pro_rate) * profit_buffer)
+ * Formula: ((raw_usd_cost / pro_rate) * margin)
  */
 export function calculateMonitorCredits(model, usage) {
   if (!usage) return 2; // Baseline for background overhead
@@ -75,8 +75,8 @@ export function calculateMonitorCredits(model, usage) {
   // Step 1: Convert USD to Credits using the Pro Plan Rate ($0.003995/credit)
   const baseCredits = rawCost / PRO_RATE;
   
-  // Step 2: Apply the Surveillance Profit Buffer (50% markup)
-  const finalCredits = Math.ceil(baseCredits * SURVEILLANCE_PROFIT_BUFFER);
+  // Step 3: Apply the 10x Profit Margin for consistency
+  const finalCredits = Math.ceil(baseCredits * SURVEILLANCE_PROFIT_MARGIN);
 
   // Minimum 1 credit per scan to cover infrastructure and API overhead
   return Math.max(1, finalCredits);
