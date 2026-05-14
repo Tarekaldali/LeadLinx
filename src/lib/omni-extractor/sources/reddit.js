@@ -11,8 +11,8 @@ export async function runSocialExtraction(intentData, options = {}) {
   const leadsMap = new Map(); // Prevent duplicates across keyword searches
   
   // Use multiple keywords for broader reach
-  const searchKeywords = intentData.keywords.slice(0, 3);
-  const limit = options.isPremium ? 100 : 50; // Increased base limit
+  const searchKeywords = intentData.keywords.slice(0, 5);
+  const limit = options.isPremium ? 100 : 60; 
   
   try {
     const subreddits = intentData.subreddits || [];
@@ -24,7 +24,8 @@ export async function runSocialExtraction(intentData, options = {}) {
         const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=new&restrict_sr=on&t=month&limit=25`;
         
         const res = await fetch(url, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' }
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' },
+          cache: 'no-store'
         });
 
         if (!res.ok) continue;
@@ -39,7 +40,7 @@ export async function runSocialExtraction(intentData, options = {}) {
       }
     }
 
-    // 2. Global Broad Search (Fallback/Discovery)
+    // 2. Global Keyword Search
     for (const keyword of searchKeywords) {
       const searchTypes = [
         { sort: 'new', t: 'all' },
@@ -51,7 +52,8 @@ export async function runSocialExtraction(intentData, options = {}) {
         const url = `https://www.reddit.com/search.json?q=${query}&sort=${st.sort}&t=${st.t}&limit=${Math.floor(limit/2)}`;
         
         const res = await fetch(url, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' }
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' },
+          cache: 'no-store'
         });
 
         if (!res.ok) continue;
@@ -64,6 +66,24 @@ export async function runSocialExtraction(intentData, options = {}) {
           processPost(p);
         }
         await new Promise(r => setTimeout(r, 500));
+      }
+    }
+
+    // 3. Direct Goal Fallback (Ensures high-yield discovery)
+    const goalQuery = encodeURIComponent(intentData.searchIntent || '');
+    if (goalQuery) {
+      const url = `https://www.reddit.com/search.json?q=${goalQuery}&sort=relevance&t=all&limit=25`;
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' },
+        cache: 'no-store'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const posts = data?.data?.children || [];
+        for (const post of posts) {
+          if (!post.data || leadsMap.has(post.data.id)) continue;
+          processPost(post.data);
+        }
       }
     }
     

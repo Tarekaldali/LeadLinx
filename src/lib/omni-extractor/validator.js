@@ -10,8 +10,9 @@ You will be provided with raw text context and a list of extracted contacts (ema
 You must determine if this represents a REAL person or business that matches the user's SEARCH_INTENT.
 
 EVALUATION CRITERIA:
-1. Intent Match: Does the text show they are looking for the service/product described in the intent? Or are they selling it? (We want buyers, or relevant businesses).
-2. Contact Quality: Are these real contacts or fake/spam? 
+1. Intent Match: Does the text show they are looking for the service/product or match the target audience? We want high-intent users, even if they haven't explicitly asked "where to buy" yet.
+2. Value Proposition: Could a business help this person?
+3. Contact Quality: Are these real contacts? (Note: Reddit handles are valid).
 
 OUTPUT FORMAT:
 Return ONLY a valid JSON object. Do not include any markdown formatting (like \`\`\`json), no preamble, and no post-response text.

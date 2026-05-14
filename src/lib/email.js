@@ -267,11 +267,12 @@ export async function sendMonitorThresholdEmail(email, monitor, leadCount) {
       </div>
     `,
   };
-
   try {
     await transporter.sendMail(mailOptions);
     console.log(`Monitor threshold alert sent to ${email}`);
+    return true;
   } catch (error) {
     console.error('Failed to send monitor alert email:', error);
+    return false;
   }
 }

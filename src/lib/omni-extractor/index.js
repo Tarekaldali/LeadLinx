@@ -51,46 +51,52 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   for (let i = 0; i < rawLeads.length; i += BATCH_SIZE) {
     const batch = rawLeads.slice(i, i + BATCH_SIZE);
     
-    const validations = await Promise.all(batch.map(async (rawLead) => {
+    const results = await Promise.all(batch.map(async (rawLead) => {
       const contactCount = rawLead.raw_contacts.emails.length + 
                            rawLead.raw_contacts.phones.length + 
                            rawLead.raw_contacts.socials.length;
-                            
+                             
       if (contactCount === 0 && rawLead.source !== 'local_maps') {
-         return null; 
+         return { lead: null, usage: { prompt_tokens: 0, completion_tokens: 0 } }; 
       }
       
       const valResult = await validateLeadIntent(
         rawLead.context, 
         rawLead.raw_contacts, 
         routeData.searchIntent,
-        true // Modified to return tokens
+        true 
       );
 
       const validation = valResult.data;
-      totalInputTokens += valResult.usage.prompt_tokens;
-      totalOutputTokens += valResult.usage.completion_tokens;
       
       if (validation.is_valid_lead) {
         return {
-          id: Math.random().toString(36).substring(2, 15),
-          score: Math.round(validation.confidence_score * 100),
-          author: validation.lead_name || rawLead.name || 'Unknown',
-          company: rawLead.source === 'local_maps' ? rawLead.name : null,
-          title: routeData.searchIntent,
-          link: rawLead.link,
-          source: rawLead.source,
-          subreddit: rawLead.subreddit || rawLead.source,
-          emails: validation.verified_contacts.emails || [],
-          phones: validation.verified_contacts.phones || [],
-          socials: validation.verified_contacts.socials || [],
-          reasoning: validation.reasoning
+          lead: {
+            id: Math.random().toString(36).substring(2, 15),
+            score: Math.round(validation.confidence_score * 100),
+            author: validation.lead_name || rawLead.name || 'Unknown',
+            company: rawLead.source === 'local_maps' ? rawLead.name : null,
+            title: routeData.searchIntent,
+            link: rawLead.link,
+            source: rawLead.source,
+            subreddit: rawLead.subreddit || rawLead.source,
+            emails: validation.verified_contacts.emails || [],
+            phones: validation.verified_contacts.phones || [],
+            socials: validation.verified_contacts.socials || [],
+            reasoning: validation.reasoning
+          },
+          usage: valResult.usage
         };
       }
-      return null;
+      return { lead: null, usage: valResult.usage };
     }));
     
-    validatedLeads.push(...validations.filter(Boolean));
+    // Safely accumulate tokens and leads
+    results.forEach(res => {
+      if (res.lead) validatedLeads.push(res.lead);
+      totalInputTokens += res.usage.prompt_tokens || 0;
+      totalOutputTokens += res.usage.completion_tokens || 0;
+    });
   }
   
   validatedLeads.sort((a, b) => b.score - a.score);

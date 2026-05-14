@@ -283,6 +283,8 @@ export default function DashboardPage() {
         setMonitorFrequency(60);
         setEmailAlertEnabled(false);
         showToast('Monitor initiated successfully!');
+        // Trigger background processor immediately for better UX
+        fetch('/api/monitors/process');
       } else {
         throw new Error(data.error || 'Failed to create monitor');
       }
@@ -542,8 +544,6 @@ export default function DashboardPage() {
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">Extraction Frequency</label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
-                      { val: 1, label: '1m', cost: '600c/h' },
-                      { val: 5, label: '5m', cost: '120c/h' },
                       { val: 10, label: '10m', cost: '60c/h' },
                       { val: 30, label: '30m', cost: '20c/h' },
                       { val: 60, label: '1h', cost: '10c/h' },

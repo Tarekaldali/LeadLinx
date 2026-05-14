@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'; // v1.0.2
 import { getDb } from '@/lib/mongodb';
 import { extractOmniLeads } from '@/lib/omni-extractor/index.js';
 import { calculateMonitorCredits } from '@/lib/creditManager';
@@ -22,7 +22,7 @@ export async function GET(request) {
 
   const db = await getDb();
   const now = new Date();
-  const allActiveMonitors = await db.collection('monitors').find({ status: 'active' }).toArray();
+  const allActiveMonitors = await db.collection('monitors').find({ status: 'active', processing: { $ne: true } }).toArray();
 
   // Filter monitors based on frequency
   const activeMonitors = allActiveMonitors.filter(monitor => {
@@ -46,10 +46,15 @@ export async function GET(request) {
   console.log(`📡 [Surveillance] Found ${activeMonitors.length} monitors due for processing.`);
   
   const results = [];
-
   for (const monitor of activeMonitors) {
     try {
       console.log(`🕵️ [Monitor] Processing: "${monitor.goal}" for User: ${monitor.userId}`);
+
+      // Lock monitor to prevent concurrent processing
+      await db.collection('monitors').updateOne(
+        { _id: monitor._id },
+        { $set: { processing: true } }
+      );
 
       // 1. Check user credits first
       const user = await db.collection('users').findOne({ _id: new ObjectId(monitor.userId) });
@@ -59,86 +64,92 @@ export async function GET(request) {
            { _id: monitor._id },
            { $set: { status: 'paused', lastError: 'Insufficient credits' } }
          );
-         continue;
-      }
+      } else {
+        // 2. Run Engine (Autonomous Mode)
+        // extractOmniLeads now identifies subreddits and keywords automatically
+        const engineResult = await extractOmniLeads(monitor.goal, { isPremium: true });
 
-      // 2. Run Engine (Autonomous Mode)
-      // extractOmniLeads now identifies subreddits and keywords automatically
-      const engineResult = await extractOmniLeads(monitor.goal, { isPremium: true });
+        // 3. Billing Logic (The Economic Engine)
+        const creditsToDeduct = calculateMonitorCredits('google/gemini-2.0-flash-001', engineResult.usage);
+        console.log(`💰 [Billing] Deducting ${creditsToDeduct} credits for surveillance.`);
 
-      // 3. Billing Logic (The Economic Engine)
-      const creditsToDeduct = calculateMonitorCredits('google/gemini-2.0-flash-001', engineResult.usage);
-      console.log(`💰 [Billing] Deducting ${creditsToDeduct} credits for surveillance.`);
+        // 4. Save Leads & Deduct Credits (Atomically)
+        let newlyFoundLeadsCount = 0;
+        const sessionLeads = engineResult.leads.map(lead => ({
+          ...lead,
+          userId: monitor.userId,
+          monitorId: monitor._id,
+          createdAt: new Date(),
+          isFromMonitor: true
+        }));
 
-      // 4. Save Leads & Deduct Credits (Atomically)
-      const sessionLeads = engineResult.leads.map(lead => ({
-        ...lead,
-        userId: monitor.userId,
-        monitorId: monitor._id,
-        createdAt: new Date(),
-        isFromMonitor: true
-      }));
-
-      // Update User Credits
-      await db.collection('users').updateOne(
-        { _id: user._id, credits: { $gte: creditsToDeduct } },
-        { $inc: { credits: -creditsToDeduct } }
-      );
-
-      // Store New Leads (with duplicate prevention)
-      if (sessionLeads.length > 0) {
-        for (const lead of sessionLeads) {
-          try {
-            await db.collection('leads').updateOne(
-              { userId: lead.userId, link: lead.link },
-              { $set: lead },
-              { upsert: true }
-            );
-          } catch (e) { /* ignore single lead error */ }
-        }
-      }
-
-      // 5. Check Threshold Alert
-      const totalLeadsNow = (monitor.stats?.leadsFound || 0) + sessionLeads.length;
-      if (
-        monitor.emailAlert?.enabled && 
-        totalLeadsNow >= monitor.emailAlert.threshold && 
-        !monitor.emailAlert?.alertSent
-      ) {
-        console.log(`📧 [Alert] Threshold reached for monitor ${monitor._id}. Sending email.`);
-        await sendMonitorThresholdEmail(user.email, monitor, totalLeadsNow);
-        
-        // Mark alert as sent to avoid spamming
-        await db.collection('monitors').updateOne(
-          { _id: monitor._id },
-          { $set: { 'emailAlert.alertSent': true } }
+        // Update User Credits
+        await db.collection('users').updateOne(
+          { _id: user._id, credits: { $gte: creditsToDeduct } },
+          { $inc: { credits: -creditsToDeduct } }
         );
-      }
 
-      // 6. Update Monitor Metadata
-      await db.collection('monitors').updateOne(
-        { _id: monitor._id },
-        { 
-          $set: { 
-            'stats.lastRun': new Date(),
-            'strategy.subreddits': engineResult.route_data.subreddits,
-            'strategy.keywords': engineResult.route_data.keywords,
-            'updatedAt': new Date()
-          },
-          $inc: { 
-            'stats.leadsFound': sessionLeads.length,
-            'stats.totalCreditsSpent': creditsToDeduct
+        // Store New Leads (with duplicate prevention)
+        if (sessionLeads.length > 0) {
+          for (const lead of sessionLeads) {
+            try {
+              const upResult = await db.collection('leads').updateOne(
+                { userId: lead.userId, link: lead.link },
+                { $setOnInsert: lead },
+                { upsert: true }
+              );
+              if (upResult.upsertedCount > 0) {
+                newlyFoundLeadsCount++;
+              }
+            } catch (e) { /* ignore single lead error */ }
           }
         }
-      );
 
-      results.push({ monitorId: monitor._id, leadsFound: sessionLeads.length, cost: creditsToDeduct });
+        // 5. Check Threshold Alert
+        const totalLeadsNow = (monitor.stats?.leadsFound || 0) + sessionLeads.length;
+        if (
+          monitor.emailAlert?.enabled && 
+          totalLeadsNow >= monitor.emailAlert.threshold && 
+          !monitor.emailAlert?.alertSent
+        ) {
+          console.log(`📧 [Alert] Threshold reached for monitor ${monitor._id}. Sending email.`);
+          const sent = await sendMonitorThresholdEmail(user.email, monitor, totalLeadsNow);
+          
+          if (sent) {
+            // Mark alert as sent to avoid spamming
+            await db.collection('monitors').updateOne(
+              { _id: monitor._id },
+              { $set: { 'emailAlert.alertSent': true } }
+            );
+          }
+        }
+
+        // 6. Update Monitor Metadata
+        await db.collection('monitors').updateOne(
+          { _id: monitor._id },
+          { 
+            $set: { 
+              'stats.lastRun': new Date(),
+              'strategy.subreddits': engineResult.route_data.subreddits,
+              'strategy.keywords': engineResult.route_data.keywords,
+              'updatedAt': new Date(),
+              'processing': false
+            },
+            $inc: { 
+              'stats.leadsFound': newlyFoundLeadsCount,
+              'stats.totalCreditsSpent': creditsToDeduct
+            }
+          }
+        );
+
+        results.push({ monitorId: monitor._id, leadsFound: sessionLeads.length, cost: creditsToDeduct });
+      }
 
     } catch (error) {
       console.error(`❌ [Monitor] Error processing monitor ${monitor._id}:`, error);
       await db.collection('monitors').updateOne(
         { _id: monitor._id },
-        { $set: { lastError: error.message } }
+        { $set: { lastError: error.message, processing: false } }
       );
     }
   }
