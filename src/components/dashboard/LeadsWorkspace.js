@@ -41,7 +41,7 @@ export default function LeadsWorkspace() {
     fetcher
   );
 
-  const { data: stats, isLoading: statsLoading } = useSWR('/api/leads/stats', fetcher);
+  const { data: stats, isLoading: statsLoading, mutate: mutateStats } = useSWR('/api/leads/stats', fetcher);
 
   // Handlers
   const handleSelectGroup = (group) => {
@@ -87,6 +87,7 @@ export default function LeadsWorkspace() {
           if (res.ok) {
             mutate();
             mutateGroups();
+            mutateStats();
             setSelectedLeads([]);
             setConfirmModal(prev => ({ ...prev, open: false }));
           }
@@ -112,6 +113,7 @@ export default function LeadsWorkspace() {
           if (res.ok) {
             mutateGroups();
             mutate();
+            mutateStats();
             setConfirmModal(prev => ({ ...prev, open: false }));
           }
         } catch (err) {
@@ -734,6 +736,35 @@ export default function LeadsWorkspace() {
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20"
               >
                 <Bookmark size={18} /> {selectedLead.isSaved ? "Saved" : "Save Lead"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Confirm Modal */}
+      {confirmModal.open && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setConfirmModal(prev => ({ ...prev, open: false }))} />
+          <div className="relative bg-surface w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-border-glass animate-in zoom-in duration-200">
+            <div className="w-16 h-16 bg-primary/10 text-primary rounded-[1.5rem] flex items-center justify-center mb-6">
+              <Trash2 size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-on-surface mb-2">{confirmModal.title}</h2>
+            <p className="text-on-surface-variant text-sm mb-8 leading-relaxed">
+              {confirmModal.message}
+            </p>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setConfirmModal(prev => ({ ...prev, open: false }))}
+                className="flex-1 px-6 py-3 bg-surface-container-high text-on-surface-variant rounded-2xl font-bold text-sm hover:bg-surface-container-highest transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmModal.onConfirm}
+                className="flex-1 px-6 py-3 bg-primary text-white rounded-2xl font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20"
+              >
+                Confirm Delete
               </button>
             </div>
           </div>

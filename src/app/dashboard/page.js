@@ -311,7 +311,6 @@ export default function DashboardPage() {
   };
 
   const handleDeleteMonitor = async (monitorId) => {
-    if (!confirm('Are you sure you want to delete this surveillance monitor?')) return;
     try {
       const res = await fetch(`/api/monitors/${monitorId}`, { method: 'DELETE' });
       if (res.ok) {
@@ -501,13 +500,6 @@ export default function DashboardPage() {
                 >
                   <span className="material-symbols-outlined text-[20px]">arrow_upward</span>
                 </button>
-              </div>
-              <div className="flex items-center justify-between mt-3 px-1">
-                <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <span className="w-1 h-1 bg-[#28cd41] rounded-full" />
-                  Neural Extraction Engine Active
-                </div>
-                <div className="text-[9px] font-bold text-gray-400 font-mono">v3.0.0-LIGHT</div>
               </div>
             </div>
           </div>

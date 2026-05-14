@@ -26,14 +26,16 @@ export async function GET(request) {
       { $group: { _id: null, avgScore: { $avg: '$score' } } }
     ]).toArray();
 
-    const avgScore = avgScoreResult.length > 0 ? Math.round(avgScoreResult[0].avgScore) : 0;
+    const avgScore = (avgScoreResult.length > 0 && !isNaN(avgScoreResult[0].avgScore) && avgScoreResult[0].avgScore !== null) 
+      ? Math.round(avgScoreResult[0].avgScore) 
+      : 0;
 
     return NextResponse.json({
       generatedCount,
       savedCount,
       todayCount,
       avgScore,
-      conversionRate: generatedCount > 0 ? ((savedCount / generatedCount) * 100).toFixed(1) : 0
+      conversionRate: generatedCount > 0 ? parseFloat(((savedCount / generatedCount) * 100).toFixed(1)) : 0
     });
   } catch (error) {
     console.error('Get stats error:', error);

@@ -32,10 +32,11 @@ export async function GET(request) {
     let query = { userId };
     
     if (groupId) {
+      const gId = groupId.toString();
       if (groupType === 'monitor') {
-        query.monitorId = new ObjectId(groupId);
+        query.monitorId = { $in: [gId, new ObjectId(gId)] };
       } else if (groupType === 'search') {
-        query.searchId = new ObjectId(groupId);
+        query.searchId = { $in: [gId, new ObjectId(gId)] };
       }
     }
 

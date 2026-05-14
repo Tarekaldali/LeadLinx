@@ -30,7 +30,7 @@ export function SummaryCards({ stats, loading }) {
     },
     {
       label: 'Avg. Intent',
-      value: `${stats?.avgScore || 0}%`,
+      value: `${stats?.avgScore ?? 0}%`,
       sub: 'Target accuracy',
       icon: Target,
       color: 'text-tertiary',
@@ -38,7 +38,7 @@ export function SummaryCards({ stats, loading }) {
     },
     {
       label: 'Conv. Rate',
-      value: `${stats?.conversionRate || 0}%`,
+      value: `${stats?.conversionRate ?? 0}%`,
       sub: 'Gen to Saved',
       icon: Users,
       color: 'text-[#6366f1]',
