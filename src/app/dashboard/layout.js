@@ -34,6 +34,7 @@ export default function DashboardLayout({ children }) {
   const [promptLibraryOpen, setPromptLibraryOpen] = useState(false);
   const [promptFilter, setPromptFilter] = useState('All');
   const [chatsCollapsed, setChatsCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState('discovery');
 
   const user = session?.user;
   const loading = status === "loading";
@@ -88,6 +89,12 @@ export default function DashboardLayout({ children }) {
     }
   };
 
+  useEffect(() => {
+    const onSwitchTab = (e) => { setActiveTab(e.detail.tab); };
+    window.addEventListener('switchTab', onSwitchTab);
+    return () => window.removeEventListener('switchTab', onSwitchTab);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-sidebar flex items-center justify-center">
@@ -106,64 +113,122 @@ export default function DashboardLayout({ children }) {
   const filteredPrompts = promptFilter === 'All' ? PROMPT_LIBRARY : PROMPT_LIBRARY.filter(p => p.category === promptFilter);
 
   const Sidebar = (
-    <aside className="w-72 h-full bg-sidebar flex flex-col border-r border-sidebar-border overflow-hidden">
+    <aside className="w-72 h-full bg-[#f5f5f7] flex flex-col border-r border-[#e5e5e7] overflow-hidden">
       {/* Logo + collapse */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-sidebar-border shrink-0">
-        <a href="/">
-          <div className="flex items-center gap-2.5">
-            {/* <img src="/logo-new.png" alt="LeadLinx Logo" className="w-14 h-14object-contain" /> */}
-            <span className="font-bold text-sidebar-fg text-base tracking-tight">LeadLinx</span>
+      <div className="flex items-center justify-between px-6 py-8 shrink-0">
+        <Link href="/dashboard">
+          <div className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff3b30] to-[#ff2d55] flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform">
+              <span className="material-symbols-outlined text-white text-[22px]">bolt</span>
+            </div>
+            <span className="font-bold text-[#1d1d1f] text-xl tracking-tight">LeadLinx</span>
           </div>
-        </a>
-        <button onClick={() => setSidebarOpen(false)} className="md:hidden text-sidebar-muted hover:text-sidebar-fg transition-colors">
+        </Link>
+        <button onClick={() => setSidebarOpen(false)} className="md:hidden text-gray-400 hover:text-[#1d1d1f] transition-colors">
           <span className="material-symbols-outlined text-sm">close</span>
         </button>
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
+      <div className="flex-1 overflow-y-auto py-2 px-4 space-y-1 custom-scrollbar">
 
         {/* New Chat */}
         <Link
           href="/dashboard"
           id="new-chat-btn"
           onClick={() => { setSidebarOpen(false); window.dispatchEvent(new CustomEvent('newChat')); }}
-          className="sidebar-item sidebar-item-action w-full flex items-center gap-2.5 mb-3"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-[#e5e5e7] hover:border-[#d2d2d7] hover:bg-white transition-all mb-6 group shadow-sm"
         >
-          <span className="material-symbols-outlined text-[18px] text-primary">add_circle</span>
-          <span className="text-sm font-semibold">New Chat</span>
+          <span className="material-symbols-outlined text-[20px] text-[#ff3b30] group-hover:rotate-90 transition-transform">add_circle</span>
+          <span className="text-sm font-semibold text-[#1d1d1f]">New Extraction Chat</span>
         </Link>
 
-        {/* Chats Section */}
-        <div className="pb-1">
+        {/* Navigation Section */}
+        <div className="pb-4">
+          <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Navigation</div>
+          
           <button
-            onClick={() => setChatsCollapsed(p => !p)}
-            className="flex items-center gap-2 px-2 py-1.5 w-full text-left group"
+            onClick={() => { 
+              setSidebarOpen(false); 
+              if (pathname === '/dashboard') {
+                window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'discovery' } }));
+              } else {
+                router.push('/dashboard?tab=discovery');
+              }
+            }}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all ${pathname === '/dashboard' && activeTab === 'discovery' ? 'text-[#1d1d1f] bg-white shadow-sm border border-[#e5e5e7]' : 'text-[#86868b] hover:text-[#1d1d1f] hover:bg-white/50'}`}
           >
-            <span className="material-symbols-outlined text-[14px] text-sidebar-muted">folder_open</span>
-            <span className="text-xs font-semibold text-sidebar-muted tracking-widest uppercase flex-1">Recent Chats</span>
-            <span className={`material-symbols-outlined text-[14px] text-sidebar-muted transition-transform ${chatsCollapsed ? '' : 'rotate-180'}`}>expand_less</span>
+            <span className="material-symbols-outlined text-[20px]">explore</span>
+            <span className="text-sm font-medium">Discovery</span>
           </button>
 
+          <button
+            onClick={() => { 
+              setSidebarOpen(false); 
+              if (pathname === '/dashboard') {
+                window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'leads' } }));
+              } else {
+                router.push('/dashboard?tab=leads');
+              }
+            }}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname.startsWith('/dashboard/saved') || (pathname === '/dashboard' && activeTab === 'leads') ? 'text-[#1d1d1f] bg-white shadow-sm border border-[#e5e5e7]' : 'text-[#86868b] hover:text-[#1d1d1f] hover:bg-white/50'}`}
+          >
+            <span className="material-symbols-outlined text-[20px]">group</span>
+            <span className="text-sm font-medium">Leads</span>
+          </button>
+
+          <button
+            onClick={() => { 
+              setSidebarOpen(false); 
+              if (pathname === '/dashboard') {
+                window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'monitors' } }));
+              } else {
+                router.push('/dashboard?tab=monitors');
+              }
+            }}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname === '/dashboard' && activeTab === 'monitors' ? 'text-[#1d1d1f] bg-white shadow-sm border border-[#e5e5e7]' : 'text-[#86868b] hover:text-[#1d1d1f] hover:bg-white/50'}`}
+          >
+            <span className="material-symbols-outlined text-[20px]">sensors</span>
+            <span className="text-sm font-medium">Monitors</span>
+          </button>
+
+          <Link
+            href="/dashboard/settings"
+            onClick={() => setSidebarOpen(false)}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname.startsWith('/dashboard/settings') ? 'text-[#1d1d1f] bg-white shadow-sm border border-[#e5e5e7]' : 'text-[#86868b] hover:text-[#1d1d1f] hover:bg-white/50'}`}
+          >
+            <span className="material-symbols-outlined text-[20px]">settings</span>
+            <span className="text-sm font-medium">Settings</span>
+          </Link>
+        </div>
+
+        {/* Chats Section */}
+        <div className="pb-4">
+          <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2 flex items-center justify-between">
+            <span>Recent History</span>
+            <button onClick={() => setChatsCollapsed(p => !p)} className="hover:text-[#1d1d1f]">
+              <span className={`material-symbols-outlined text-[14px] transition-transform ${chatsCollapsed ? '' : 'rotate-180'}`}>expand_less</span>
+            </button>
+          </div>
+
           {!chatsCollapsed && (
-            <div className="mt-1 space-y-0.5">
+            <div className="space-y-0.5">
               {chats.length === 0 ? (
-                <p className="text-xs text-sidebar-muted px-3 py-2 italic">No chats yet</p>
+                <p className="text-[11px] text-gray-400 px-4 py-2 italic font-mono text-center">Empty history</p>
               ) : (
                 chats.slice(0, 8).map(chat => (
-                  <div key={chat._id} className="group flex items-center justify-between rounded-lg hover:bg-sidebar-hover mb-0.5">
+                  <div key={chat._id} className="group flex items-center justify-between rounded-xl hover:bg-white transition-colors">
                     <Link
                       href="/dashboard"
                       onClick={() => { setSidebarOpen(false); window.dispatchEvent(new CustomEvent('loadChat', { detail: { chatId: chat._id } })); }}
-                      className={`flex items-center gap-2 px-3 py-2 flex-1 min-w-0 ${pathname === '/dashboard' ? 'text-sidebar-fg' : 'text-sidebar-muted hover:text-sidebar-fg'}`}
+                      className={`flex items-center gap-3 px-4 py-2.5 flex-1 min-w-0 ${pathname === '/dashboard' ? 'text-[#1d1d1f]' : 'text-[#86868b] hover:text-[#1d1d1f]'}`}
                     >
-                      <span className="material-symbols-outlined text-[16px] shrink-0 opacity-50">chat_bubble</span>
-                      <span className="truncate text-xs flex-1 min-w-0">{chat.title || 'New Chat'}</span>
+                      <span className="material-symbols-outlined text-[18px] shrink-0 opacity-40">chat_bubble</span>
+                      <span className="truncate text-xs font-medium flex-1">{chat.title || 'Untitled'}</span>
                     </Link>
                     <button
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowConfirmDelete(chat._id); }}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 text-sidebar-muted hover:text-red-400 transition-colors hover:bg-red-400/10 rounded-md flex items-center justify-center shrink-0 mr-2"
-                      title="Delete chat"
+                      className="opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-[#ff3b30] transition-all mr-1"
                     >
                       <span className="material-symbols-outlined text-[16px]">delete</span>
                     </button>
@@ -174,97 +239,55 @@ export default function DashboardLayout({ children }) {
           )}
         </div>
 
-        <div className="sidebar-divider" />
-
-        {/* Saved Leads */}
-        <Link
-          href="/dashboard/saved"
-          onClick={() => setSidebarOpen(false)}
-          className={`sidebar-item flex items-center gap-2.5 ${pathname.startsWith('/dashboard/saved') ? 'active' : ''}`}
-        >
-          <span className="material-symbols-outlined text-[18px]">bookmark</span>
-          <span className="text-sm">Saved Leads</span>
-        </Link>
-
-        {/* Prompt Library */}
-        <button
-          onClick={() => setPromptLibraryOpen(true)}
-          className="sidebar-item flex items-center gap-2.5 w-full text-left"
-        >
-          <span className="material-symbols-outlined text-[18px]">library_books</span>
-          <span className="text-sm">Prompt Library</span>
-        </button>
-
-        {/* Settings */}
-        <Link
-          href="/dashboard/settings"
-          onClick={() => setSidebarOpen(false)}
-          className={`sidebar-item flex items-center gap-2.5 ${pathname.startsWith('/dashboard/settings') ? 'active' : ''}`}
-        >
-          <span className="material-symbols-outlined text-[18px]">settings</span>
-          <span className="text-sm">Settings</span>
-        </Link>
-
-        {/* Admin Panel (admins only) */}
         {user?.role === 'admin' && (
-          <>
-            <div className="sidebar-divider" />
-            <Link href="/admin" className="sidebar-item flex items-center gap-2.5 text-primary">
-              <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-              <span className="text-sm font-semibold">Admin Panel</span>
+          <div className="pb-4">
+            <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Admin</div>
+            <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[#ff3b30] hover:bg-[#ff3b30]/5 transition-all">
+              <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+              <span className="text-sm font-bold">Admin Console</span>
             </Link>
-          </>
-        )}
-
-        <div className="sidebar-divider" />
-
-        {/* Upgrade */}
-        {(!user?.plan || user.plan === 'free') && (
-          <Link href="/pricing" className="sidebar-item flex items-center gap-2.5 text-secondary hover:text-secondary">
-            <span className="material-symbols-outlined text-[18px]">upgrade</span>
-            <span className="text-sm">Upgrade Plan</span>
-          </Link>
+          </div>
         )}
       </div>
 
       {/* Credits + User footer */}
-      <div className="shrink-0 border-t border-sidebar-border px-4 py-4 space-y-4">
+      <div className="shrink-0 border-t border-[#e5e5e7] p-6 space-y-6 bg-white">
         {/* Credits bar */}
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-sidebar-muted">Credits remaining</span>
-            {(!user?.plan || user.plan === 'free') && (
-              <Link href="/pricing" className="text-xs text-primary font-medium hover:underline">Upgrade</Link>
-            )}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Growth Engine</span>
+            <span className="text-[10px] font-bold text-[#ff3b30] uppercase tracking-widest">{user?.plan || 'free'}</span>
           </div>
-          <div className="text-lg font-bold text-sidebar-fg mb-1.5">
-            {currentCredits.toLocaleString()}
-            <span className="text-sidebar-muted font-normal text-sm"> / {maxCredits.toLocaleString()}</span>
+          <div className="flex items-baseline gap-1 mb-2">
+            <span className="text-xl font-bold text-[#1d1d1f]">{currentCredits.toLocaleString()}</span>
+            <span className="text-[11px] text-gray-400 font-medium">/ {maxCredits.toLocaleString()} credits</span>
           </div>
-          <div className="h-1.5 rounded-full bg-sidebar-hover overflow-hidden">
+          <div className="h-1.5 rounded-full bg-[#f2f2f2] overflow-hidden border border-[#e5e5e7]">
             <div
-              className="h-full rounded-full transition-all"
+              className="h-full rounded-full transition-all duration-1000"
               style={{
                 width: `${creditsPercent}%`,
-                background: creditsPercent > 30 ? 'var(--color-primary)' : creditsPercent > 10 ? '#f59e0b' : '#ef4444',
+                background: `#ff3b30`,
               }}
             />
           </div>
-          <div className="text-[10px] text-sidebar-muted mt-1 capitalize">{user?.plan || 'free'} plan</div>
         </div>
 
         {/* User */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-primary uppercase">
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f5f5f7] border border-[#e5e5e7]">
+          <div className="w-9 h-9 rounded-xl bg-white border border-[#e5e5e7] flex items-center justify-center shrink-0">
+            <span className="text-xs font-bold text-[#1d1d1f] uppercase">
               {(user?.name || user?.email || 'U').substring(0, 1)}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-sidebar-fg truncate">Welcome back, {user?.name}</div>
-            <div className="text-[10px] text-sidebar-muted">{user?.role ? user?.role : 'unknown'}</div>
+            <div className="text-xs font-bold text-[#1d1d1f] truncate">{user?.name}</div>
+            <div className="text-[10px] text-gray-500 font-medium flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-[#28cd41] rounded-full" />
+              Active Now
+            </div>
           </div>
-          <button onClick={handleLogout} title="Logout" className="text-sidebar-muted hover:text-red-400 transition-colors shrink-0">
+          <button onClick={handleLogout} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 transition-all">
             <span className="material-symbols-outlined text-[18px]">logout</span>
           </button>
         </div>
@@ -273,63 +296,74 @@ export default function DashboardLayout({ children }) {
   );
 
   return (
-    <DashboardContext.Provider value={{ user, refreshUser, updateCredits, addChat }}>
-      <div className="flex h-screen overflow-hidden bg-surface-dim">
+    <DashboardContext.Provider value={{ user, refreshUser, updateCredits, addChat, activeTab, setActiveTab }}>
+      <div className="flex h-screen overflow-hidden bg-[#ffffff] text-[#1d1d1f] selection:bg-[#0071e3]/10 selection:text-[#0071e3]">
         {/* Mobile overlay */}
         {sidebarOpen && (
-          <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] md:hidden" onClick={() => setSidebarOpen(false)} />
         )}
 
-        {/* Desktop sidebar — always visible */}
+        {/* Desktop sidebar */}
         <div className="hidden md:flex shrink-0">{Sidebar}</div>
 
-        {/* Mobile sidebar — slide in */}
-        <div className={`fixed inset-y-0 left-0 z-40 md:hidden transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* Mobile sidebar */}
+        <div className={`fixed inset-y-0 left-0 z-[70] md:hidden transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           {Sidebar}
         </div>
 
         {/* Main area */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           {/* Mobile top bar */}
-          <div className="md:hidden flex items-center gap-3 px-4 py-3 bg-sidebar border-b border-sidebar-border shrink-0">
-            <button onClick={() => setSidebarOpen(true)} className="text-sidebar-fg">
+          <div className="md:hidden flex items-center gap-3 px-6 py-4 bg-white border-b border-[#e5e5e7] shrink-0">
+            <button onClick={() => setSidebarOpen(true)} className="text-[#1d1d1f]">
               <span className="material-symbols-outlined">menu</span>
             </button>
-            <span className="font-bold text-sidebar-fg flex-1 text-sm">LeadLinx</span>
-            <span className="text-xs text-sidebar-muted">{currentCredits} credits</span>
+            <span className="font-bold text-[#1d1d1f] flex-1 text-sm tracking-tight">LeadLinx</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#f5f5f7] rounded-full border border-[#e5e5e7]">
+              <span className="material-symbols-outlined text-[14px] text-[#ff3b30]">bolt</span>
+              <span className="text-[10px] font-bold text-[#1d1d1f]">{currentCredits}</span>
+            </div>
           </div>
 
           {/* Page content */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-8">
-            <div className="max-w-6xl mx-auto">
+          <div className="flex-1 overflow-y-auto relative z-10 custom-scrollbar">
+            <div className="max-w-7xl mx-auto">
               {children}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Prompt Library Modal */}
+      {/* Prompt Library Modal - Optimized for Light Theme */}
       {promptLibraryOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setPromptLibraryOpen(false)}>
-          <div className="bg-surface rounded-2xl w-full max-w-3xl max-h-[80vh] flex flex-col animate-scale-in" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in" onClick={() => setPromptLibraryOpen(false)}>
+          <div className="bg-white border border-[#e5e5e7] rounded-[32px] w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="p-6 border-b border-border-glass">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="font-headline text-xl text-on-surface">Prompt Library</h2>
-                <button onClick={() => setPromptLibraryOpen(false)} className="text-on-surface-variant hover:text-on-surface">
+            <div className="p-10 border-b border-[#f2f2f2] relative bg-[#fbfbfd]">
+              <div className="flex items-center justify-between mb-4 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#ff3b30] flex items-center justify-center shadow-lg shadow-red-500/20">
+                    <span className="material-symbols-outlined text-white text-[24px]">auto_awesome</span>
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-2xl text-[#1d1d1f] tracking-tight">Intelligence Library</h2>
+                    <p className="text-sm text-[#86868b] mt-1">Battle-tested prompts for elite lead extraction.</p>
+                  </div>
+                </div>
+                <button onClick={() => setPromptLibraryOpen(false)} className="w-10 h-10 rounded-full border border-[#e5e5e7] flex items-center justify-center text-[#86868b] hover:text-[#1d1d1f] hover:bg-white transition-all">
                   <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
-              <p className="text-sm text-on-surface-variant">Ready-to-use prompts for finding high-intent leads. Click any prompt to use it.</p>
+              
               {/* Filters */}
-              <div className="flex gap-2 mt-4 flex-wrap">
+              <div className="flex gap-2 mt-8 flex-wrap relative z-10">
                 {PROMPT_CATEGORIES.map(cat => (
                   <button
                     key={cat}
                     onClick={() => setPromptFilter(cat)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${promptFilter === cat
-                        ? 'bg-primary text-white border-primary'
-                        : 'border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary'
+                    className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all border ${promptFilter === cat
+                        ? 'bg-[#1d1d1f] text-white border-[#1d1d1f] shadow-lg shadow-black/10'
+                        : 'bg-white border-[#e5e5e7] text-[#86868b] hover:text-[#1d1d1f] hover:border-[#d2d2d7]'
                       }`}
                   >
                     {cat}
@@ -339,22 +373,22 @@ export default function DashboardLayout({ children }) {
             </div>
 
             {/* Cards */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredPrompts.map((p, i) => (
-                  <div key={i} className="bento-card p-4 hover:border-primary/30 transition-all cursor-pointer group"
+                  <div key={i} className="group relative bg-[#fbfbfd] border border-[#e5e5e7] rounded-2xl p-6 hover:bg-white hover:border-[#0071e3]/30 transition-all cursor-pointer shadow-sm hover:shadow-md"
                     onClick={() => {
                       setPromptLibraryOpen(false);
                       router.push('/dashboard');
                       setTimeout(() => window.dispatchEvent(new CustomEvent('usePrompt', { detail: { prompt: p.prompt } })), 200);
                     }}
                   >
-                    <div className="text-xs font-data-label text-primary mb-2">{p.category}</div>
-                    <div className="text-sm font-semibold text-on-surface mb-1 group-hover:text-primary transition-colors">{p.title}</div>
-                    <div className="text-xs text-on-surface-variant line-clamp-2 italic">"{p.prompt}"</div>
-                    <div className="mt-3 flex items-center gap-1 text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="material-symbols-outlined text-[14px]">send</span>
-                      Use this prompt
+                    <div className="text-[10px] font-black text-[#0071e3] mb-3 uppercase tracking-widest">{p.category}</div>
+                    <div className="text-base font-bold text-[#1d1d1f] mb-2 group-hover:text-[#0071e3] transition-colors">{p.title}</div>
+                    <div className="text-xs text-[#86868b] line-clamp-2 italic leading-relaxed font-medium">"{p.prompt}"</div>
+                    <div className="mt-6 flex items-center gap-2 text-[10px] text-[#0071e3] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0">
+                      <span>Inject into engine</span>
+                      <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                     </div>
                   </div>
                 ))}
@@ -368,9 +402,9 @@ export default function DashboardLayout({ children }) {
         isOpen={!!showConfirmDelete}
         onClose={() => setShowConfirmDelete(null)}
         onConfirm={() => handleDeleteChat(showConfirmDelete)}
-        title="Delete Chat"
-        message="Are you sure you want to delete this chat history? This cannot be undone."
-        confirmText="Delete"
+        title="Delete History"
+        message="Are you sure you want to purge this intelligence data? This action is irreversible."
+        confirmText="Confirm Deletion"
         type="danger"
       />
     </DashboardContext.Provider>

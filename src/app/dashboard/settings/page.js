@@ -178,27 +178,27 @@ export default function SettingsPage() {
   const isOAuth = user?.image || !user?.password; // Roughly checking if OAuth
 
   return (
-    <div className="max-w-5xl mx-auto pb-20 animate-fade-in">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-on-surface tracking-tight">Settings</h1>
-        <p className="text-on-surface-variant mt-1">Manage your account settings and preferences.</p>
+    <div className="max-w-5xl mx-auto pb-20 animate-fade-in p-8">
+      <header className="mb-10">
+        <h1 className="text-3xl font-bold text-[#1d1d1f] tracking-tight">Settings</h1>
+        <p className="text-[#86868b] mt-1 font-medium">Manage your account, preferences, and extraction filters.</p>
       </header>
 
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col md:flex-row gap-12">
         {/* Sidebar Navigation */}
         <aside className="w-full md:w-64 shrink-0">
-          <nav className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0">
+          <nav className="flex md:flex-col gap-1 overflow-x-auto pb-2 md:pb-0">
             {TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all whitespace-nowrap ${
                   activeTab === tab.id 
-                    ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100/50' 
-                    : 'text-gray-600 hover:bg-surface-container-low hover:text-on-surface border border-transparent'
+                    ? 'bg-white shadow-sm border border-[#e5e5e7] text-[#1d1d1f]' 
+                    : 'text-[#86868b] hover:text-[#1d1d1f] hover:bg-gray-100/50'
                 }`}
               >
-                <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+                <span className={`material-symbols-outlined text-[20px] ${activeTab === tab.id ? 'text-[#0071e3]' : ''}`}>{tab.icon}</span>
                 {tab.label}
               </button>
             ))}
@@ -206,84 +206,46 @@ export default function SettingsPage() {
         </aside>
 
         {/* Content Area */}
-        <main className="flex-1 space-y-6">
+        <main className="flex-1 space-y-8">
           {/* Profile Tab */}
           {activeTab === 'profile' && (
-            <div className="bento-card rounded-2xl border border-border-glass shadow-sm overflow-hidden animate-fade-in">
-              <div className="px-6 py-5 border-b border-border-glass">
-                <h2 className="text-lg font-semibold text-on-surface">Profile</h2>
-                <p className="text-sm text-on-surface-variant">Update your personal information.</p>
+            <div className="bg-white rounded-[28px] border border-[#e5e5e7] shadow-sm overflow-hidden animate-in">
+              <div className="px-8 py-6 border-b border-[#f2f2f2]">
+                <h2 className="text-lg font-bold text-[#1d1d1f]">Profile Information</h2>
+                <p className="text-xs text-[#86868b] mt-0.5">How you appear to the LeadLinx ecosystem.</p>
               </div>
-              <div className="p-6 space-y-6">
-                
-              {/* <div className="changepass">
-                <label className="block text-sm font-medium text-on-surface mb-1.5">Current Password</label>
-                <input 
-                  type="password" 
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" 
-                />
-                <label className="block text-sm font-medium text-on-surface mb-1.5 mt-4">New Password</label>
-                <input 
-                  type="password" 
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" 
-                />
-                <label className="block text-sm font-medium text-on-surface mb-1.5 mt-4">Confirm Password</label>
-                <input 
-                  type="password" 
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" 
-                />
-                <br></br>
-                <br></br>
-                <button
-                  onClick={handleUpdatePassword}
-                  disabled={saving}
-                  className="px-5 py-2 action-btn rounded-lg text-sm font-medium hover:opacity-90 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {saving ? 'hourglass_empty' : 'update'}
-                  </span>
-                  {saving ? 'Updating...' : 'Update Password'}
-                </button>
-              </div> */}
-              
+              <div className="p-8 space-y-6">
                 <div className="space-y-4 max-w-lg">
                   <div>
-                    <label className="block text-sm font-medium text-on-surface mb-1.5">Full Name</label>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Full Name</label>
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow"
+                      className="w-full px-4 py-3 bg-[#f5f5f7] border border-[#e5e5e7] rounded-xl focus:ring-2 focus:ring-[#0071e3]/20 focus:border-[#0071e3] text-sm font-medium outline-none transition-all"
                       placeholder="Jane Doe"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-on-surface mb-1.5">Email Address</label>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
                     <input
                       type="email"
                       value={user?.email || ''}
                       readOnly
                       disabled
-                      className="w-full px-4 py-2 border border-border-glass bg-surface-container-low rounded-lg shadow-sm text-on-surface-variant text-sm outline-none"
+                      className="w-full px-4 py-3 bg-[#f2f2f2] border border-[#e5e5e7] rounded-xl text-gray-400 text-sm font-medium outline-none cursor-not-allowed"
                     />
-                    {isOAuth && <p className="text-xs text-on-surface-variant mt-1.5">Your email is managed by your connected provider.</p>}
+                    {isOAuth && <p className="text-[10px] text-gray-400 mt-2 ml-1">Managed by your connected provider.</p>}
                   </div>
                 </div>
               </div>
-              <div className="px-6 py-4 bg-surface-container-low border-t border-border-glass flex justify-end">
+              <div className="px-8 py-4 bg-[#fbfbfd] border-t border-[#f2f2f2] flex justify-end">
                 <button
                   onClick={handleSaveProfile}
                   disabled={saving}
-                  className="px-5 py-2 action-btn rounded-lg text-sm font-medium hover:opacity-90 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-2.5 bg-[#0071e3] text-white rounded-xl text-sm font-bold hover:bg-[#005bb5] transition-all shadow-lg shadow-blue-500/10 disabled:opacity-50"
                 >
-                  {saving && <div className="savebutton" />}
-                  Save Changes
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </div>
@@ -291,55 +253,51 @@ export default function SettingsPage() {
 
           {/* Account Tab */}
           {activeTab === 'account' && (
-            <div className="space-y-6 animate-fade-in">
-              <div className="bento-card rounded-2xl border border-border-glass shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-border-glass">
-                  <h2 className="text-lg font-semibold text-on-surface">Security & Providers</h2>
-                  <p className="text-sm text-on-surface-variant">Manage how you log in to LeadLinx.</p>
+            <div className="space-y-6 animate-in">
+              <div className="bg-white rounded-[28px] border border-[#e5e5e7] shadow-sm overflow-hidden">
+                <div className="px-8 py-6 border-b border-[#f2f2f2]">
+                  <h2 className="text-lg font-bold text-[#1d1d1f]">Security</h2>
+                  <p className="text-xs text-[#86868b] mt-0.5">Manage your credentials and providers.</p>
                 </div>
-                <div className="p-6 space-y-6">
+                <div className="p-8 space-y-8">
                   {!isOAuth && (
                     <div className="max-w-lg space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-on-surface mb-1.5">Current Password</label>
-                        <input type="password" placeholder="••••••••" className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" />
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Current Password</label>
+                        <input type="password" placeholder="••••••••" className="w-full px-4 py-3 bg-[#f5f5f7] border border-[#e5e5e7] rounded-xl focus:ring-2 focus:ring-[#0071e3]/20 focus:border-[#0071e3] text-sm outline-none transition-all" />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-on-surface mb-1.5">New Password</label>
-                        <input type="password" placeholder="••••••••" className="w-full px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow" />
-                      </div>
-                      <button className="px-4 py-2 bento-card border border-border-glass rounded-lg text-sm font-medium text-on-surface hover:bg-surface-container-low transition-colors shadow-sm">
+                      <button className="px-5 py-2 bg-white border border-[#e5e5e7] rounded-xl text-xs font-bold text-[#1d1d1f] hover:bg-[#f5f5f7] transition-all shadow-sm">
                         Update Password
                       </button>
                     </div>
                   )}
 
                   <div>
-                    <h3 className="text-sm font-medium text-on-surface mb-3">Connected Providers</h3>
-                    <div className="flex items-center justify-between p-4 border border-border-glass rounded-xl max-w-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center">
+                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Connected Auth</h3>
+                    <div className="flex items-center justify-between p-5 bg-[#fbfbfd] border border-[#e5e5e7] rounded-2xl max-w-lg shadow-sm">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-white border border-[#e5e5e7] flex items-center justify-center shadow-sm">
                           <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-on-surface">Google</p>
-                          <p className="text-xs text-on-surface-variant">Connected</p>
+                          <p className="text-sm font-bold text-[#1d1d1f]">Google Cloud Auth</p>
+                          <p className="text-[10px] text-[#28cd41] font-black uppercase tracking-widest">Linked</p>
                         </div>
                       </div>
-                      <button className="text-sm font-medium text-red-600 hover:text-hot-pink">Disconnect</button>
+                      <button className="text-xs font-bold text-[#ff3b30] hover:underline">Disconnect</button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-hot-pink/10 rounded-2xl border border-hot-pink/20 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="bg-[#ff3b30]/5 rounded-[28px] border border-[#ff3b30]/10 p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div>
-                  <h3 className="text-base font-semibold text-hot-pink">Delete Account</h3>
-                  <p className="text-sm text-hot-pink/80 mt-1">Permanently remove your account and all associated data.</p>
+                  <h3 className="text-base font-bold text-[#ff3b30]">Danger Zone</h3>
+                  <p className="text-xs text-[#ff3b30]/70 mt-0.5">Permanently delete your account and all intelligence data.</p>
                 </div>
                 <button 
                   onClick={() => setShowDeleteModal(true)}
-                  className="px-4 py-2 bg-hot-pink text-white rounded-lg text-sm font-medium hover:bg-hot-pink/90 transition-colors shadow-sm shrink-0"
+                  className="px-6 py-2.5 bg-[#ff3b30] text-white rounded-xl text-sm font-bold hover:bg-[#d72f25] transition-all shadow-lg shadow-red-500/20 shrink-0"
                 >
                   Delete Account
                 </button>
@@ -349,20 +307,19 @@ export default function SettingsPage() {
 
           {/* Billing Tab */}
           {activeTab === 'billing' && (
-            <div className="bento-card rounded-2xl border border-border-glass shadow-sm overflow-hidden animate-fade-in">
-              <div className="px-6 py-5 border-b border-border-glass">
-                <h2 className="text-lg font-semibold text-on-surface">Billing & Subscription</h2>
-                <p className="text-sm text-on-surface-variant">Manage your subscription plan and billing details.</p>
+            <div className="bg-white rounded-[28px] border border-[#e5e5e7] shadow-sm overflow-hidden animate-in">
+              <div className="px-8 py-6 border-b border-[#f2f2f2]">
+                <h2 className="text-lg font-bold text-[#1d1d1f]">Billing</h2>
+                <p className="text-xs text-[#86868b] mt-0.5">Manage your growth plan and invoices.</p>
               </div>
-              <div className="p-6">
-                <div className="bg-surface-container-low rounded-xl p-6 border border-border-glass max-w-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="p-8">
+                <div className="bg-[#f5f5f7] rounded-2xl p-8 border border-[#e5e5e7] max-w-2xl flex flex-col md:flex-row justify-between items-center gap-8 shadow-sm">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-on-surface-variant uppercase tracking-wider">Current Plan</p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Plan</p>
                     <div className="flex items-center gap-3">
-                      <h3 className="text-2xl font-bold text-on-surface capitalize">{user?.plan || 'Free'}</h3>
-                      <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
+                      <h3 className="text-3xl font-black text-[#1d1d1f] capitalize">{user?.plan || 'Free'}</h3>
+                      <span className="px-2.5 py-1 bg-[#28cd41]/10 text-[#28cd41] text-[10px] font-black rounded-full border border-[#28cd41]/20">PRO</span>
                     </div>
-                    {user?.plan !== 'free' && <p className="text-sm text-on-surface-variant pt-1">Renews on {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>}
                   </div>
                   
                   <div className="flex flex-col gap-3 w-full md:w-auto">
@@ -372,199 +329,96 @@ export default function SettingsPage() {
                         const data = await res.json();
                         if (data.url) window.location.href = data.url;
                       }}
-                      className="px-5 py-2 bg-black dark:bento-card dark:text-black text-white rounded-lg text-sm font-medium hover:opacity-90 dark:hover:bg-border-glass transition-colors shadow-sm text-center"
+                      className="px-6 py-2.5 bg-[#1d1d1f] text-white rounded-xl text-sm font-bold hover:bg-black transition-all shadow-lg shadow-black/10 text-center"
                     >
-                      Manage Billing
+                      Portal Management
                     </button>
-                    {user?.plan === 'free' && (
-                      <Link href="/pricing" className="px-5 py-2 bento-card border border-border-glass text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-low transition-colors shadow-sm text-center">
-                        Upgrade Plan
-                      </Link>
-                    )}
                   </div>
                 </div>
-
-                {user?.plan !== 'free' && (
-                  <div className="mt-8">
-                    <h3 className="text-lg font-bold text-on-surface mb-1">Billing Information</h3>
-                    <p className="text-sm text-on-surface-variant mb-4">Manage your payment method and billing details.</p>
-                    
-                    <div className="bento-card border border-border-glass rounded-xl overflow-hidden max-w-4xl">
-                      <div className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-                          <div>
-                            <p className="text-sm font-medium text-on-surface-variant mb-1">Card Brand</p>
-                            <p className="text-base font-semibold text-on-surface flex items-center gap-2">
-                              <span className="material-symbols-outlined text-primary">credit_card</span>
-                              Visa
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-on-surface-variant mb-1">Last 4 Digits</p>
-                            <p className="text-base font-semibold text-on-surface">**** 4242</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-on-surface-variant mb-1">Cardholder Name</p>
-                            <p className="text-base font-semibold text-on-surface">{user?.name || 'LeadLinx User'}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-on-surface-variant mb-1">Billing Email</p>
-                            <p className="text-base font-semibold text-on-surface">{user?.email}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-on-surface-variant mb-1">Country</p>
-                            <p className="text-base font-semibold text-on-surface">United States</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-on-surface-variant mb-1">Next Invoice Date</p>
-                            <p className="text-base font-semibold text-on-surface">
-                              {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="px-6 py-4 bg-surface-container-low border-t border-border-glass flex flex-col sm:flex-row justify-end gap-3">
-                        <button className="px-5 py-2 bento-card-container border border-border-glass dark:border-border-glass text-on-surface dark:text-on-surface-variant rounded-lg text-sm font-medium hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors shadow-sm text-center">
-                          Download Latest Invoice
-                        </button>
-                        <button
-                          onClick={async () => {
-                            const res = await fetch('/api/stripe/portal', { method: 'POST' });
-                            const data = await res.json();
-                            if (data.url) window.location.href = data.url;
-                          }}
-                          className="px-5 py-2 bg-black dark:bento-card dark:text-black text-white rounded-lg text-sm font-medium hover:opacity-90 dark:hover:bg-border-glass transition-colors shadow-sm text-center"
-                        >
-                          Update Payment Method
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           )}
 
           {/* Preferences Tab */}
           {activeTab === 'preferences' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-8 animate-in">
               {/* Appearance */}
-              <div className="bento-card rounded-2xl border border-border-glass shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-border-glass dark:border-border-glass">
-                  <h2 className="text-lg font-semibold text-on-surface">Appearance</h2>
-                  <p className="text-sm text-on-surface-variant">Customize how LeadLinx looks on your device.</p>
+              <div className="bg-white rounded-[28px] border border-[#e5e5e7] shadow-sm overflow-hidden">
+                <div className="px-8 py-6 border-b border-[#f2f2f2]">
+                  <h2 className="text-lg font-bold text-[#1d1d1f]">Appearance</h2>
+                  <p className="text-xs text-[#86868b] mt-0.5">Customize your interface experience.</p>
                 </div>
-                <div className="p-6">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    {/* Light Theme */}
+                <div className="p-8">
+                  <div className="flex flex-col sm:flex-row gap-6">
                     <button
                       onClick={() => setTheme('light')}
-                      className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                        mounted && theme === 'light' ? 'border-primary bg-primary/5' : 'border-border-glass hover:border-border-glass dark:border-gray-700 dark:hover:border-gray-600'
+                      className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-2xl border-2 transition-all ${
+                        mounted && theme === 'light' ? 'border-[#0071e3] bg-[#0071e3]/5' : 'border-[#f2f2f2] hover:border-[#e5e5e7]'
                       }`}
                     >
-                      <div className="w-16 h-12 rounded-md bg-surface-container border border-border-glass flex items-center justify-center">
-                        <span className="material-symbols-outlined text-on-surface-variant">light_mode</span>
+                      <div className="w-16 h-12 rounded-lg bg-white border border-[#e5e5e7] flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-[#86868b]">light_mode</span>
                       </div>
-                      <span className={`text-sm font-medium ${mounted && theme === 'light' ? 'text-primary' : 'text-on-surface-variant'}`}>Light</span>
+                      <span className={`text-xs font-bold uppercase tracking-widest ${mounted && theme === 'light' ? 'text-[#0071e3]' : 'text-[#86868b]'}`}>Quartz Light</span>
                     </button>
 
-                    {/* Dark Theme */}
                     <button
                       onClick={() => setTheme('dark')}
-                      className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                        mounted && theme === 'dark' ? 'border-primary bg-primary/5' : 'border-border-glass hover:border-border-glass dark:border-gray-700 dark:hover:border-gray-600'
+                      className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-2xl border-2 transition-all ${
+                        mounted && theme === 'dark' ? 'border-[#0071e3] bg-[#0071e3]/5' : 'border-[#f2f2f2] hover:border-[#e5e5e7]'
                       }`}
                     >
-                      <div className="w-16 h-12 rounded-md bg-surface-container-high border border-border-glass flex items-center justify-center">
-                        <span className="material-symbols-outlined text-on-surface-variant">dark_mode</span>
+                      <div className="w-16 h-12 rounded-lg bg-[#1d1d1f] border border-white/10 flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-gray-400">dark_mode</span>
                       </div>
-                      <span className={`text-sm font-medium ${mounted && theme === 'dark' ? 'text-primary' : 'text-on-surface-variant'}`}>Dark</span>
+                      <span className={`text-xs font-bold uppercase tracking-widest ${mounted && theme === 'dark' ? 'text-[#0071e3]' : 'text-[#86868b]'}`}>Midnight Dark</span>
                     </button>
-
-
                   </div>
                 </div>
               </div>
 
-              {/* Notifications */}
-              <div className="bento-card rounded-2xl border border-border-glass shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-border-glass dark:border-border-glass">
-                  <h2 className="text-lg font-semibold text-on-surface">Notifications</h2>
-                  <p className="text-sm text-on-surface-variant">Manage what emails you receive from LeadLinx.</p>
+              {/* Extraction Filters */}
+              <div className="bg-white rounded-[28px] border border-[#e5e5e7] shadow-sm overflow-hidden">
+                <div className="px-8 py-6 border-b border-[#f2f2f2]">
+                  <h2 className="text-lg font-bold text-[#1d1d1f]">Extraction Filters</h2>
+                  <p className="text-xs text-[#86868b] mt-0.5">Filter out irrelevant signals automatically.</p>
                 </div>
-                <div className="p-6 space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-medium text-on-surface">Smart Lead Alerts</h4>
-                      <p className="text-sm text-on-surface-variant">Receive an email when AI detects a high-intent lead (score ≥ 8).</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" checked={emailAlerts} onChange={(e) => setEmailAlerts(e.target.checked)} />
-                      <div className="w-11 h-6 bg-border-glass peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bento-card after:border-border-glass after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pt-4 border-t border-border-glass">
-                    <div>
-                      <h4 className="text-sm font-medium text-on-surface">Weekly Digest</h4>
-                      <p className="text-sm text-on-surface-variant">A weekly summary of your lead generation performance.</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" checked={weeklyReports} onChange={(e) => setWeeklyReports(e.target.checked)} />
-                      <div className="w-11 h-6 bg-border-glass peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bento-card after:border-border-glass after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Negative Keywords */}
-              <div className="bento-card rounded-2xl border border-border-glass shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-border-glass">
-                  <h2 className="text-lg font-semibold text-on-surface">Extraction Filters</h2>
-                  <p className="text-sm text-on-surface-variant">Filter out irrelevant posts before AI processing.</p>
-                </div>
-                <div className="p-6 space-y-6">
+                <div className="p-8 space-y-8">
                   <div>
-                    <h4 className="text-sm font-medium text-on-surface mb-2">Negative Keywords</h4>
+                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Negative Keywords</h4>
                     <div className="flex gap-3 max-w-lg">
                       <input
                         type="text"
-                        className="flex-1 px-4 py-2 border border-border-glass rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none transition-shadow"
-                        placeholder="e.g., hiring, intern, student"
+                        className="flex-1 px-4 py-3 bg-[#f5f5f7] border border-[#e5e5e7] rounded-xl focus:ring-2 focus:ring-[#0071e3]/20 focus:border-[#0071e3] text-sm font-medium outline-none transition-all"
+                        placeholder="e.g., hiring, student, test"
                         value={newKeyword}
                         onChange={(e) => setNewKeyword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
                       />
-                      <button onClick={addKeyword} className="px-4 py-2 bg-surface-container border border-border-glass text-on-surface rounded-lg text-sm font-medium hover:bg-border-glass transition-colors shadow-sm whitespace-nowrap">
-                        Add Keyword
+                      <button onClick={addKeyword} className="px-6 py-3 bg-white border border-[#e5e5e7] text-xs font-bold text-[#1d1d1f] rounded-xl hover:bg-[#f5f5f7] transition-all shadow-sm">
+                        Add
                       </button>
                     </div>
                   </div>
 
-                  {negativeKeywords.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {negativeKeywords.map((kw) => (
-                        <span key={kw} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-hot-pink/10 text-hot-pink text-xs font-medium border border-hot-pink/20">
-                          {kw}
-                          <button onClick={() => removeKeyword(kw)} className="hover:text-hot-pink cursor-pointer text-red-400">
-                            <span className="material-symbols-outlined text-[14px]">close</span>
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-on-surface-variant italic">No negative keywords set.</p>
-                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {negativeKeywords.map((kw) => (
+                      <span key={kw} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#f5f5f7] text-[#1d1d1f] text-[11px] font-bold border border-[#e5e5e7] shadow-sm">
+                        {kw}
+                        <button onClick={() => removeKeyword(kw)} className="text-gray-400 hover:text-[#ff3b30] transition-colors">
+                          <span className="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <div className="px-6 py-4 bg-surface-container-low border-t border-border-glass flex justify-end">
+                <div className="px-8 py-4 bg-[#fbfbfd] border-t border-[#f2f2f2] flex justify-end">
                   <button
                     onClick={savePreferences}
                     disabled={saving}
-                    className="px-5 py-2 action-btn rounded-lg text-sm font-medium hover:opacity-90 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                    className="px-6 py-2.5 bg-[#1d1d1f] text-white rounded-xl text-sm font-bold hover:bg-black transition-all shadow-lg shadow-black/10 disabled:opacity-50"
                   >
-                    {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                    Save Preferences
+                    {saving ? 'Saving...' : 'Save Preferences'}
                   </button>
                 </div>
               </div>
@@ -573,11 +427,13 @@ export default function SettingsPage() {
         </main>
       </div>
 
-      {/* Toasts & Modals */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-6 py-3 rounded-xl shadow-xl text-sm font-medium animate-fade-in z-50 ${
-          toast.type === 'error' ? 'bg-hot-pink/10 text-red-800 border border-red-200' : 'bg-surface-container-high text-white'
+        <div className={`fixed bottom-8 right-8 px-6 py-3 rounded-2xl shadow-2xl text-[11px] font-black uppercase tracking-widest animate-in slide-in-from-right-8 z-50 flex items-center gap-3 ${
+          toast.type === 'error' ? 'bg-[#ff3b30] text-white' : 'bg-[#1d1d1f] text-white'
         }`}>
+          <span className="material-symbols-outlined text-[18px]">
+            {toast.type === 'error' ? 'error' : 'check_circle'}
+          </span>
           {toast.message}
         </div>
       )}
@@ -587,11 +443,11 @@ export default function SettingsPage() {
         onClose={() => setShowDeleteModal(false)}
         onConfirm={() => {
           setShowDeleteModal(false);
-          showToast('Account deletion request submitted', 'success');
+          showToast('Request submitted', 'success');
         }}
-        title="Delete Account"
-        message="Are you sure you want to permanently delete your account? This action cannot be undone."
-        confirmText="Delete Permanently"
+        title="Delete Intelligence Account"
+        message="This will permanently wipe all your saved leads, chat history, and extraction monitors. Proceed with caution."
+        confirmText="Wipe Everything"
         type="danger"
       />
     </div>
