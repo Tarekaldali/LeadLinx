@@ -43,6 +43,34 @@ export default function LeadsWorkspace() {
 
   const { data: stats, isLoading: statsLoading, mutate: mutateStats } = useSWR('/api/leads/stats', fetcher);
 
+  // Pagination Logic
+  const getPageNumbers = () => {
+    const totalPages = data?.pagination.totalPages || 0;
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    
+    const pages = [];
+    if (page <= 4) {
+      for (let i = 1; i <= 5; i++) pages.push(i);
+      pages.push('...');
+      pages.push(totalPages);
+    } else if (page >= totalPages - 3) {
+      pages.push(1);
+      pages.push('...');
+      for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      pages.push('...');
+      pages.push(page - 1);
+      pages.push(page);
+      pages.push(page + 1);
+      pages.push('...');
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
   // Handlers
   const handleSelectGroup = (group) => {
     setSelectedGroup(group);
@@ -579,16 +607,18 @@ export default function LeadsWorkspace() {
                 <ChevronLeft size={16} />
               </button>
               <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, data?.pagination.totalPages || 0) }).map((_, i) => (
+                {getPageNumbers().map((p, i) => (
                   <button 
                     key={i}
-                    onClick={() => setPage(i + 1)}
+                    onClick={() => typeof p === 'number' && setPage(p)}
+                    disabled={p === '...'}
                     className={cn(
                       "w-8 h-8 rounded-lg text-xs font-bold transition-all",
-                      page === i + 1 ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface border border-border-glass text-gray-500 hover:border-primary/30"
+                      page === p ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface border border-border-glass text-gray-500 hover:border-primary/30",
+                      p === '...' && "border-none bg-transparent cursor-default"
                     )}
                   >
-                    {i + 1}
+                    {p}
                   </button>
                 ))}
               </div>
