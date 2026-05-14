@@ -51,6 +51,12 @@ export async function POST(request) {
     }
 
     // 2. Intent Classification (DeepSeek V3)
+    // Deduct 1 credit upfront for "Real-time" feel
+    await db.collection('users').updateOne(
+      { _id: userId, credits: { $gt: 0 } },
+      { $inc: { credits: -1 }, $set: { updatedAt: new Date() } }
+    );
+
     const classificationResult = await classifyIntent(query);
     const classification = classificationResult.data;
     console.log('🎯 Intent Classification:', classification);
@@ -78,17 +84,17 @@ export async function POST(request) {
     // 4. Dynamic Credit Deduction (Based on Combined Token Usage + 10x Margin)
     const { calculateCreditsToDeduct } = await import('@/lib/creditManager.js');
     const totalCost = calculateCreditsToDeduct('google/gemini-2.0-flash-001', combinedUsage, user.plan);
+    
+    // Adjust for the 1 credit already deducted upfront
+    const remainingToDeduct = Math.max(0, totalCost - 1);
 
-    console.log(`💰 [Billing] Deducting ${totalCost} credits for discovery.`);
+    console.log(`💰 [Billing] Total cost: ${totalCost}, Remaining to deduct: ${remainingToDeduct}`);
 
-    // Prevent negative balance
-    const safeDeduction = Math.min(totalCost, user?.credits || 0);
-
-    if (safeDeduction > 0) {
+    if (remainingToDeduct > 0) {
       await db.collection('users').updateOne(
-        { _id: userId, credits: { $gte: safeDeduction } },
+        { _id: userId, credits: { $gte: remainingToDeduct } },
         {
-          $inc: { credits: -safeDeduction },
+          $inc: { credits: -remainingToDeduct },
           $set: { updatedAt: new Date() },
         }
       );

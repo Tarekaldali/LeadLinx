@@ -86,8 +86,8 @@ export default function LeadsWorkspace() {
           });
           if (res.ok) {
             mutate();
-            mutateGroups();
             mutateStats();
+            mutateGroups();
             setSelectedLeads([]);
             setConfirmModal(prev => ({ ...prev, open: false }));
           }
@@ -133,6 +133,7 @@ export default function LeadsWorkspace() {
       if (res.ok) {
         mutate();
         mutateGroups();
+        mutateStats();
       }
     } catch (err) {
       console.error(err);
@@ -149,6 +150,7 @@ export default function LeadsWorkspace() {
       if (res.ok) {
         mutate();
         mutateGroups();
+        mutateStats();
         if (selectedLead && selectedLead._id === id) {
           setSelectedLead({ ...selectedLead, ...updates });
         }
@@ -159,32 +161,46 @@ export default function LeadsWorkspace() {
   };
 
   const handleExport = async () => {
-    // Basic CSV Export
-    const leadsToExport = data?.leads || [];
-    if (!leadsToExport.length) return;
-    
-    const headers = ["Company", "Contact", "Email", "Phone", "Score", "Source", "Date"];
-    const rows = leadsToExport.map(l => [
-      l.company || 'N/A',
-      l.author || 'N/A',
-      (l.emails || []).join(', '),
-      (l.phones || []).join(', '),
-      l.score,
-      l.source || l.subreddit,
-      formatDate(l.createdAt)
-    ]);
+    try {
+      // Build export URL (same filters as current view, but with export=true)
+      const exportUrl = selectedGroup 
+        ? `/api/leads?tab=${activeTab}&search=${search}&sortBy=${sortBy}&sortOrder=${sortOrder}&groupId=${selectedGroup.id}&groupType=${selectedGroup.type}&export=true`
+        : `/api/leads?tab=${activeTab}&search=${search}&sortBy=${sortBy}&sortOrder=${sortOrder}&export=true`;
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + headers.join(",") + "\n"
-      + rows.map(e => e.join(",")).join("\n");
+      const res = await fetch(exportUrl);
+      const { leads: leadsToExport } = await res.json();
+      
+      if (!leadsToExport || !leadsToExport.length) return;
+      
+      const headers = ["Author", "Company", "Title", "Post Link", "Source", "Email", "Phone", "Score", "Intent Reasoning", "Date"];
+      const rows = leadsToExport.map(l => [
+        `"${(l.author || 'Anonymous').replace(/"/g, '""')}"`,
+        `"${(l.company || 'N/A').replace(/"/g, '""')}"`,
+        `"${(l.title || 'N/A').replace(/"/g, '""')}"`,
+        `"${(l.link || 'N/A').replace(/"/g, '""')}"`,
+        `"${(l.subreddit || l.source || 'N/A').replace(/"/g, '""')}"`,
+        `"${(l.emails || []).join(', ').replace(/"/g, '""')}"`,
+        `"${(l.phones || []).join(', ').replace(/"/g, '""')}"`,
+        l.score || 0,
+        `"${(l.intentReason || l.body || '').substring(0, 1000).replace(/"/g, '""')}"`,
+        formatDate(l.createdAt)
+      ]);
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `leadlinx_${activeTab}_leads.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const csvContent = "\uFEFF" // UTF-8 BOM
+        + headers.join(",") + "\n"
+        + rows.map(e => e.join(",")).join("\n");
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `leadlinx_${activeTab}_leads_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Export error:', err);
+    }
   };
 
   return (
@@ -492,7 +508,15 @@ export default function LeadsWorkspace() {
                       </td>
                       <td>
                         <div className="flex flex-col">
-                          <span className="text-xs font-medium text-on-surface">{'r/'}{lead.subreddit || lead.source}</span>
+                          <a 
+                            href={lead.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs font-bold text-on-surface hover:text-primary flex items-center gap-1 transition-colors group/link"
+                          >
+                            {'r/'}{lead.subreddit || lead.source}
+                            <ExternalLink size={10} className="opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                          </a>
                           {lead.isFromMonitor && (
                             <span className="text-[9px] font-bold text-lime-green uppercase tracking-tighter flex items-center gap-1">
                               <Zap size={8} fill="currentColor" /> Monitor

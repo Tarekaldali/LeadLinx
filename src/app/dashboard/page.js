@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
-  const { updateCredits, addChat, activeTab, setActiveTab } = useDashboard() || {};
+  const { updateCredits, refreshUser, addChat, activeTab, setActiveTab } = useDashboard() || {};
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -96,6 +96,7 @@ export default function DashboardPage() {
     if (!query || loading) return;
     setInput('');
     setLoading(true);
+    refreshUser?.(); // Early refresh to show the 1-credit deduction
 
     const userMsg = { id: Date.now().toString(), role: 'user', content: query, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);

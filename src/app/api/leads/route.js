@@ -17,6 +17,7 @@ export async function GET(request) {
     const sortOrder = searchParams.get('sortOrder') === 'asc' ? 1 : -1;
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 20;
+    const isExport = searchParams.get('export') === 'true';
     const skip = (page - 1) * limit;
     const groupId = searchParams.get('groupId');
     const groupType = searchParams.get('groupType'); // 'monitor' or 'search'
@@ -53,13 +54,15 @@ export async function GET(request) {
     }
 
     // Fetch Data
+    let findQuery = collection.find(query)
+      .sort({ [sortBy === 'createdAt' && tab === 'saved' ? 'savedAt' : sortBy]: sortOrder });
+
+    if (!isExport) {
+      findQuery = findQuery.skip(skip).limit(limit);
+    }
+
     const [leads, total] = await Promise.all([
-      collection
-        .find(query)
-        .sort({ [sortBy === 'createdAt' && tab === 'saved' ? 'savedAt' : sortBy]: sortOrder })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
+      findQuery.toArray(),
       collection.countDocuments(query)
     ]);
 

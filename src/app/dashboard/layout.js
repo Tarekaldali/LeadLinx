@@ -52,11 +52,20 @@ export default function DashboardLayout({ children }) {
   // Load chat list for sidebar
   useEffect(() => {
     if (loading || !session) return;
+    
+    // Initial fetch
     fetch('/api/chats')
       .then(r => r.json())
       .then(d => setChats(d.chats || []))
       .catch(() => { });
-  }, [loading, session]);
+
+    // Credit Polling (Real-time updates for background monitor consumption)
+    const pollInterval = setInterval(() => {
+      update(); // Re-fetches session data including credits
+    }, 30000); // Every 30s
+
+    return () => clearInterval(pollInterval);
+  }, [loading, session, update]);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/' });
