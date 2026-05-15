@@ -320,7 +320,7 @@ export default function LeadsWorkspace() {
                     activeTab === 'saved' ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
                   )}
                 >
-                  Saved Pipeline
+                  Saved Leads
                   <span className="ml-2 px-1.5 py-0.5 rounded-md bg-secondary/5 text-[10px]">
                     {stats?.savedCount || 0}
                   </span>
@@ -576,16 +576,20 @@ export default function LeadsWorkspace() {
                       </td>
                       <td className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => handleSaveLead(lead)}
-                            className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
-                            title={lead.isSaved ? "Already Saved" : "Save to Pipeline"}
-                          >
-                            {lead.isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
-                          </button>
-                          <button className="p-1.5 text-gray-400 hover:text-on-surface hover:bg-surface-container-highest rounded-lg transition-all">
-                            <MoreHorizontal size={16} />
-                          </button>
+                          {activeTab !== 'saved' && (
+                            <>
+                              <button 
+                                onClick={() => handleSaveLead(lead)}
+                                className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                                title={lead.isSaved ? "Already Saved" : "Save to Pipeline"}
+                              >
+                                {lead.isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                              </button>
+                              <button className="p-1.5 text-gray-400 hover:text-on-surface hover:bg-surface-container-highest rounded-lg transition-all">
+                                <MoreHorizontal size={16} />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
