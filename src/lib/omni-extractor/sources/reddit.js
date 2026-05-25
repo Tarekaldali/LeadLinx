@@ -105,7 +105,7 @@ async function fetchWithRetry(url, options = {}, retries = 3) {
       
       return res;
     } catch (err) {
-      }
+      console.warn(`[Reddit] Fetch error on attempt ${attempt + 1}: ${err.message}`);
       if (attempt === retries - 1) return null;
       await delay(1000 * (attempt + 1));
     }
