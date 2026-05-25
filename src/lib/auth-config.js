@@ -118,6 +118,7 @@ export const authOptions = {
           token.credits = dbUser.credits ?? 400;
           token.plan = dbUser.plan || "free";
           token.id = dbUser._id.toString();
+          token.name = dbUser.name || token.name;
         }
       } catch (err) {
         console.error("[AUTH] Error syncing user in JWT callback:", err);
@@ -136,6 +137,7 @@ export const authOptions = {
         session.user.role = token.role;
         session.user.credits = token.credits;
         session.user.plan = token.plan || "free";
+        if (token.name) session.user.name = token.name;
       }
       return session;
     },
