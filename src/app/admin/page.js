@@ -101,8 +101,8 @@ export default function AdminOverviewPage() {
                 <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                 <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                  contentStyle={{ backgroundColor: '#1d1d1f', color: '#f8fafc', borderRadius: '12px', border: '1px solid #3f3f46', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
                 />
                 <Bar dataKey="count" fill="url(#barGradient)" radius={[8, 8, 0, 0]} />
                 <defs>
@@ -151,9 +151,9 @@ export default function AdminOverviewPage() {
             </div>
           </div>
           
-          <div className="mt-10 p-5 bg-white/5 rounded-2xl border border-white/10">
+          <div className="mt-10 p-5 bg-surface/5 rounded-2xl border border-outline-variant">
              <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Network Load</div>
-             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+             <div className="h-1.5 w-full bg-surface/10 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-red-500 to-red-700 w-[64%]"></div>
              </div>
              <div className="flex justify-between mt-2">
