@@ -333,7 +333,7 @@ export default function LeadsWorkspace() {
               <div className="flex items-center gap-4">
                 {/* Sort Dropdown */}
                 <div className="relative flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden md:block">Sort By</span>
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest hidden md:block">Sort By</span>
                   <select 
                     value={`${sortBy}-${sortOrder}`}
                     onChange={(e) => {
@@ -348,13 +348,13 @@ export default function LeadsWorkspace() {
                     <option value="score-desc">Highest Intent</option>
                     <option value="score-asc">Lowest Intent</option>
                   </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">
                     <MoreHorizontal size={12} className="rotate-90" />
                   </div>
                 </div>
 
                 <div className="relative group">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={14} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" size={14} />
                   <input 
                     type="text" 
                     placeholder="Search prospects..."
@@ -364,13 +364,8 @@ export default function LeadsWorkspace() {
                   />
                 </div>
                 
-                <button 
-                  title="Filter Leads"
-                  className="relative p-2 bg-surface-container-low border border-border-glass rounded-xl text-gray-500 hover:text-primary hover:border-primary/30 transition-all"
-                >
-                  <Filter size={16} />
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border-2 border-surface animate-pulse" />
-                </button>
+              
+                
               </div>
             </div>
           </div>
@@ -386,7 +381,7 @@ export default function LeadsWorkspace() {
                 ) : groupsData?.groups.length === 0 ? (
                   <div className="col-span-full py-24 text-center opacity-50">
                     <div className="p-6 bg-surface-container-low rounded-full w-fit mx-auto mb-4">
-                      <BarChart3 size={48} className="text-gray-400" />
+                      <BarChart3 size={48} className="text-on-surface-variant" />
                     </div>
                     <p className="font-bold text-lg">No lead groups yet</p>
                     <p className="text-xs">Start a manual search or create a monitor to see grouped results.</p>
@@ -401,7 +396,7 @@ export default function LeadsWorkspace() {
                       {/* Delete Group Button */}
                       <button 
                         onClick={(e) => handleDeleteGroup(e, group)}
-                        className="absolute top-4 right-4 p-2 bg-white/50 dark:bg-black/20 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-full transition-all opacity-0 group-hover:opacity-100 z-10"
+                        className="absolute top-4 right-4 p-2 bg-surface/50 dark:bg-black/20 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-full transition-all opacity-0 group-hover:opacity-100 z-10"
                         title="Delete this group and all its leads"
                       >
                         <Trash2 size={14} />
@@ -415,10 +410,10 @@ export default function LeadsWorkspace() {
                           {group.type === 'monitor' ? <Zap size={24} fill="currentColor" /> : <Search size={24} />}
                         </div>
                         <div className="flex flex-col items-end mr-6">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{group.sourceType}</span>
+                          <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">{group.sourceType}</span>
                           <div className={cn(
                             "px-2 py-0.5 rounded-full text-[10px] font-bold capitalize",
-                            group.status === 'active' ? "bg-lime-green/20 text-lime-green" : "bg-gray-400/20 text-gray-400"
+                            group.status === 'active' ? "bg-lime-green/20 text-lime-green" : "bg-gray-400/20 text-on-surface-variant"
                           )}>
                             {group.status}
                           </div>
@@ -437,7 +432,7 @@ export default function LeadsWorkspace() {
                           </div>
                           <span className="text-lg font-data-value text-on-surface">{group.leadCount}</span>
                         </div>
-                        <div className="flex items-center justify-between text-[11px] text-gray-500">
+                        <div className="flex items-center justify-between text-[11px] text-on-surface-variant">
                           <div className="flex items-center gap-1">
                             <Clock size={12} />
                             <span>Last update: {formatDate(group.updatedAt)}</span>
@@ -456,7 +451,7 @@ export default function LeadsWorkspace() {
                   <th className="w-12">
                     <input 
                       type="checkbox" 
-                      className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                      className="rounded border-outline text-primary focus:ring-primary cursor-pointer"
                       checked={selectedLeads.length > 0 && selectedLeads.length === data?.leads.length}
                       onChange={handleToggleSelectAll}
                     />
@@ -481,7 +476,7 @@ export default function LeadsWorkspace() {
                     <td colSpan={7} className="px-6 py-24 text-center">
                       <div className="flex flex-col items-center gap-4 opacity-50">
                         <div className="p-6 bg-surface-container-low rounded-full">
-                          <Bookmark size={48} className="text-gray-400" />
+                          <Bookmark size={48} className="text-on-surface-variant" />
                         </div>
                         <div>
                           <p className="font-bold text-lg">No leads found</p>
@@ -507,17 +502,17 @@ export default function LeadsWorkspace() {
                       <td className="w-12" onClick={(e) => e.stopPropagation()}>
                         <input 
                           type="checkbox" 
-                          className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                          className="rounded border-outline text-primary focus:ring-primary cursor-pointer"
                           checked={selectedLeads.includes(lead._id)}
                           onChange={() => handleToggleSelect(lead._id)}
                         />
                       </td>
                       <td className="max-w-[300px]">
                         <div className="flex flex-col">
-                          <span className="font-bold text-[#1d1d1f] dark:text-white truncate">
+                          <span className="font-bold text-on-surface dark:text-white truncate">
                             {lead.author || 'Anonymous'}
                           </span>
-                          <span className="text-[11px] text-gray-500 truncate flex items-center gap-1">
+                          <span className="text-[11px] text-on-surface-variant truncate flex items-center gap-1">
                             <Building2 size={10} /> {lead.company || 'Individual Prospect'}
                           </span>
                         </div>
@@ -533,7 +528,7 @@ export default function LeadsWorkspace() {
                               <Phone size={10} /> {lead.phones[0]}
                             </span>
                           ) : (
-                            <span className="text-[10px] text-gray-400">Request Details</span>
+                            <span className="text-[10px] text-on-surface-variant">Request Details</span>
                           )}
                         </div>
                       </td>
@@ -570,7 +565,7 @@ export default function LeadsWorkspace() {
                         </div>
                       </td>
                       <td>
-                        <span className="text-[11px] text-gray-500 flex items-center gap-1">
+                        <span className="text-[11px] text-on-surface-variant flex items-center gap-1">
                           <Calendar size={10} /> {formatDate(lead.createdAt)}
                         </span>
                       </td>
@@ -580,12 +575,12 @@ export default function LeadsWorkspace() {
                             <>
                               <button 
                                 onClick={() => handleSaveLead(lead)}
-                                className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                                className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
                                 title={lead.isSaved ? "Already Saved" : "Save to Pipeline"}
                               >
                                 {lead.isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
                               </button>
-                              <button className="p-1.5 text-gray-400 hover:text-on-surface hover:bg-surface-container-highest rounded-lg transition-all">
+                              <button className="p-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest rounded-lg transition-all">
                                 <MoreHorizontal size={16} />
                               </button>
                             </>
@@ -611,7 +606,7 @@ export default function LeadsWorkspace() {
                   <button 
                     disabled={groupPage === 1}
                     onClick={() => setGroupPage(p => p - 1)}
-                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-gray-500 hover:text-primary disabled:opacity-30 disabled:hover:text-gray-500 transition-all shadow-sm"
+                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-on-surface-variant hover:text-primary disabled:opacity-30 disabled:hover:text-on-surface-variant transition-all shadow-sm"
                   >
                     <ChevronLeft size={16} />
                   </button>
@@ -623,7 +618,7 @@ export default function LeadsWorkspace() {
                         disabled={p === '...'}
                         className={cn(
                           "w-8 h-8 rounded-lg text-xs font-bold transition-all",
-                          groupPage === p ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface border border-border-glass text-gray-500 hover:border-primary/30",
+                          groupPage === p ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface border border-border-glass text-on-surface-variant hover:border-primary/30",
                           p === '...' && "border-none bg-transparent cursor-default"
                         )}
                       >
@@ -634,7 +629,7 @@ export default function LeadsWorkspace() {
                   <button 
                     disabled={groupPage === groupsData?.pagination.totalPages}
                     onClick={() => setGroupPage(p => p + 1)}
-                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-gray-500 hover:text-primary disabled:opacity-30 disabled:hover:text-gray-500 transition-all shadow-sm"
+                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-on-surface-variant hover:text-primary disabled:opacity-30 disabled:hover:text-on-surface-variant transition-all shadow-sm"
                   >
                     <ChevronRight size={16} />
                   </button>
@@ -651,7 +646,7 @@ export default function LeadsWorkspace() {
                   <button 
                     disabled={page === 1}
                     onClick={() => setPage(p => p - 1)}
-                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-gray-500 hover:text-primary disabled:opacity-30 disabled:hover:text-gray-500 transition-all shadow-sm"
+                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-on-surface-variant hover:text-primary disabled:opacity-30 disabled:hover:text-on-surface-variant transition-all shadow-sm"
                   >
                     <ChevronLeft size={16} />
                   </button>
@@ -663,7 +658,7 @@ export default function LeadsWorkspace() {
                         disabled={p === '...'}
                         className={cn(
                           "w-8 h-8 rounded-lg text-xs font-bold transition-all",
-                          page === p ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface border border-border-glass text-gray-500 hover:border-primary/30",
+                          page === p ? "bg-primary text-white shadow-md shadow-primary/20" : "bg-surface border border-border-glass text-on-surface-variant hover:border-primary/30",
                           p === '...' && "border-none bg-transparent cursor-default"
                         )}
                       >
@@ -674,7 +669,7 @@ export default function LeadsWorkspace() {
                   <button 
                     disabled={page === data?.pagination.totalPages}
                     onClick={() => setPage(p => p + 1)}
-                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-gray-500 hover:text-primary disabled:opacity-30 disabled:hover:text-gray-500 transition-all shadow-sm"
+                    className="p-1.5 bg-surface border border-border-glass rounded-lg text-on-surface-variant hover:text-primary disabled:opacity-30 disabled:hover:text-on-surface-variant transition-all shadow-sm"
                   >
                     <ChevronRight size={16} />
                   </button>
@@ -718,14 +713,14 @@ export default function LeadsWorkspace() {
               <section>
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart3 size={16} className="text-primary" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Intent Analysis</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Intent Analysis</h3>
                 </div>
                 <div className="bg-surface-container-low border border-border-glass rounded-2xl p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                       <div className="text-4xl font-bold text-on-surface">{selectedLead.score}%</div>
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Match Strength</span>
+                        <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Match Strength</span>
                         <span className={cn(
                           "text-xs font-bold",
                           selectedLead.score >= 80 ? "text-lime-green" : "text-tertiary"
@@ -738,7 +733,7 @@ export default function LeadsWorkspace() {
                        <span className="text-xs font-bold">AI</span>
                     </div>
                   </div>
-                  <p className="text-sm text-on-surface-variant leading-relaxed bg-white/50 dark:bg-black/20 p-4 rounded-xl border border-border-glass">
+                  <p className="text-sm text-on-surface-variant leading-relaxed bg-surface/50 dark:bg-black/20 p-4 rounded-xl border border-border-glass">
                     {selectedLead.intentReason || "This lead shows specific interest in services matching your monitor's goal. They are actively seeking solutions and have expressed clear pain points in their Reddit contribution."}
                   </p>
                 </div>
@@ -748,9 +743,9 @@ export default function LeadsWorkspace() {
               <section>
                 <div className="flex items-center gap-2 mb-4">
                   <Clock size={16} className="text-secondary" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Context</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Context</h3>
                 </div>
-                <div className="bg-white dark:bg-black/20 border border-border-glass rounded-2xl p-6">
+                <div className="bg-surface dark:bg-black/20 border border-border-glass rounded-2xl p-6">
                   <h4 className="font-bold text-lg mb-3">{selectedLead.title}</h4>
                   <div className="text-sm text-on-surface-variant whitespace-pre-wrap leading-relaxed">
                     {selectedLead.body}
@@ -762,27 +757,27 @@ export default function LeadsWorkspace() {
               <section>
                 <div className="flex items-center gap-2 mb-4">
                   <Mail size={16} className="text-tertiary" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Contact Details</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Contact Details</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-surface-container-low rounded-2xl border border-border-glass">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Email Addresses</span>
+                    <span className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Email Addresses</span>
                     <div className="space-y-1">
                       {selectedLead.emails?.length > 0 ? selectedLead.emails.map(e => (
                         <div key={e} className="text-sm font-medium text-primary flex items-center gap-2">
                           {e} <button className="p-1 hover:bg-primary/5 rounded"><ExternalLink size={12}/></button>
                         </div>
-                      )) : <span className="text-xs text-gray-400 italic">None detected</span>}
+                      )) : <span className="text-xs text-on-surface-variant italic">None detected</span>}
                     </div>
                   </div>
                   <div className="p-4 bg-surface-container-low rounded-2xl border border-border-glass">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Phone Numbers</span>
+                    <span className="text-[10px] font-bold text-on-surface-variant uppercase block mb-1">Phone Numbers</span>
                     <div className="space-y-1">
                       {selectedLead.phones?.length > 0 ? selectedLead.phones.map(p => (
                         <div key={p} className="text-sm font-medium text-secondary flex items-center gap-2">
                           {p} <button className="p-1 hover:bg-secondary/5 rounded"><ExternalLink size={12}/></button>
                         </div>
-                      )) : <span className="text-xs text-gray-400 italic">None detected</span>}
+                      )) : <span className="text-xs text-on-surface-variant italic">None detected</span>}
                     </div>
                   </div>
                 </div>
@@ -792,11 +787,11 @@ export default function LeadsWorkspace() {
               <section>
                 <div className="flex items-center gap-2 mb-4">
                   <Hash size={16} className="text-primary" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400">Management</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Management</h3>
                 </div>
                 <div className="space-y-4">
                   <div className="p-4 bg-surface-container-low rounded-2xl border border-border-glass">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Lead Status</label>
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-2">Lead Status</label>
                     <div className="flex flex-wrap gap-2">
                       {['New', 'Contacted', 'Qualified', 'Lost'].map(s => (
                         <button 
@@ -806,7 +801,7 @@ export default function LeadsWorkspace() {
                             "px-3 py-1.5 rounded-lg text-xs font-bold transition-all border",
                             (selectedLead.status || 'New') === s 
                               ? "bg-primary text-white border-primary shadow-md shadow-primary/20" 
-                              : "bg-surface border-border-glass text-gray-500 hover:border-primary/30"
+                              : "bg-surface border-border-glass text-on-surface-variant hover:border-primary/30"
                           )}
                         >
                           {s}
@@ -816,12 +811,12 @@ export default function LeadsWorkspace() {
                   </div>
                   
                   <div className="p-4 bg-surface-container-low rounded-2xl border border-border-glass">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Quick Notes</label>
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase block mb-2">Quick Notes</label>
                     <textarea 
                       placeholder="Add specific follow-up notes or internal tags..."
                       defaultValue={selectedLead.notes || ''}
                       onBlur={(e) => handleUpdateLead(selectedLead._id, { notes: e.target.value })}
-                      className="w-full bg-white dark:bg-black/20 border border-border-glass rounded-xl p-3 text-sm min-h-[100px] focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all outline-none"
+                      className="w-full bg-surface dark:bg-black/20 border border-border-glass rounded-xl p-3 text-sm min-h-[100px] focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all outline-none"
                     />
                   </div>
                 </div>
@@ -832,7 +827,7 @@ export default function LeadsWorkspace() {
               <Link 
                 href={selectedLead.link || '#'} 
                 target="_blank"
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-on-surface text-white dark:bg-white dark:text-black rounded-2xl font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-black/10"
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-on-surface text-white dark:bg-surface dark:text-black rounded-2xl font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-black/10"
               >
                 <ExternalLink size={18} /> View Original Post
               </Link>
