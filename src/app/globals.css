@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
 
 @theme {
   /* Surface Colors — LIGHT THEME */
-  --color-background: #ffffff;
+  --color-background: var(--color-surface);
   --color-surface: #ffffff;
   --color-surface-dim: #f8f9fb;
   --color-surface-bright: #ffffff;
@@ -80,34 +81,42 @@
   --color-sidebar-border: #e5e5e7;
 }
 
-.dark {
-  --color-background: #09090b;
-  --color-surface: #18181b;
-  --color-surface-dim: #09090b;
-  --color-surface-bright: #27272a;
-  --color-surface-container-lowest: #020617;
-  --color-surface-container-low: #0f172a;
-  --color-surface-container: #1e293b;
-  --color-surface-container-high: #334155;
-  --color-surface-container-highest: #475569;
 
-  --color-on-surface: #f8fafc;
-  --color-on-surface-variant: #94a3b8;
-  --color-inverse-surface: #ffffff;
-  --color-inverse-on-surface: #020617;
+@layer base {
+  .dark {
+    --color-background: #09090b;
+    --color-surface: #1e293b;
+    --color-surface-dim: #09090b;
+    --color-surface-bright: #334155;
+    --color-surface-container-lowest: #020617;
+    --color-surface-container-low: #0f172a;
+    --color-surface-container: #1e293b;
+    --color-surface-container-high: #334155;
+    --color-surface-container-highest: #475569;
 
-  --color-border-glass: rgba(255, 255, 255, 0.1);
-  --color-outline: #475569;
-  --color-outline-variant: #1e293b;
+    --color-on-surface: #f8fafc;
+    --color-on-surface-variant: #94a3b8;
+    --color-inverse-surface: #ffffff;
+    --color-inverse-on-surface: #020617;
 
-  /* Sidebar — DARK THEME (Midnight) */
-  --color-sidebar: #0f1117;
-  --color-sidebar-fg: #f1f3f9;
-  --color-sidebar-muted: #6b7280;
-  --color-sidebar-hover: rgba(255, 255, 255, 0.06);
-  --color-sidebar-active: rgba(239, 68, 68, 0.12);
-  --color-sidebar-border: rgba(255, 255, 255, 0.08);
+    --color-border-glass: rgba(255, 255, 255, 0.1);
+    --color-outline: #475569;
+    --color-outline-variant: #334155;
+
+    /* Sidebar — DARK THEME (Midnight) */
+    --color-sidebar: #0f1117;
+    --color-sidebar-fg: #f1f3f9;
+    --color-sidebar-muted: #6b7280;
+    --color-sidebar-hover: rgba(255, 255, 255, 0.06);
+    --color-sidebar-active: rgba(239, 68, 68, 0.12);
+    --color-sidebar-border: rgba(255, 255, 255, 0.08);
+    
+    /* Dark body background */
+    background-color: #09090b;
+    color: #f8fafc;
+  }
 }
+
 
 /* === BASE STYLES === */
 * {
@@ -389,7 +398,7 @@ body {
 
 /* === INPUT FIELDS === */
 .input-field {
-  background: #ffffff;
+  background: var(--color-surface);
   border: 1px solid var(--color-outline-variant);
   border-radius: 10px;
   padding: 12px 16px;
@@ -440,7 +449,7 @@ body {
 .stat-card {
   padding: 20px;
   border-radius: var(--radius-bento);
-  background: #ffffff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border-glass);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
