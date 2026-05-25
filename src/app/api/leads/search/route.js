@@ -61,8 +61,32 @@ export async function POST(request) {
     const classification = classificationResult.data;
     console.log('🎯 Intent Classification:', classification);
 
+    const { calculateCreditsToDeduct, getRawCost } = await import('@/lib/creditManager.js');
+
     if (classification.intent === 'CHAT') {
       const aiResponse = classification.response_message || 'How can I help you find leads today?';
+      
+      const chatUsage = classificationResult.usage || { prompt_tokens: 0, completion_tokens: 0 };
+      const rawCostUsd = getRawCost('google/gemini-2.0-flash-001', chatUsage);
+      const totalCostUsd = rawCostUsd * 10;
+      const profitUsd = totalCostUsd - rawCostUsd;
+
+      await db.collection('ai_usage').insertOne({
+        userId,
+        chatId: chatId && ObjectId.isValid(chatId) ? new ObjectId(chatId) : null,
+        type: 'chat',
+        query,
+        totalUsage: chatUsage,
+        rawCostUsd,
+        totalCostUsd,
+        profitUsd,
+        creditsCharged: 1, // 1 credit deducted upfront
+        leadsReturned: 0,
+        postsAnalyzed: 0,
+        plan: user?.plan || 'free',
+        timestamp: new Date()
+      });
+
       return NextResponse.json({ status: 'chat', message: aiResponse }, { status: 200 });
     }
 
@@ -82,9 +106,8 @@ export async function POST(request) {
     };
 
     // 4. Dynamic Credit Deduction (Based on Combined Token Usage + 10x Margin)
-    const { calculateCreditsToDeduct } = await import('@/lib/creditManager.js');
     const totalCost = calculateCreditsToDeduct('google/gemini-2.0-flash-001', combinedUsage, user.plan);
-    
+
     // Adjust for the 1 credit already deducted upfront
     const remainingToDeduct = Math.max(0, totalCost - 1);
 
@@ -101,6 +124,27 @@ export async function POST(request) {
     }
 
     const updatedUser = await db.collection('users').findOne({ _id: userId });
+
+    // Insert ai_usage for SEARCH
+    const searchRawCostUsd = getRawCost('google/gemini-2.0-flash-001', combinedUsage);
+    const searchTotalCostUsd = searchRawCostUsd * 10;
+    const searchProfitUsd = searchTotalCostUsd - searchRawCostUsd;
+
+    await db.collection('ai_usage').insertOne({
+      userId,
+      chatId: chatId && ObjectId.isValid(chatId) ? new ObjectId(chatId) : null,
+      type: 'lead_search',
+      query,
+      totalUsage: combinedUsage,
+      rawCostUsd: searchRawCostUsd,
+      totalCostUsd: searchTotalCostUsd,
+      profitUsd: searchProfitUsd,
+      creditsCharged: totalCost,
+      leadsReturned: result.leads.length,
+      postsAnalyzed: result.stats?.pagesCrawled || 0,
+      plan: user?.plan || 'free',
+      timestamp: new Date()
+    });
 
     // Send email notification (non-blocking)
     if (result.leads.length > 0 && authResult.user.email) {
