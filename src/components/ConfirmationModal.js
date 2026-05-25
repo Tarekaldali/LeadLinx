@@ -48,17 +48,23 @@ export default function ConfirmationModal({ isOpen, onClose, onConfirm, title, m
             {/* Actions Area */}
             <div className="mt-8 flex flex-col gap-2">
               <button 
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   onConfirm();
                   onClose();
                 }}
-                className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${theme.actionBtn}`}
+                className={`w-full py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.98] ${theme.actionBtn}`}
               >
                 {confirmText}
               </button>
               <button 
-                onClick={onClose}
-                className="w-full py-3 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container transition-all"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="w-full py-3 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container transition-all active:scale-[0.98]"
               >
                 Cancel
               </button>
