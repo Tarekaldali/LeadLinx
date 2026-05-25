@@ -63,7 +63,7 @@ export function SummaryCards({ stats, loading }) {
             <div className="stat-value">
               {loading ? <div className="h-8 w-20 skeleton" /> : formatNumber(card.value)}
             </div>
-            <div className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-1">
+            <div className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest mt-1">
               {card.sub}
             </div>
           </div>
