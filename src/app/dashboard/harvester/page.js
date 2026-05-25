@@ -59,7 +59,7 @@ export default function HarvesterPage() {
     <div className="harvester-container">
       <div className="harvester-header">
         <h1>LeadHarvester 🌾</h1>
-        <p className="text-sm text-gray-400">Advanced Web Crawler & AI Extractor</p>
+        <p className="text-sm text-on-surface-variant">Advanced Web Crawler & AI Extractor</p>
       </div>
 
       <form onSubmit={handleSearch}>
@@ -122,7 +122,7 @@ export default function HarvesterPage() {
           <div className="results-header">
             <h3>Found {jobResult.leads?.length || 0} Leads</h3>
             <div className="flex gap-4 items-center">
-              <span className="text-sm text-gray-400">Pages: {jobResult.stats?.pagesCrawled} | Duplicates skipped: {jobResult.stats?.duplicatesFiltered}</span>
+              <span className="text-sm text-on-surface-variant">Pages: {jobResult.stats?.pagesCrawled} | Duplicates skipped: {jobResult.stats?.duplicatesFiltered}</span>
               <button onClick={handleExport} className="export-btn">
                 Export to CSV
               </button>
@@ -150,10 +150,10 @@ export default function HarvesterPage() {
                     </td>
                     <td>
                       <div className="font-medium text-white">{lead.author || lead.company}</div>
-                      {lead.jobTitle && <div className="text-xs text-gray-400">{lead.jobTitle}</div>}
+                      {lead.jobTitle && <div className="text-xs text-on-surface-variant">{lead.jobTitle}</div>}
                     </td>
-                    <td className="text-gray-300">{lead.email || '-'}</td>
-                    <td className="text-gray-300">{lead.phone || '-'}</td>
+                    <td className="text-on-surface-variant">{lead.email || '-'}</td>
+                    <td className="text-on-surface-variant">{lead.phone || '-'}</td>
                     <td>
                       <a href={lead.link} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline text-xs">
                         {new URL(lead.link).hostname.replace('www.','')}
@@ -163,7 +163,7 @@ export default function HarvesterPage() {
                 ))}
                 {(!jobResult.leads || jobResult.leads.length === 0) && (
                   <tr>
-                    <td colSpan="5" className="text-center text-gray-400 py-8">
+                    <td colSpan="5" className="text-center text-on-surface-variant py-8">
                       No high-intent leads found. Try a broader search or increase max pages.
                     </td>
                   </tr>
