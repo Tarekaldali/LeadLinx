@@ -12,7 +12,7 @@ export async function GET(request) {
   try {
     const db = await getDb();
     const user = await db.collection('users').findOne(
-      { _id: new ObjectId(authResult.user.id) },
+      { email: authResult.user.email },
       { projection: { negativeKeywords: 1, emailAlerts: 1 } }
     );
 
@@ -37,7 +37,7 @@ export async function PUT(request) {
     const db = await getDb();
 
     await db.collection('users').updateOne(
-      { _id: new ObjectId(authResult.user.id) },
+      { email: authResult.user.email },
       { $set: { 
           negativeKeywords: negativeKeywords || [],
           emailAlerts: emailAlerts ?? true 

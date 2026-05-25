@@ -193,34 +193,34 @@ export default function AdminPricingPage() {
           {/* Main Info Section */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             <div className="space-y-1.5 col-span-2 md:col-span-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Plan Name</label>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">Plan Name</label>
               <input 
-                type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400" 
+                type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface placeholder:text-on-surface-variant opacity-60" 
                 placeholder="e.g. Professional"
                 value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required
               />
             </div>
             <div className="space-y-1.5 col-span-2 md:col-span-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Price</label>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">Price</label>
               <input 
-                type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400" 
+                type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface placeholder:text-on-surface-variant opacity-60" 
                 placeholder="$7.99"
                 value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required
               />
             </div>
 
             <div className="space-y-1.5 col-span-2 md:col-span-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Billing Period</label>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">Billing Period</label>
               <input 
-                type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400" 
+                type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface placeholder:text-on-surface-variant opacity-60" 
                 placeholder="/month"
                 value={formData.period} onChange={e => setFormData({...formData, period: e.target.value})}
               />
             </div>
             <div className="space-y-1.5 col-span-2 md:col-span-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Badge (Optional)</label>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">Badge (Optional)</label>
               <input 
-                type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400" 
+                type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface placeholder:text-on-surface-variant opacity-60" 
                 placeholder="Most Popular"
                 value={formData.badge} onChange={e => setFormData({...formData, badge: e.target.value})}
               />
@@ -228,9 +228,9 @@ export default function AdminPricingPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Short Description</label>
+            <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">Short Description</label>
             <input 
-              type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400" 
+              type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface placeholder:text-on-surface-variant opacity-60" 
               placeholder="A brief summary for the card header"
               value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
             />
@@ -238,29 +238,29 @@ export default function AdminPricingPage() {
 
           <div className="space-y-1.5">
             <div className="flex justify-between items-center px-0.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Features</label>
-              <span className="text-[10px] text-slate-400 font-medium">One feature per line</span>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Features</label>
+              <span className="text-[10px] text-on-surface-variant opacity-60 font-medium">One feature per line</span>
             </div>
             <textarea 
-              className="w-full px-3.5 py-3 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 min-h-[120px] resize-y" 
+              className="w-full px-3.5 py-3 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface min-h-[120px] resize-y" 
               placeholder="400 Credits / month&#10;Advanced Scoring&#10;Email Alerts..."
               value={formData.features} onChange={e => setFormData({...formData, features: e.target.value})}
             />
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 select-none cursor-pointer" onClick={() => setFormData({...formData, highlight: !formData.highlight})}>
-            <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${formData.highlight ? 'bg-primary border-primary' : 'bg-white border-slate-300'}`}>
+          <div className="flex items-center gap-3 p-4 bg-surface-container-low rounded-xl border border-surface-container-highest select-none cursor-pointer" onClick={() => setFormData({...formData, highlight: !formData.highlight})}>
+            <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${formData.highlight ? 'bg-primary border-primary' : 'bg-surface border-outline-variant'}`}>
                {formData.highlight && <span className="material-symbols-outlined text-white text-[14px]">check</span>}
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-slate-700 leading-none">Promote Plan</span>
-              <span className="text-[11px] text-slate-500 mt-1">Add a highlight border and shadow to attract attention</span>
+              <span className="text-sm font-bold text-on-surface leading-none">Promote Plan</span>
+              <span className="text-[11px] text-on-surface-variant mt-1">Add a highlight border and shadow to attract attention</span>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
-            <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancel</button>
-            <button type="submit" disabled={saving} className="px-6 py-2 rounded-lg text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-sm flex items-center gap-2">
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-surface-container-highest">
+            <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2 rounded-lg text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-all">Cancel</button>
+            <button type="submit" disabled={saving} className="px-6 py-2 rounded-lg text-sm font-bold bg-inverse-surface text-inverse-on-surface hover:bg-inverse-surface transition-all shadow-sm flex items-center gap-2">
               {saving ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (

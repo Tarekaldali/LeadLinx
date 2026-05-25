@@ -21,7 +21,15 @@ export async function GET(request) {
     const sortField = searchParams.get('sortField') || 'totalCost';
     const sortDir = parseInt(searchParams.get('sortDir') || '-1');
 
-    const matchQuery = { type: 'lead_search' };
+    const typeParam = searchParams.get('type') || 'all';
+
+    const matchQuery = {};
+    if (typeParam !== 'all') {
+      matchQuery.type = typeParam;
+    } else {
+      matchQuery.type = { $in: ['lead_search', 'chat', 'reply_generation', 'lead_filter'] };
+    }
+
     if (days !== '9999' && days !== 'all') {
       const since = new Date(Date.now() - parseInt(days) * 24 * 3600 * 1000);
       matchQuery.timestamp = { $gte: since };
@@ -46,18 +54,18 @@ export async function GET(request) {
       {
         $group: {
           _id: '$chatId',
-          userId:         { $first: '$userId' },
-          searches:       { $sum: 1 },
-          totalRawCost:   { $sum: '$rawCostUsd' },
-          totalCost:      { $sum: '$totalCostUsd' },
-          totalProfit:    { $sum: '$profitUsd' },
+          userId: { $first: '$userId' },
+          searches: { $sum: 1 },
+          totalRawCost: { $sum: '$rawCostUsd' },
+          totalCost: { $sum: '$totalCostUsd' },
+          totalProfit: { $sum: '$profitUsd' },
           creditsCharged: { $sum: '$creditsCharged' },
-          totalLeads:     { $sum: '$leadsReturned' },
-          postsAnalyzed:  { $sum: '$postsAnalyzed' },
-          promptTokens:   { $sum: '$totalUsage.prompt_tokens' },
+          totalLeads: { $sum: '$leadsReturned' },
+          postsAnalyzed: { $sum: '$postsAnalyzed' },
+          promptTokens: { $sum: '$totalUsage.prompt_tokens' },
           completionTokens: { $sum: '$totalUsage.completion_tokens' },
-          lastSearch:     { $max: '$timestamp' },
-        } 
+          lastSearch: { $max: '$timestamp' },
+        }
       },
       {
         $lookup: {
@@ -112,13 +120,13 @@ export async function GET(request) {
       {
         $group: {
           _id: null,
-          totalSearches:    { $sum: 1 },
-          totalRawCostUsd:  { $sum: '$rawCostUsd' },
-          totalRevenueUsd:  { $sum: '$totalCostUsd' },
-          totalProfitUsd:   { $sum: '$profitUsd' },
-          totalLeads:       { $sum: '$leadsReturned' },
+          totalSearches: { $sum: 1 },
+          totalRawCostUsd: { $sum: '$rawCostUsd' },
+          totalRevenueUsd: { $sum: '$totalCostUsd' },
+          totalProfitUsd: { $sum: '$profitUsd' },
+          totalLeads: { $sum: '$leadsReturned' },
           avgCostPerSearch: { $avg: '$rawCostUsd' },
-          totalCredits:     { $sum: '$creditsCharged' },
+          totalCredits: { $sum: '$creditsCharged' },
         }
       }
     ]).toArray();
@@ -129,12 +137,12 @@ export async function GET(request) {
       {
         $group: {
           _id: '$userId',
-          searches:     { $sum: 1 },
-          rawCost:      { $sum: '$rawCostUsd' },
-          revenue:      { $sum: '$totalCostUsd' },
-          profit:       { $sum: '$profitUsd' },
-          leads:        { $sum: '$leadsReturned' },
-          credits:      { $sum: '$creditsCharged' },
+          searches: { $sum: 1 },
+          rawCost: { $sum: '$rawCostUsd' },
+          revenue: { $sum: '$totalCostUsd' },
+          profit: { $sum: '$profitUsd' },
+          leads: { $sum: '$leadsReturned' },
+          credits: { $sum: '$creditsCharged' },
         }
       },
       { $sort: { revenue: -1 } },

@@ -58,14 +58,10 @@ export default function DashboardLayout({ children }) {
       .then(r => r.json())
       .then(d => setChats(d.chats || []))
       .catch(() => { });
-
-    // Credit Polling (Real-time updates for background monitor consumption)
-    const pollInterval = setInterval(() => {
-      update(); // Re-fetches session data including credits
-    }, 30000); // Every 30s
-
-    return () => clearInterval(pollInterval);
-  }, [loading, session, update]);
+    // NOTE: No periodic polling here — calling update() on a timer causes
+    // full page re-renders which breaks the UX. Credits are refreshed
+    // reactively via updateCredits() when an action returns new values.
+  }, [loading, session]);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/' });
@@ -122,18 +118,18 @@ export default function DashboardLayout({ children }) {
   const filteredPrompts = promptFilter === 'All' ? PROMPT_LIBRARY : PROMPT_LIBRARY.filter(p => p.category === promptFilter);
 
   const Sidebar = (
-    <aside className="w-72 h-full bg-[#f5f5f7] flex flex-col border-r border-[#e5e5e7] overflow-hidden">
+    <aside className="w-72 h-full bg-sidebar flex flex-col border-r border-sidebar-border overflow-hidden">
       {/* Logo + collapse */}
       <div className="flex items-center justify-between px-4 py-3 shrink-0">
-        <Link href="/dashboard">
+        <Link href="/">
           <div className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff3b30] to-[#ff2d55] flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform">
-              <span className="material-symbols-outlined text-white text-[22px]">bolt</span>
-            </div>
-            <span className="font-bold text-[#1d1d1f] text-xl tracking-tight">LeadLinx</span>
+            <span className="font-extrabold text-2xl tracking-tight flex items-center">
+              <span className="text-[#ff3b30]">Lead</span>
+              <span className="text-on-surface">Linx</span>
+            </span>
           </div>
         </Link>
-        <button onClick={() => setSidebarOpen(false)} className="md:hidden text-gray-400 hover:text-[#1d1d1f] transition-colors">
+        <button onClick={() => setSidebarOpen(false)} className="md:hidden text-on-surface-variant hover:text-on-surface transition-colors">
           <span className="material-symbols-outlined text-sm">close</span>
         </button>
       </div>
@@ -146,26 +142,26 @@ export default function DashboardLayout({ children }) {
           href="/dashboard"
           id="new-chat-btn"
           onClick={() => { setSidebarOpen(false); window.dispatchEvent(new CustomEvent('newChat')); }}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-[#e5e5e7] hover:border-[#d2d2d7] hover:bg-white transition-all mb-6 group shadow-sm"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface border border-outline-variant hover:border-[#d2d2d7] hover:bg-surface transition-all mb-6 group shadow-sm"
         >
           <span className="material-symbols-outlined text-[20px] text-[#ff3b30] group-hover:rotate-90 transition-transform">add_circle</span>
-          <span className="text-sm font-semibold text-[#1d1d1f]">New Extraction Chat</span>
+          <span className="text-sm font-semibold text-on-surface">New Extraction Chat</span>
         </Link>
 
         {/* Navigation Section */}
         <div className="pb-4">
-          <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Navigation</div>
+          <div className="px-4 py-2 text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-2">Navigation</div>
           
           <button
             onClick={() => { 
               setSidebarOpen(false); 
-              if (pathname === '/dashboard') {
+              if (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/')) {
                 window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'discovery' } }));
               } else {
-                router.push('/dashboard?tab=discovery');
+                router.push('/dashboard#discovery');
               }
             }}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all ${pathname === '/dashboard' && activeTab === 'discovery' ? 'text-[#1d1d1f] bg-white shadow-sm border border-[#e5e5e7]' : 'text-[#86868b] hover:text-[#1d1d1f] hover:bg-white/50'}`}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all ${pathname === '/dashboard' && activeTab === 'discovery' ? 'text-on-surface bg-surface shadow-sm border border-outline-variant' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/50'}`}
           >
             <span className="material-symbols-outlined text-[20px]">explore</span>
             <span className="text-sm font-medium">Discovery</span>
@@ -174,13 +170,13 @@ export default function DashboardLayout({ children }) {
           <button
             onClick={() => { 
               setSidebarOpen(false); 
-              if (pathname === '/dashboard') {
+              if (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/')) {
                 window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'leads' } }));
               } else {
-                router.push('/dashboard?tab=leads');
+                router.push('/dashboard#leads');
               }
             }}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname.startsWith('/dashboard/saved') || (pathname === '/dashboard' && activeTab === 'leads') ? 'text-[#1d1d1f] bg-white shadow-sm border border-[#e5e5e7]' : 'text-[#86868b] hover:text-[#1d1d1f] hover:bg-white/50'}`}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname.startsWith('/dashboard/saved') || (pathname === '/dashboard' && activeTab === 'leads') ? 'text-on-surface bg-surface shadow-sm border border-outline-variant' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/50'}`}
           >
             <span className="material-symbols-outlined text-[20px]">group</span>
             <span className="text-sm font-medium">Leads</span>
@@ -189,13 +185,13 @@ export default function DashboardLayout({ children }) {
           <button
             onClick={() => { 
               setSidebarOpen(false); 
-              if (pathname === '/dashboard') {
+              if (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/')) {
                 window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'monitors' } }));
               } else {
-                router.push('/dashboard?tab=monitors');
+                router.push('/dashboard#monitors');
               }
             }}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname === '/dashboard' && activeTab === 'monitors' ? 'text-[#1d1d1f] bg-white shadow-sm border border-[#e5e5e7]' : 'text-[#86868b] hover:text-[#1d1d1f] hover:bg-white/50'}`}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname === '/dashboard' && activeTab === 'monitors' ? 'text-on-surface bg-surface shadow-sm border border-outline-variant' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/50'}`}
           >
             <span className="material-symbols-outlined text-[20px]">sensors</span>
             <span className="text-sm font-medium">Monitors</span>
@@ -204,7 +200,7 @@ export default function DashboardLayout({ children }) {
           <Link
             href="/dashboard/settings"
             onClick={() => setSidebarOpen(false)}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname.startsWith('/dashboard/settings') ? 'text-[#1d1d1f] bg-white shadow-sm border border-[#e5e5e7]' : 'text-[#86868b] hover:text-[#1d1d1f] hover:bg-white/50'}`}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname.startsWith('/dashboard/settings') ? 'text-on-surface bg-surface shadow-sm border border-outline-variant' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/50'}`}
           >
             <span className="material-symbols-outlined text-[20px]">settings</span>
             <span className="text-sm font-medium">Settings</span>
@@ -213,9 +209,9 @@ export default function DashboardLayout({ children }) {
 
         {/* Chats Section */}
         <div className="pb-4">
-          <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2 flex items-center justify-between">
+          <div className="px-4 py-2 text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-2 flex items-center justify-between">
             <span>Recent History</span>
-            <button onClick={() => setChatsCollapsed(p => !p)} className="hover:text-[#1d1d1f]">
+            <button onClick={() => setChatsCollapsed(p => !p)} className="hover:text-on-surface">
               <span className={`material-symbols-outlined text-[14px] transition-transform ${chatsCollapsed ? '' : 'rotate-180'}`}>expand_less</span>
             </button>
           </div>
@@ -223,21 +219,21 @@ export default function DashboardLayout({ children }) {
           {!chatsCollapsed && (
             <div className="space-y-0.5">
               {chats.length === 0 ? (
-                <p className="text-[11px] text-gray-400 px-4 py-2 italic font-mono text-center">Empty history</p>
+                <p className="text-[11px] text-on-surface-variant px-4 py-2 italic font-mono text-center">Empty history</p>
               ) : (
                 chats.slice(0, 8).map(chat => (
-                  <div key={chat._id} className="group flex items-center justify-between rounded-xl hover:bg-white transition-colors">
+                  <div key={chat._id} className="group flex items-center justify-between rounded-xl hover:bg-surface transition-colors">
                     <Link
                       href="/dashboard"
                       onClick={() => { setSidebarOpen(false); window.dispatchEvent(new CustomEvent('loadChat', { detail: { chatId: chat._id } })); }}
-                      className={`flex items-center gap-3 px-4 py-2.5 flex-1 min-w-0 ${pathname === '/dashboard' ? 'text-[#1d1d1f]' : 'text-[#86868b] hover:text-[#1d1d1f]'}`}
+                      className={`flex items-center gap-3 px-4 py-2.5 flex-1 min-w-0 ${pathname === '/dashboard' ? 'text-on-surface' : 'text-on-surface-variant hover:text-on-surface'}`}
                     >
                       <span className="material-symbols-outlined text-[18px] shrink-0 opacity-40">chat_bubble</span>
                       <span className="truncate text-xs font-medium flex-1">{chat.title || 'Untitled'}</span>
                     </Link>
                     <button
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowConfirmDelete(chat._id); }}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-[#ff3b30] transition-all mr-1"
+                      className="opacity-0 group-hover:opacity-100 p-2 text-on-surface-variant hover:text-[#ff3b30] transition-all mr-1"
                     >
                       <span className="material-symbols-outlined text-[16px]">delete</span>
                     </button>
@@ -250,7 +246,7 @@ export default function DashboardLayout({ children }) {
 
         {user?.role === 'admin' && (
           <div className="pb-4">
-            <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Admin</div>
+            <div className="px-4 py-2 text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-2">Admin</div>
             <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[#ff3b30] hover:bg-[#ff3b30]/5 transition-all">
               <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
               <span className="text-sm font-bold">Admin Console</span>
@@ -260,18 +256,18 @@ export default function DashboardLayout({ children }) {
       </div>
 
       {/* Credits + User footer */}
-      <div className="shrink-0 border-t border-[#e5e5e7] p-6 space-y-6 bg-white">
+      <div className="shrink-0 border-t border-sidebar-border p-6 space-y-6 bg-sidebar">
         {/* Credits bar */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Growth Engine</span>
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Growth Engine</span>
             <span className="text-[10px] font-bold text-[#ff3b30] uppercase tracking-widest">{user?.plan || 'free'}</span>
           </div>
           <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-xl font-bold text-[#1d1d1f]">{currentCredits.toLocaleString()}</span>
-            <span className="text-[11px] text-gray-400 font-medium">/ {maxCredits.toLocaleString()} credits</span>
+            <span className="text-xl font-bold text-on-surface">{currentCredits.toLocaleString()}</span>
+            <span className="text-[11px] text-on-surface-variant font-medium">/ {maxCredits.toLocaleString()} credits</span>
           </div>
-          <div className="h-1.5 rounded-full bg-[#f2f2f2] overflow-hidden border border-[#e5e5e7]">
+          <div className="h-1.5 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant">
             <div
               className="h-full rounded-full transition-all duration-1000"
               style={{
@@ -283,20 +279,20 @@ export default function DashboardLayout({ children }) {
         </div>
 
         {/* User */}
-        <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f5f5f7] border border-[#e5e5e7]">
-          <div className="w-9 h-9 rounded-xl bg-white border border-[#e5e5e7] flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-[#1d1d1f] uppercase">
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-surface/30 border border-sidebar-border">
+          <div className="w-9 h-9 rounded-xl bg-surface border border-sidebar-border flex items-center justify-center shrink-0">
+            <span className="text-xs font-bold text-on-surface uppercase">
               {(user?.name || user?.email || 'U').substring(0, 1)}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-bold text-[#1d1d1f] truncate">{user?.name}</div>
-            <div className="text-[10px] text-gray-500 font-medium flex items-center gap-1">
+            <div className="text-xs font-bold text-on-surface truncate">{user?.name}</div>
+            <div className="text-[10px] text-on-surface-variant font-medium flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-[#28cd41] rounded-full" />
               Active Now
             </div>
           </div>
-          <button onClick={handleLogout} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 transition-all">
+          <button onClick={handleLogout} className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 transition-all">
             <span className="material-symbols-outlined text-[18px]">logout</span>
           </button>
         </div>
@@ -306,7 +302,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <DashboardContext.Provider value={{ user, refreshUser, updateCredits, addChat, activeTab, setActiveTab }}>
-      <div className="flex h-screen overflow-hidden bg-[#ffffff] text-[#1d1d1f] selection:bg-[#ff3b30]/10 selection:text-[#ff3b30]">
+      <div className="flex h-screen overflow-hidden bg-background text-on-surface selection:bg-[#ff3b30]/10 selection:text-[#ff3b30]">
         {/* Mobile overlay */}
         {sidebarOpen && (
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] md:hidden" onClick={() => setSidebarOpen(false)} />
@@ -321,45 +317,56 @@ export default function DashboardLayout({ children }) {
         </div>
 
         {/* Main area */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden relative">
           {/* Mobile top bar */}
-          <div className="md:hidden flex items-center gap-3 px-6 py-4 bg-white border-b border-[#e5e5e7] shrink-0">
-            <button onClick={() => setSidebarOpen(true)} className="text-[#1d1d1f]">
+          <div className="md:hidden flex items-center gap-3 px-6 py-4 bg-sidebar border-b border-sidebar-border shrink-0">
+            <button onClick={() => setSidebarOpen(true)} className="text-on-surface">
               <span className="material-symbols-outlined">menu</span>
             </button>
-            <span className="font-bold text-[#1d1d1f] flex-1 text-sm tracking-tight">LeadLinx</span>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#f5f5f7] rounded-full border border-[#e5e5e7]">
+            <Link href="/" className="flex-1 flex items-center">
+              <span className="font-extrabold text-xl tracking-tight">
+                <span className="text-[#ff3b30]">Lead</span>
+                <span className="text-on-surface">Linx</span>
+              </span>
+            </Link>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-surface-container-low rounded-full border border-outline-variant">
               <span className="material-symbols-outlined text-[14px] text-[#ff3b30]">bolt</span>
-              <span className="text-[10px] font-bold text-[#1d1d1f]">{currentCredits}</span>
+              <span className="text-[10px] font-bold text-on-surface">{currentCredits}</span>
             </div>
           </div>
 
           {/* Page content */}
-          <div className="flex-1 overflow-y-auto relative z-10 custom-scrollbar">
-            <div className="max-w-7xl mx-auto">
+          {pathname === '/dashboard' ? (
+            <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden relative z-10">
               {children}
             </div>
-          </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto relative z-10 custom-scrollbar">
+              <div className="max-w-7xl mx-auto p-6 md:p-10">
+                {children}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Prompt Library Modal - Optimized for Light Theme */}
       {promptLibraryOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in" onClick={() => setPromptLibraryOpen(false)}>
-          <div className="bg-white border border-[#e5e5e7] rounded-[32px] w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface border border-outline-variant rounded-[32px] w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="p-10 border-b border-[#f2f2f2] relative bg-[#fbfbfd]">
+            <div className="p-10 border-b border-surface-container-highest relative bg-surface-dim">
               <div className="flex items-center justify-between mb-4 relative z-10">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-[#ff3b30] flex items-center justify-center shadow-lg shadow-red-500/20">
                     <span className="material-symbols-outlined text-white text-[24px]">auto_awesome</span>
                   </div>
                   <div>
-                    <h2 className="font-bold text-2xl text-[#1d1d1f] tracking-tight">Intelligence Library</h2>
-                    <p className="text-sm text-[#86868b] mt-1">Battle-tested prompts for elite lead extraction.</p>
+                    <h2 className="font-bold text-2xl text-on-surface tracking-tight">Intelligence Library</h2>
+                    <p className="text-sm text-on-surface-variant mt-1">Battle-tested prompts for elite lead extraction.</p>
                   </div>
                 </div>
-                <button onClick={() => setPromptLibraryOpen(false)} className="w-10 h-10 rounded-full border border-[#e5e5e7] flex items-center justify-center text-[#86868b] hover:text-[#1d1d1f] hover:bg-white transition-all">
+                <button onClick={() => setPromptLibraryOpen(false)} className="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface transition-all">
                   <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
@@ -372,7 +379,7 @@ export default function DashboardLayout({ children }) {
                     onClick={() => setPromptFilter(cat)}
                     className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all border ${promptFilter === cat
                         ? 'bg-[#1d1d1f] text-white border-[#1d1d1f] shadow-lg shadow-black/10'
-                        : 'bg-white border-[#e5e5e7] text-[#86868b] hover:text-[#1d1d1f] hover:border-[#d2d2d7]'
+                        : 'bg-surface border-outline-variant text-on-surface-variant hover:text-on-surface hover:border-[#d2d2d7]'
                       }`}
                   >
                     {cat}
@@ -382,10 +389,10 @@ export default function DashboardLayout({ children }) {
             </div>
 
             {/* Cards */}
-            <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-white">
+            <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-surface">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredPrompts.map((p, i) => (
-                  <div key={i} className="group relative bg-[#fbfbfd] border border-[#e5e5e7] rounded-2xl p-6 hover:bg-white hover:border-[#ff3b30]/30 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                  <div key={i} className="group relative bg-surface-dim border border-outline-variant rounded-2xl p-6 hover:bg-surface hover:border-[#ff3b30]/30 transition-all cursor-pointer shadow-sm hover:shadow-md"
                     onClick={() => {
                       setPromptLibraryOpen(false);
                       router.push('/dashboard');
@@ -393,8 +400,8 @@ export default function DashboardLayout({ children }) {
                     }}
                   >
                     <div className="text-[10px] font-black text-[#ff3b30] mb-3 uppercase tracking-widest">{p.category}</div>
-                    <div className="text-base font-bold text-[#1d1d1f] mb-2 group-hover:text-[#ff3b30] transition-colors">{p.title}</div>
-                    <div className="text-xs text-[#86868b] line-clamp-2 italic leading-relaxed font-medium">"{p.prompt}"</div>
+                    <div className="text-base font-bold text-on-surface mb-2 group-hover:text-[#ff3b30] transition-colors">{p.title}</div>
+                    <div className="text-xs text-on-surface-variant line-clamp-2 italic leading-relaxed font-medium">"{p.prompt}"</div>
                     <div className="mt-6 flex items-center gap-2 text-[10px] text-[#ff3b30] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0">
                       <span>Inject into engine</span>
                       <span className="material-symbols-outlined text-[14px]">arrow_forward</span>

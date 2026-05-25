@@ -75,7 +75,8 @@ export default function AdminRevenuePage() {
                 <XAxis dataKey="month" stroke="#9ca3af" />
                 <YAxis stroke="#9ca3af" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                  contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-outline-variant)', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', color: 'var(--color-on-surface)' }}
                 />
                 <Line type="monotone" dataKey="revenue" stroke="#dc2626" strokeWidth={3} dot={{ fill: '#dc2626', r: 4 }} />
               </LineChart>
@@ -107,7 +108,7 @@ export default function AdminRevenuePage() {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '10px' }}
+                  contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-outline-variant)', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', color: 'var(--color-on-surface)' }}
                 />
               </PieChart>
             </ResponsiveContainer>

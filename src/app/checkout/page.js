@@ -117,7 +117,7 @@ function CheckoutContent() {
                     value={user?.email || ''}
                     className="w-full px-4 py-3 bg-surface-container-low dark:bg-surface-container border border-border-glass rounded-xl text-on-surface dark:text-on-surface outline-none cursor-not-allowed"
                   />
-                  <p className="text-xs text-gray-400 dark:text-on-surface-variant mt-1">Receipts will be sent to your account email.</p>
+                  <p className="text-xs text-on-surface-variant dark:text-on-surface-variant mt-1">Receipts will be sent to your account email.</p>
                 </div>
               </div>
             </div>
@@ -150,7 +150,7 @@ function CheckoutContent() {
           <div className="mt-16 pt-8 border-t border-border-glass">
             <p className="text-on-surface-variant dark:text-on-surface-variant italic text-sm mb-4">&quot;LeadLinx doubled our outbound pipeline within the first two weeks. The intent-scoring engine is incredible.&quot;</p>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-200 dark:bg-surface-container rounded-full flex items-center justify-center font-bold text-on-surface-variant dark:text-on-surface-variant">M</div>
+              <div className="w-10 h-10 bg-surface-container dark:bg-surface-container rounded-full flex items-center justify-center font-bold text-on-surface-variant dark:text-on-surface-variant">M</div>
               <div>
                 <div className="text-sm font-bold text-on-surface dark:text-on-surface">Michael Chen</div>
                 <div className="text-xs text-on-surface-variant dark:text-on-surface-variant">VP of Sales, TechFlow</div>
@@ -171,15 +171,15 @@ function CheckoutContent() {
 
               <div className="space-y-4 mb-8">
                 <div className="flex items-center justify-between pb-4 border-b border-border-glass">
-                  <div className="text-gray-600 dark:text-on-surface-variant font-medium">LeadLinx {plan.name}</div>
+                  <div className="text-on-surface-variant dark:text-on-surface-variant font-medium">LeadLinx {plan.name}</div>
                   <div className="text-on-surface dark:text-on-surface font-semibold">{plan.price}</div>
                 </div>
                 <div className="flex items-center justify-between pb-4 border-b border-border-glass">
-                  <div className="text-gray-600 dark:text-on-surface-variant font-medium">AI Search Credits</div>
+                  <div className="text-on-surface-variant dark:text-on-surface-variant font-medium">AI Search Credits</div>
                   <div className="text-on-surface dark:text-on-surface font-semibold">{plan.credits.toLocaleString()}/mo</div>
                 </div>
                 <div className="flex items-center justify-between pb-4 border-b border-border-glass">
-                  <div className="text-gray-600 dark:text-on-surface-variant font-medium">Omni-Extractor Engine</div>
+                  <div className="text-on-surface-variant dark:text-on-surface-variant font-medium">Omni-Extractor Engine</div>
                   <div className="text-green-600 font-semibold text-sm bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded-full">Included</div>
                 </div>
               </div>
@@ -211,7 +211,7 @@ function CheckoutContent() {
           <div className="mt-6 flex justify-center opacity-60 hover:opacity-100 transition-opacity">
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-on-surface-variant dark:text-on-surface-variant">Powered by</span>
-              <svg viewBox="0 0 60 25" width="50" height="20" fill="currentColor" className="text-gray-600 dark:text-gray-400">
+              <svg viewBox="0 0 60 25" width="50" height="20" fill="currentColor" className="text-on-surface-variant dark:text-on-surface-variant">
                 <path d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32c-1.15.58-2.82.96-4.73.96-3.8 0-6.62-2.14-6.62-6.47 0-4.16 2.72-6.52 6.18-6.52 3.84 0 5.98 2.65 5.98 6.08 0 .42-.03.74-.03 1.03zm-4.07-2.61c-.04-1.39-.89-2.22-2.02-2.22-1.36 0-2.34 1.03-2.55 2.22h4.57z" />
               </svg>
             </div>

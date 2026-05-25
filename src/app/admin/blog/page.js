@@ -172,10 +172,10 @@ export default function AdminBlogPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             <div className="space-y-1.5 col-span-2">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Article Title</label>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">Article Title</label>
               <input
                 type="text"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface placeholder:text-on-surface-variant opacity-60"
                 placeholder="e.g. How to scale your Reddit leads"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
@@ -184,10 +184,10 @@ export default function AdminBlogPage() {
             </div>
 
             <div className="space-y-1.5 col-span-2 md:col-span-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">URL Slug</label>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">URL Slug</label>
               <input
                 type="text"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface placeholder:text-on-surface-variant opacity-60"
                 placeholder="how-to-scale-leads"
                 value={formData.slug}
                 onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
@@ -195,9 +195,9 @@ export default function AdminBlogPage() {
             </div>
 
             <div className="space-y-1.5 col-span-2 md:col-span-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Category</label>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">Category</label>
               <select
-                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface bg-surface"
                 value={formData.category}
                 onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
               >
@@ -210,11 +210,11 @@ export default function AdminBlogPage() {
             </div>
 
             <div className="space-y-1.5 col-span-2">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">Featured Image</label>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">Featured Image</label>
               <div className="flex gap-2">
                 <input
                   type="text"
-                  className="flex-1 px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 placeholder:text-slate-400"
+                  className="flex-1 px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface placeholder:text-on-surface-variant opacity-60"
                   placeholder="https://images.unsplash.com/..."
                   value={formData.image}
                   onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
@@ -222,7 +222,7 @@ export default function AdminBlogPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all text-slate-600 flex items-center gap-2 text-xs font-semibold"
+                  className="px-4 py-2.5 rounded-lg border border-outline-variant hover:bg-surface-container-low transition-all text-on-surface-variant flex items-center gap-2 text-xs font-semibold"
                 >
                   <span className="material-symbols-outlined text-[18px]">upload</span>
                   Upload
@@ -240,11 +240,11 @@ export default function AdminBlogPage() {
 
           <div className="space-y-1.5">
             <div className="flex justify-between items-center px-0.5">
-               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Content Editor</label>
-               <span className="text-[10px] text-slate-400 font-medium italic">Markdown supported</span>
+               <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Content Editor</label>
+               <span className="text-[10px] text-on-surface-variant opacity-60 font-medium italic">Markdown supported</span>
             </div>
             <textarea
-              className="w-full px-3.5 py-3 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-slate-800 min-h-[300px] font-mono leading-relaxed"
+              className="w-full px-3.5 py-3 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface min-h-[300px] font-mono leading-relaxed"
               placeholder="Write your article content here..."
               value={formData.content}
               onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
@@ -252,9 +252,9 @@ export default function AdminBlogPage() {
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
-            <button type="button" onClick={resetForm} className="px-5 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancel</button>
-            <button type="submit" disabled={saving} className="px-6 py-2 rounded-lg text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-sm flex items-center gap-2">
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-surface-container-highest">
+            <button type="button" onClick={resetForm} className="px-5 py-2 rounded-lg text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-all">Cancel</button>
+            <button type="submit" disabled={saving} className="px-6 py-2 rounded-lg text-sm font-bold bg-inverse-surface text-inverse-on-surface hover:bg-inverse-surface transition-all shadow-sm flex items-center gap-2">
               {saving ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (

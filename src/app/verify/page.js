@@ -99,7 +99,7 @@ function VerifyContent() {
                   value={digit}
                   onChange={(e) => handleInput(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-16 bg-white/5 border border-white/10 rounded-xl text-center text-2xl font-bold text-white focus:border-primary/50 focus:bg-primary/5 outline-none transition-all"
+                  className="w-12 h-16 bg-surface/5 border border-outline-variant rounded-xl text-center text-2xl font-bold text-white focus:border-primary/50 focus:bg-primary/5 outline-none transition-all"
                   maxLength={1}
                   required
                 />
