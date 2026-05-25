@@ -5,7 +5,8 @@ export default function AdminCostsPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState('30');
-  
+  const [type, setType] = useState('all');
+
   // Pagination and Search
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(15);
@@ -14,10 +15,11 @@ export default function AdminCostsPage() {
   const [sortField, setSortField] = useState('totalCost');
   const [sortDir, setSortDir] = useState(-1);
 
-  useEffect(() => {
+  const fetchData = () => {
     setLoading(true);
     const qs = new URLSearchParams({
       days,
+      type,
       page: page.toString(),
       limit: limit.toString(),
       search,
@@ -29,7 +31,23 @@ export default function AdminCostsPage() {
       .then(r => r.json())
       .then(setData)
       .finally(() => setLoading(false));
-  }, [days, page, limit, search, sortField, sortDir]);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [days, type, page, limit, search, sortField, sortDir]);
+
+  // Real-time: auto-refresh every 30s to capture live AI usage
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const qs = new URLSearchParams({ days, type, page: page.toString(), limit: limit.toString(), search, sortField, sortDir: sortDir.toString() });
+      fetch(`/api/admin/costs?${qs.toString()}`)
+        .then(r => r.json())
+        .then(setData)
+        .catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [days, type, page, limit, search, sortField, sortDir]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -49,7 +67,7 @@ export default function AdminCostsPage() {
 
   if (loading && !data) return (
     <div className="space-y-4">
-      {[1,2,3].map(i => <div key={i} className="skeleton h-24 rounded-xl" />)}
+      {[1, 2, 3].map(i => <div key={i} className="skeleton h-24 rounded-xl" />)}
     </div>
   );
   if (!data || data.error) return <div className="text-error bg-error-container p-4 rounded-xl">{data?.error || 'Error'}</div>;
@@ -64,17 +82,30 @@ export default function AdminCostsPage() {
           <h1 className="text-3xl font-headline text-on-surface">Chat Cost & Profit</h1>
           <p className="text-on-surface-variant mt-1 font-body">Token usage, AI cost, revenue, and profit per search session.</p>
         </div>
-        <select
-          value={days}
-          onChange={e => { setDays(e.target.value); setPage(1); }}
-          className="input-field py-2 px-3 w-40 text-sm"
-        >
-          <option value="1">Last 1 day</option>
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="90">Last 90 days</option>
-          <option value="all">All Time</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            value={type}
+            onChange={e => { setType(e.target.value); setPage(1); }}
+            className="input-field py-2 px-3 w-40 text-sm"
+          >
+            <option value="all">All Activity</option>
+            <option value="lead_search">Lead Searches</option>
+            <option value="chat">Chat Sessions</option>
+            <option value="reply_generation">Reply Generation</option>
+            <option value="lead_filter">Lead Filtering</option>
+          </select>
+          <select
+            value={days}
+            onChange={e => { setDays(e.target.value); setPage(1); }}
+            className="input-field py-2 px-3 w-40 text-sm"
+          >
+            <option value="1">Last 1 day</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -146,11 +177,11 @@ export default function AdminCostsPage() {
             <h2 className="font-headline text-base text-on-surface">Cost per Chat Session</h2>
             <span className="text-xs text-on-surface-variant ml-2">(Total: {data.totalSearchesCount})</span>
           </div>
-          
+
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
-            <input 
-              type="text" 
-              placeholder="Search email, chat ID..." 
+            <input
+              type="text"
+              placeholder="Search email, chat ID..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               className="input-field py-1.5 px-3 text-sm w-64"
@@ -160,7 +191,7 @@ export default function AdminCostsPage() {
             </button>
           </form>
         </div>
-        
+
         <div className="overflow-x-auto relative">
           {loading && (
             <div className="absolute inset-0 bg-surface/50 backdrop-blur-sm z-10 flex items-center justify-center">
@@ -181,8 +212,8 @@ export default function AdminCostsPage() {
                   { label: 'Credits', field: 'creditsCharged' },
                   { label: 'Leads', field: 'totalLeads' }
                 ].map(col => (
-                  <th 
-                    key={col.label} 
+                  <th
+                    key={col.label}
                     className={`text-left px-4 py-3 font-data-label text-on-surface-variant text-xs ${col.field ? 'cursor-pointer hover:text-primary transition-colors select-none' : ''}`}
                     onClick={() => col.field && handleSort(col.field)}
                   >
@@ -227,7 +258,7 @@ export default function AdminCostsPage() {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination Controls */}
         {data.totalPages > 1 && (
           <div className="px-6 py-4 border-t border-border-glass flex items-center justify-between">
@@ -235,14 +266,14 @@ export default function AdminCostsPage() {
               Page {data.currentPage} of {data.totalPages}
             </span>
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="px-3 py-1.5 rounded-lg border border-border-glass text-sm disabled:opacity-50 hover:bg-surface-container"
               >
                 Previous
               </button>
-              <button 
+              <button
                 onClick={() => setPage(p => Math.min(data.totalPages, p + 1))}
                 disabled={page === data.totalPages}
                 className="px-3 py-1.5 rounded-lg border border-border-glass text-sm disabled:opacity-50 hover:bg-surface-container"
