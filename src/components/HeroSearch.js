@@ -31,7 +31,7 @@ export default function HeroSearch() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Describe what leads you're looking for..."
-          className="w-full bg-white border-2 border-outline-variant rounded-2xl py-5 pl-14 pr-36 text-lg font-body text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors shadow-sm"
+          className="w-full bg-surface border-2 border-outline-variant rounded-2xl py-5 pl-14 pr-36 text-lg font-body text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors shadow-sm"
         />
         <button
           type="submit"
