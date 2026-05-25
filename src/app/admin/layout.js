@@ -37,29 +37,27 @@ export default function AdminLayout({ children }) {
     {
       label: 'Analytics',
       items: [
-        { href: '/admin',          icon: 'monitoring',            label: 'Overview',         exact: true },
-        { href: '/admin/users',    icon: 'group',                 label: 'Users' },
-        { href: '/admin/revenue',  icon: 'payments',              label: 'Revenue' },
-        { href: '/admin/costs',    icon: 'receipt_long',          label: 'Chat Costs & Profit' },
-        { href: '/admin/chats',    icon: 'forum',                 label: 'Chat History' },
-        { href: '/admin/searches', icon: 'troubleshoot',          label: 'Search Analytics' },
+        { href: '/admin', icon: 'monitoring', label: 'Overview', exact: true },
+        { href: '/admin/users', icon: 'group', label: 'Users' },
+        { href: '/admin/revenue', icon: 'payments', label: 'Revenue' },
+        { href: '/admin/costs', icon: 'receipt_long', label: 'Chat Costs & Profit' },
+        { href: '/admin/chats', icon: 'forum', label: 'Chat History' },
       ],
     },
     {
       label: 'System',
       items: [
-        { href: '/admin/ai',       icon: 'smart_toy',             label: 'AI Monitor' },
-        { href: '/admin/alerts',   icon: 'notifications_active',  label: 'Alerts' },
-        { href: '/admin/logs',     icon: 'data_object',           label: 'System Logs' },
-        { href: '/admin/settings', icon: 'settings',              label: 'Settings' },
+        { href: '/admin/ai', icon: 'smart_toy', label: 'AI Monitor' },
+        { href: '/admin/logs', icon: 'data_object', label: 'System Logs' },
+        { href: '/admin/settings', icon: 'settings', label: 'Settings' },
       ],
     },
     {
       label: 'Content',
       items: [
-        { href: '/admin/blog',     icon: 'edit_note',             label: 'Blog Manager' },
-        { href: '/admin/pricing',  icon: 'sell',                  label: 'Pricing Plans' },
-        { href: '/admin/insights', icon: 'lightbulb',             label: 'Opportunity Insights' },
+        { href: '/admin/blog', icon: 'edit_note', label: 'Blog Manager' },
+        { href: '/admin/pricing', icon: 'sell', label: 'Pricing Plans' },
+        { href: '/admin/insights', icon: 'lightbulb', label: 'Opportunity Insights' },
       ],
     },
   ];
@@ -104,17 +102,13 @@ export default function AdminLayout({ children }) {
                     key={item.href}
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                      isActive(item) 
-                        ? 'bg-white shadow-sm border border-sidebar-border text-sidebar-fg' 
-                        : 'text-sidebar-muted hover:text-sidebar-fg hover:bg-white/50'
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${isActive(item)
+                        ? 'bg-surface shadow-sm border border-sidebar-border text-sidebar-fg'
+                        : 'text-sidebar-muted hover:text-sidebar-fg hover:bg-surface/50'
+                      }`}
                   >
                     <span className={`material-symbols-outlined text-[20px] ${isActive(item) ? 'text-[#ff3b30]' : ''}`}>{item.icon}</span>
                     {item.label}
-                    {item.href === '/admin/costs' && (
-                      <span className="ml-auto text-[8px] font-black text-[#ff3b30] bg-red-500/10 px-1.5 py-0.5 rounded-md">NEW</span>
-                    )}
                   </Link>
                 ))}
               </div>
@@ -124,11 +118,11 @@ export default function AdminLayout({ children }) {
 
         {/* Footer */}
         <div className="p-4 border-t border-sidebar-border space-y-1">
-          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-sidebar-muted hover:text-sidebar-fg hover:bg-white/50 transition-all">
+          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-sidebar-muted hover:text-sidebar-fg hover:bg-surface/50 transition-all">
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
             User Dashboard
           </Link>
-          <div className="flex items-center gap-3 px-4 py-3 mt-1 bg-white/30 rounded-2xl border border-white/50">
+          <div className="flex items-center gap-3 px-4 py-3 mt-1 bg-surface/30 rounded-2xl border border-white/50">
             <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center shadow-md shadow-red-500/20">
               <span className="text-[10px] font-black text-white uppercase">
                 {(user?.name || user?.email || 'A').substring(0, 1)}
