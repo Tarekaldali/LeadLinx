@@ -109,7 +109,6 @@ export default function DashboardPage() {
     if (!query || loading) return;
     setInput('');
     setLoading(true);
-    refreshUser?.(); // Early refresh to show the 1-credit deduction
 
     const userMsg = { id: Date.now().toString(), role: 'user', content: query, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
@@ -352,6 +351,9 @@ export default function DashboardPage() {
       if (res.ok) {
         setMonitors(prev => prev.filter(m => m._id !== monitorId));
         showToast('Monitor destroyed and all leads purged.');
+      } else {
+        const d = await res.json();
+        showToast(d.error || 'Failed to destroy monitor', 'error');
       }
     } catch { showToast('Failed to destroy monitor', 'error'); }
   };
@@ -367,6 +369,9 @@ export default function DashboardPage() {
       if (res.ok) {
         setMonitors(prev => prev.filter(m => m._id !== monitorId));
         showToast('Mission complete. All leads preserved in your workspace.');
+      } else {
+        const d = await res.json();
+        showToast(d.error || 'Failed to finish monitor', 'error');
       }
     } catch { showToast('Failed to finish monitor', 'error'); }
   };
@@ -427,7 +432,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           monitors.map((monitor) => (
-            <div key={monitor._id} className={`bg-surface p-6 rounded-[28px] border ${monitor.status === 'active' ? 'border-[#ff3b30]/20 shadow-red-500/5' : 'border-outline-variant'} shadow-sm relative overflow-hidden group hover:shadow-xl transition-all`}>
+            <div key={monitor._id} className={`bg-surface p-6 rounded-[28px] border ${monitor.status === 'active' ? 'border-[#ff3b30]/20 shadow-red-500/5' : 'border-outline-variant'} shadow-sm relative group hover:shadow-xl transition-all`}>
               <div className="absolute top-0 right-0 p-4 flex gap-2">
                  {monitor.status === 'active' && (
                    <div className="flex items-center gap-1.5 px-2 py-1 bg-[#28cd41]/10 rounded-full border border-[#28cd41]/20">

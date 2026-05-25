@@ -85,48 +85,10 @@ async function fetchWithRetry(url, options = {}, retries = 3) {
 }
 
 /**
- * Search via SearXNG public instances (JSON API)
+ * Search via Bing HTML scraping
  */
-async function searchSearXNG(query) {
-  const instances = [
-    'https://search.sapti.me',
-    'https://searx.be',
-    'https://search.bus-hit.me',
-    'https://searx.tiekoetter.com',
-    'https://search.ononoki.org',
-  ];
-  
-  for (const instance of instances) {
-    try {
-      const url = `${instance}/search?q=${encodeURIComponent(query)}&format=json&engines=google,bing,duckduckgo&language=en`;
-      const res = await fetchWithRetry(url);
-      if (!res) continue;
-      
-      const data = await res.json();
-      const results = data.results || [];
-      
-      if (results.length > 0) {
-        console.log(`[Dorking: SearXNG] ${instance} returned ${results.length} results for "${query.substring(0, 50)}..."`);
-        return results.map(r => ({
-          title: r.title || '',
-          url: r.url || '',
-          content: r.content || '',
-        }));
-      }
-    } catch (e) {
-      console.warn(`[Dorking: SearXNG] ${instance} failed:`, e.message);
-    }
-    await delay(500);
-  }
-  
-  return [];
-}
-
-/**
- * Search via DuckDuckGo HTML (may work intermittently on Vercel)
- */
-async function searchDuckDuckGo(query) {
-  const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+async function searchBing(query) {
+  const url = `https://www.bing.com/search?q=${encodeURIComponent(query)}&count=20`;
   const res = await fetchWithRetry(url);
   if (!res) return [];
   
@@ -135,21 +97,22 @@ async function searchDuckDuckGo(query) {
     const $ = cheerio.load(html);
     const results = [];
     
-    $('.result').each((i, el) => {
-      const title = $(el).find('.result__title').text().trim();
-      const snippet = $(el).find('.result__snippet').text().trim();
-      const link = $(el).find('.result__url').attr('href') || '';
+    $('li.b_algo').each((i, el) => {
+      const title = $(el).find('h2 a').text().trim();
+      const link = $(el).find('h2 a').attr('href') || '';
+      const snippet = $(el).find('.b_caption p, .b_algoSlug').text().trim();
       
-      if (title || snippet) {
+      if ((title || snippet) && link) {
         results.push({ title, url: link, content: snippet });
       }
     });
     
     if (results.length > 0) {
-      console.log(`[Dorking: DDG] Found ${results.length} results for "${query.substring(0, 50)}..."`);
+      console.log(`[Dorking: Bing] Found ${results.length} results for "${query.substring(0, 50)}..."`);
     }
     return results;
-  } catch {
+  } catch (e) {
+    console.error(`[Dorking: Bing] Parse error: ${e.message}`);
     return [];
   }
 }
@@ -158,14 +121,8 @@ async function searchDuckDuckGo(query) {
  * Multi-fallback search
  */
 async function performSearch(query) {
-  // Strategy 1: SearXNG
-  let results = await searchSearXNG(query);
-  if (results.length > 0) return results;
-  
-  await delay(300);
-  
-  // Strategy 2: DuckDuckGo HTML
-  results = await searchDuckDuckGo(query);
+  // Strategy 1: Bing
+  let results = await searchBing(query);
   return results;
 }
 

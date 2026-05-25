@@ -8,9 +8,32 @@
  *   3. Direct search intent fallback via Reddit search
  */
 
-import fetch from 'node-fetch';
+import https from 'https';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { detectContactsAggressively } from '../detector.js';
+
+function httpsGet(urlStr, options) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(urlStr, options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        resolve({
+          status: res.statusCode,
+          ok: res.statusCode >= 200 && res.statusCode < 300,
+          text: async () => data,
+          json: async () => JSON.parse(data)
+        });
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('Request Timeout'));
+    });
+    req.end();
+  });
+}
 
 const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
@@ -51,15 +74,12 @@ function delay(ms) {
 async function fetchWithRetry(url, options = {}, retries = 3) {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-      
       const agent = getRandomProxy();
       
-      const res = await fetch(url, {
+      const res = await httpsGet(url, {
         ...options,
         agent,
-        signal: controller.signal,
+        timeout: 15000,
         headers: {
           'User-Agent': getUA(),
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7',
@@ -67,7 +87,6 @@ async function fetchWithRetry(url, options = {}, retries = 3) {
           ...options.headers,
         },
       });
-      clearTimeout(timeoutId);
       
       if (res.status === 429) {
         console.warn(`[Reddit] Rate limited (429), waiting ${(attempt + 1) * 2}s...`);
@@ -81,14 +100,11 @@ async function fetchWithRetry(url, options = {}, retries = 3) {
       }
       
       if (!res.ok) {
-        console.warn(`[Reddit] ${res.status} for ${url}`);
-        return null;
+        throw new Error(`HTTP ${res.status}`);
       }
       
       return res;
     } catch (err) {
-      if (err.name === 'AbortError') {
-        console.warn(`[Reddit] Timeout for ${url}, attempt ${attempt + 1}/${retries}`);
       }
       if (attempt === retries - 1) return null;
       await delay(1000 * (attempt + 1));

@@ -103,7 +103,8 @@ export default function AnimatedSearchBar() {
                 <button 
                   type="button"
                   className="w-full text-left px-4 py-3 hover:bg-surface-container-lowest rounded-xl text-on-surface text-sm font-medium transition-colors flex items-center gap-3 group"
-                  onClick={() => {
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // Prevent focus loss
                     setInputValue(sug);
                     router.push(`/dashboard?q=${encodeURIComponent(sug)}`);
                   }}

@@ -80,6 +80,9 @@ export async function validateLeadIntent(contextText, extractedContacts, searchI
     return parsed;
   } catch (error) {
     console.error('[Omni-Validator] Failed to validate lead:', error);
+    if (error.message && error.message.includes('OpenRouter')) {
+      throw error; // Propagate API errors to surface them to the user
+    }
     const fallback = {
       is_valid_lead: false,
       confidence_score: 0,

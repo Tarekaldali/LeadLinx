@@ -67,15 +67,28 @@ export async function GET(request) {
     ]);
 
     // Normalize Data
-    const normalizedLeads = leads.map(lead => ({
-      ...lead,
-      _id: lead._id.toString(),
-      createdAt: lead.createdAt || lead.savedAt,
-      score: lead.score || lead.intentScore || 0,
-      title: lead.title || lead.postTitle || 'No Title',
-      body: lead.body || lead.context || lead.text || '',
-      isSaved: tab === 'saved'
-    }));
+    // If in generated tab, we need to check which leads are saved
+    let savedPostIds = new Set();
+    if (tab === 'generated' && leads.length > 0) {
+      const savedDocs = await db.collection('saved_leads').find({
+        userId,
+        postId: { $in: leads.map(l => l._id.toString()) }
+      }).toArray();
+      savedDocs.forEach(doc => savedPostIds.add(doc.postId));
+    }
+
+    const normalizedLeads = leads.map(lead => {
+      const idStr = lead._id.toString();
+      return {
+        ...lead,
+        _id: idStr,
+        createdAt: lead.createdAt || lead.savedAt,
+        score: lead.score || lead.intentScore || 0,
+        title: lead.title || lead.postTitle || 'No Title',
+        body: lead.body || lead.context || lead.text || '',
+        isSaved: tab === 'saved' || savedPostIds.has(idStr)
+      };
+    });
 
     return NextResponse.json({ 
       leads: normalizedLeads,
@@ -115,7 +128,6 @@ export async function DELETE(request) {
   }
 }
 
-// Update Lead (Status, Notes, Tags)
 export async function PATCH(request) {
   const authResult = await requireAuth(request);
   if (authResult.error) return NextResponse.json({ error: authResult.error }, { status: authResult.status });
@@ -127,13 +139,32 @@ export async function PATCH(request) {
     const db = await getDb();
     const userId = new ObjectId(authResult.user.id);
     const collectionName = tab === 'saved' ? 'saved_leads' : 'leads';
+    const objectId = new ObjectId(id);
     
     const result = await db.collection(collectionName).updateOne(
-      { _id: new ObjectId(id), userId },
+      { _id: objectId, userId },
       { $set: { ...updates, updatedAt: new Date() } }
     );
 
     if (result.matchedCount === 0) return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+
+    // Sync to the other collection so status stays in sync
+    if (tab === 'generated') {
+      await db.collection('saved_leads').updateOne(
+        { postId: id, userId },
+        { $set: { ...updates, updatedAt: new Date() } }
+      );
+    } else if (tab === 'saved') {
+      const savedDoc = await db.collection('saved_leads').findOne({ _id: objectId });
+      if (savedDoc && savedDoc.postId) {
+        try {
+          await db.collection('leads').updateOne(
+            { _id: new ObjectId(savedDoc.postId), userId },
+            { $set: { ...updates, updatedAt: new Date() } }
+          );
+        } catch (e) { /* ignore invalid object id */ }
+      }
+    }
 
     return NextResponse.json({ success: true, message: 'Lead updated' });
   } catch (error) {

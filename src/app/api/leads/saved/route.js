@@ -36,7 +36,7 @@ export async function POST(request) {
     const db = await getDb();
     const userId = new ObjectId(authResult.user.id);
 
-    const postId = lead.id || new ObjectId().toString();
+    const postId = lead._id || lead.id || new ObjectId().toString();
 
     // Check if already saved
     const existing = await db.collection('saved_leads').findOne({
@@ -45,7 +45,12 @@ export async function POST(request) {
     });
 
     if (existing) {
-      return NextResponse.json({ message: 'Lead already saved' }, { status: 200 });
+      // If it exists, let's update it instead so status changes sync!
+      await db.collection('saved_leads').updateOne(
+        { _id: existing._id },
+        { $set: { status: lead.status || existing.status || 'New', notes: lead.notes || existing.notes } }
+      );
+      return NextResponse.json({ message: 'Lead updated in pipeline' }, { status: 200 });
     }
 
     await db.collection('saved_leads').insertOne({

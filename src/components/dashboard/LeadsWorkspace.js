@@ -163,19 +163,37 @@ export default function LeadsWorkspace() {
 
   const handleSaveLead = async (lead) => {
     try {
+      const payload = { ...lead };
+      // Include current status explicitly from UI state
+      if (selectedLead && selectedLead._id === lead._id) {
+        payload.status = selectedLead.status || lead.status;
+      }
+      
       const res = await fetch('/api/leads/saved', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(lead)
+        body: JSON.stringify(payload)
       });
-      const data = await res.json();
+      const dataRes = await res.json();
       if (res.ok) {
         mutate();
         mutateGroups();
         mutateStats();
-        showToast(data.message || 'Lead saved to pipeline!');
+        if (selectedLead && selectedLead._id === lead._id) {
+          setSelectedLead({ ...selectedLead, isSaved: true });
+        }
+        
+        // Optimistically update the list data so the icon turns to "Saved" immediately
+        if (data && data.leads) {
+           mutate({
+             ...data,
+             leads: data.leads.map(l => l._id === lead._id ? { ...l, isSaved: true } : l)
+           }, false);
+        }
+        
+        showToast(dataRes.message || 'Lead saved to pipeline!');
       } else {
-        showToast(data.error || 'Failed to save lead', 'error');
+        showToast(dataRes.error || 'Failed to save lead', 'error');
       }
     } catch (err) {
       console.error(err);
@@ -523,7 +541,17 @@ export default function LeadsWorkspace() {
                         />
                       </td>
                       <td className="max-w-[300px]">
-                        <div className="flex flex-col">
+                        <div className="flex flex-col gap-1">
+                          {(() => {
+                            const status = lead.status || 'New';
+                            const cfg = STATUS_CONFIG[status] || STATUS_CONFIG['New'];
+                            return (
+                              <span className={`self-start inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border ${cfg.color}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                                {status}
+                              </span>
+                            );
+                          })()}
                           <span className="font-bold text-on-surface dark:text-white truncate">
                             {lead.author || 'Anonymous'}
                           </span>
@@ -533,16 +561,9 @@ export default function LeadsWorkspace() {
                         </div>
                       </td>
                       <td>
-                        {(() => {
-                          const status = lead.status || 'New';
-                          const cfg = STATUS_CONFIG[status] || STATUS_CONFIG['New'];
-                          return (
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${cfg.color}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                              {status}
-                            </span>
-                          );
-                        })()}
+                        <span className="text-xs font-medium text-on-surface-variant">
+                          {lead.leadType || 'B2C (Consumer)'}
+                        </span>
                       </td>
                       <td>
                         <div className="flex flex-col gap-1">
@@ -721,7 +742,19 @@ export default function LeadsWorkspace() {
                   <User size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-on-surface">{selectedLead.author}</h2>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-xl font-bold text-on-surface">{selectedLead.author}</h2>
+                    {(() => {
+                      const status = selectedLead.status || 'New';
+                      const cfg = STATUS_CONFIG[status] || STATUS_CONFIG['New'];
+                      return (
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${cfg.color}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                          {status}
+                        </span>
+                      );
+                    })()}
+                  </div>
                   <p className="text-xs text-on-surface-variant flex items-center gap-1">
                     <Hash size={10} /> Lead ID: {selectedLead._id.slice(-8).toUpperCase()}
                   </p>
