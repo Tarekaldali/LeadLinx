@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useTheme } from 'next-themes';
 
+
 const TABS = [
   { id: 'profile', label: 'Profile', icon: 'person' },
   { id: 'account', label: 'Account', icon: 'shield' },
@@ -12,7 +13,7 @@ const TABS = [
 ];
 
 export default function SettingsContent() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
@@ -76,6 +77,8 @@ export default function SettingsContent() {
       const data = await res.json();
       
       if (res.ok) {
+        // Refresh session so name updates everywhere without page reload
+        await update({ name });
         showToast('Profile updated successfully');
       } else {
         showToast(data.error || 'Failed to update profile', 'error');
@@ -136,8 +139,8 @@ export default function SettingsContent() {
   return (
     <div className="max-w-5xl mx-auto pb-20 animate-fade-in p-4 sm:p-8">
       <header className="mb-10">
-        <h1 className="text-3xl font-bold text-[#1d1d1f] tracking-tight">Settings</h1>
-        <p className="text-[#86868b] mt-1 font-medium">Manage your account, preferences, and extraction filters.</p>
+        <h1 className="text-3xl font-bold text-on-surface tracking-tight">Settings</h1>
+        <p className="text-on-surface-variant mt-1 font-medium">Manage your account, preferences, and extraction filters.</p>
       </header>
 
       <div className="flex flex-col md:flex-row gap-12">
@@ -150,8 +153,8 @@ export default function SettingsContent() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all whitespace-nowrap ${
                   activeTab === tab.id 
-                    ? 'bg-white shadow-sm border border-[#e5e5e7] text-[#1d1d1f]' 
-                    : 'text-[#86868b] hover:text-[#1d1d1f] hover:bg-gray-100/50'
+                    ? 'bg-surface shadow-sm border border-outline-variant text-on-surface' 
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low/50'
                 }`}
               >
                 <span className={`material-symbols-outlined text-[20px] ${activeTab === tab.id ? 'text-[#ff3b30]' : ''}`}>{tab.icon}</span>
@@ -164,36 +167,36 @@ export default function SettingsContent() {
         {/* Content Area */}
         <main className="flex-1 space-y-8">
           {activeTab === 'profile' && (
-            <div className="bg-white rounded-[28px] border border-[#e5e5e7] shadow-sm overflow-hidden animate-in">
-              <div className="px-8 py-6 border-b border-[#f2f2f2]">
-                <h2 className="text-lg font-bold text-[#1d1d1f]">Profile Information</h2>
-                <p className="text-xs text-[#86868b] mt-0.5">How you appear to the LeadLinx ecosystem.</p>
+            <div className="bg-surface rounded-[28px] border border-outline-variant shadow-sm overflow-hidden animate-in">
+              <div className="px-8 py-6 border-b border-surface-container-highest">
+                <h2 className="text-lg font-bold text-on-surface">Profile Information</h2>
+                <p className="text-xs text-on-surface-variant mt-0.5">How you appear to the LeadLinx ecosystem.</p>
               </div>
               <div className="p-8 space-y-6">
                 <div className="space-y-4 max-w-lg">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Full Name</label>
+                    <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">Full Name</label>
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-4 py-3 bg-[#f5f5f7] border border-[#e5e5e7] rounded-xl focus:ring-2 focus:ring-[#ff3b30]/20 focus:border-[#ff3b30] text-sm font-medium outline-none transition-all"
+                      className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-[#ff3b30]/20 focus:border-[#ff3b30] text-sm font-medium outline-none transition-all"
                       placeholder="Jane Doe"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
+                    <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
                     <input
                       type="email"
                       value={user?.email || ''}
                       readOnly
                       disabled
-                      className="w-full px-4 py-3 bg-[#f2f2f2] border border-[#e5e5e7] rounded-xl text-gray-400 text-sm font-medium outline-none cursor-not-allowed"
+                      className="w-full px-4 py-3 bg-surface-container-high border border-outline-variant rounded-xl text-on-surface-variant text-sm font-medium outline-none cursor-not-allowed"
                     />
                   </div>
                 </div>
               </div>
-              <div className="px-8 py-4 bg-[#fbfbfd] border-t border-[#f2f2f2] flex justify-end">
+              <div className="px-8 py-4 bg-surface-dim border-t border-surface-container-highest flex justify-end">
                 <button
                   onClick={handleSaveProfile}
                   disabled={saving}
@@ -207,21 +210,21 @@ export default function SettingsContent() {
 
           {activeTab === 'account' && (
             <div className="space-y-6 animate-in">
-              <div className="bg-white rounded-[28px] border border-[#e5e5e7] shadow-sm overflow-hidden">
-                <div className="px-8 py-6 border-b border-[#f2f2f2]">
-                  <h2 className="text-lg font-bold text-[#1d1d1f]">Security</h2>
-                  <p className="text-xs text-[#86868b] mt-0.5">Manage your credentials and providers.</p>
+              <div className="bg-surface rounded-[28px] border border-outline-variant shadow-sm overflow-hidden">
+                <div className="px-8 py-6 border-b border-surface-container-highest">
+                  <h2 className="text-lg font-bold text-on-surface">Security</h2>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Manage your credentials and providers.</p>
                 </div>
                 <div className="p-8 space-y-8">
                   <div>
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Connected Auth</h3>
-                    <div className="flex items-center justify-between p-5 bg-[#fbfbfd] border border-[#e5e5e7] rounded-2xl max-w-lg shadow-sm">
+                    <h3 className="text-xs font-black text-on-surface-variant uppercase tracking-widest mb-4 ml-1">Connected Auth</h3>
+                    <div className="flex items-center justify-between p-5 bg-surface-dim border border-outline-variant rounded-2xl max-w-lg shadow-sm">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white border border-[#e5e5e7] flex items-center justify-center shadow-sm">
+                        <div className="w-10 h-10 rounded-xl bg-surface border border-outline-variant flex items-center justify-center shadow-sm">
                           <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-[#1d1d1f]">Google Cloud Auth</p>
+                          <p className="text-sm font-bold text-on-surface">Google Cloud Auth</p>
                           <p className="text-[10px] text-[#28cd41] font-black uppercase tracking-widest">Linked</p>
                         </div>
                       </div>
@@ -246,17 +249,17 @@ export default function SettingsContent() {
           )}
 
           {activeTab === 'billing' && (
-            <div className="bg-white rounded-[28px] border border-[#e5e5e7] shadow-sm overflow-hidden animate-in">
-              <div className="px-8 py-6 border-b border-[#f2f2f2]">
-                <h2 className="text-lg font-bold text-[#1d1d1f]">Billing</h2>
-                <p className="text-xs text-[#86868b] mt-0.5">Manage your growth plan and invoices.</p>
+            <div className="bg-surface rounded-[28px] border border-outline-variant shadow-sm overflow-hidden animate-in">
+              <div className="px-8 py-6 border-b border-surface-container-highest">
+                <h2 className="text-lg font-bold text-on-surface">Billing</h2>
+                <p className="text-xs text-on-surface-variant mt-0.5">Manage your growth plan and invoices.</p>
               </div>
               <div className="p-8">
-                <div className="bg-[#f5f5f7] rounded-2xl p-8 border border-[#e5e5e7] max-w-2xl flex flex-col md:flex-row justify-between items-center gap-8 shadow-sm">
+                <div className="bg-surface-container-low rounded-2xl p-8 border border-outline-variant max-w-2xl flex flex-col md:flex-row justify-between items-center gap-8 shadow-sm">
                   <div className="space-y-1">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Plan</p>
+                    <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Active Plan</p>
                     <div className="flex items-center gap-3">
-                      <h3 className="text-3xl font-black text-[#1d1d1f] capitalize">{user?.plan || 'Free'}</h3>
+                      <h3 className="text-3xl font-black text-on-surface capitalize">{user?.plan || 'Free'}</h3>
                       <span className="px-2.5 py-1 bg-[#28cd41]/10 text-[#28cd41] text-[10px] font-black rounded-full border border-[#28cd41]/20">PRO</span>
                     </div>
                   </div>
@@ -280,58 +283,58 @@ export default function SettingsContent() {
 
           {activeTab === 'preferences' && (
             <div className="space-y-8 animate-in">
-              <div className="bg-white rounded-[28px] border border-[#e5e5e7] shadow-sm overflow-hidden">
-                <div className="px-8 py-6 border-b border-[#f2f2f2]">
-                  <h2 className="text-lg font-bold text-[#1d1d1f]">Appearance</h2>
-                  <p className="text-xs text-[#86868b] mt-0.5">Customize your interface experience.</p>
+              <div className="bg-surface rounded-[28px] border border-outline-variant shadow-sm overflow-hidden">
+                <div className="px-8 py-6 border-b border-surface-container-highest">
+                  <h2 className="text-lg font-bold text-on-surface">Appearance</h2>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Customize your interface experience.</p>
                 </div>
                 <div className="p-8">
                   <div className="flex flex-col sm:flex-row gap-6">
                     <button
                       onClick={() => setTheme('light')}
                       className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-2xl border-2 transition-all ${
-                        mounted && theme === 'light' ? 'border-[#ff3b30] bg-[#ff3b30]/5' : 'border-[#f2f2f2] hover:border-[#e5e5e7]'
+                        mounted && theme === 'light' ? 'border-[#ff3b30] bg-[#ff3b30]/5' : 'border-surface-container-highest hover:border-outline-variant'
                       }`}
                     >
-                      <div className="w-16 h-12 rounded-lg bg-white border border-[#e5e5e7] flex items-center justify-center shadow-sm">
-                        <span className="material-symbols-outlined text-[#86868b]">light_mode</span>
+                      <div className="w-16 h-12 rounded-lg bg-surface border border-outline-variant flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-on-surface-variant">light_mode</span>
                       </div>
-                      <span className={`text-xs font-bold uppercase tracking-widest ${mounted && theme === 'light' ? 'text-[#ff3b30]' : 'text-[#86868b]'}`}>Quartz Light</span>
+                      <span className={`text-xs font-bold uppercase tracking-widest ${mounted && theme === 'light' ? 'text-[#ff3b30]' : 'text-on-surface-variant'}`}>Quartz Light</span>
                     </button>
 
                     <button
                       onClick={() => setTheme('dark')}
                       className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-2xl border-2 transition-all ${
-                        mounted && theme === 'dark' ? 'border-[#ff3b30] bg-[#ff3b30]/5' : 'border-[#f2f2f2] hover:border-[#e5e5e7]'
+                        mounted && theme === 'dark' ? 'border-[#ff3b30] bg-[#ff3b30]/5' : 'border-surface-container-highest hover:border-outline-variant'
                       }`}
                     >
-                      <div className="w-16 h-12 rounded-lg bg-[#1d1d1f] border border-white/10 flex items-center justify-center shadow-sm">
-                        <span className="material-symbols-outlined text-gray-400">dark_mode</span>
+                      <div className="w-16 h-12 rounded-lg bg-[#1d1d1f] border border-outline-variant flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-on-surface-variant">dark_mode</span>
                       </div>
-                      <span className={`text-xs font-bold uppercase tracking-widest ${mounted && theme === 'dark' ? 'text-[#ff3b30]' : 'text-[#86868b]'}`}>Midnight Dark</span>
+                      <span className={`text-xs font-bold uppercase tracking-widest ${mounted && theme === 'dark' ? 'text-[#ff3b30]' : 'text-on-surface-variant'}`}>Midnight Dark</span>
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[28px] border border-[#e5e5e7] shadow-sm overflow-hidden">
-                <div className="px-8 py-6 border-b border-[#f2f2f2]">
-                  <h2 className="text-lg font-bold text-[#1d1d1f]">Extraction Filters</h2>
-                  <p className="text-xs text-[#86868b] mt-0.5">Filter out irrelevant signals automatically.</p>
+              <div className="bg-surface rounded-[28px] border border-outline-variant shadow-sm overflow-hidden">
+                <div className="px-8 py-6 border-b border-surface-container-highest">
+                  <h2 className="text-lg font-bold text-on-surface">Extraction Filters</h2>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Filter out irrelevant signals automatically.</p>
                 </div>
                 <div className="p-8 space-y-8">
                   <div>
-                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Negative Keywords</h4>
+                    <h4 className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-3 ml-1">Negative Keywords</h4>
                     <div className="flex gap-3 max-w-lg">
                       <input
                         type="text"
-                        className="flex-1 px-4 py-3 bg-[#f5f5f7] border border-[#e5e5e7] rounded-xl focus:ring-2 focus:ring-[#ff3b30]/20 focus:border-[#ff3b30] text-sm font-medium outline-none transition-all"
+                        className="flex-1 px-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-[#ff3b30]/20 focus:border-[#ff3b30] text-sm font-medium outline-none transition-all"
                         placeholder="e.g., hiring, student, test"
                         value={newKeyword}
                         onChange={(e) => setNewKeyword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
                       />
-                      <button onClick={addKeyword} className="px-6 py-3 bg-white border border-[#e5e5e7] text-xs font-bold text-[#1d1d1f] rounded-xl hover:bg-[#f5f5f7] transition-all shadow-sm">
+                      <button onClick={addKeyword} className="px-6 py-3 bg-surface border border-outline-variant text-xs font-bold text-on-surface rounded-xl hover:bg-surface-container-low transition-all shadow-sm">
                         Add
                       </button>
                     </div>
@@ -339,16 +342,16 @@ export default function SettingsContent() {
 
                   <div className="flex flex-wrap gap-2">
                     {negativeKeywords.map((kw) => (
-                      <span key={kw} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#f5f5f7] text-[#1d1d1f] text-[11px] font-bold border border-[#e5e5e7] shadow-sm">
+                      <span key={kw} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-container-low text-on-surface text-[11px] font-bold border border-outline-variant shadow-sm">
                         {kw}
-                        <button onClick={() => removeKeyword(kw)} className="text-gray-400 hover:text-[#ff3b30] transition-colors">
+                        <button onClick={() => removeKeyword(kw)} className="text-on-surface-variant hover:text-[#ff3b30] transition-colors">
                           <span className="material-symbols-outlined text-[14px]">close</span>
                         </button>
                       </span>
                     ))}
                   </div>
                 </div>
-                <div className="px-8 py-4 bg-[#fbfbfd] border-t border-[#f2f2f2] flex justify-end">
+                <div className="px-8 py-4 bg-surface-dim border-t border-surface-container-highest flex justify-end">
                   <button
                     onClick={savePreferences}
                     disabled={saving}
