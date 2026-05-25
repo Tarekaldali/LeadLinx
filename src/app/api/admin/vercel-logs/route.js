@@ -7,7 +7,7 @@ import { requireAdmin } from '@/lib/auth';
  * Requires VERCEL_TOKEN and VERCEL_PROJECT_ID environment variables.
  */
 export async function GET(request) {
-  const authResult = await requireAdmin();
+  const authResult = await requireAdmin(request);
   if (authResult.error) {
     return NextResponse.json({ error: authResult.error }, { status: authResult.status });
   }
@@ -36,8 +36,11 @@ export async function GET(request) {
 
     if (!deploymentsRes.ok) {
       const err = await deploymentsRes.json().catch(() => ({}));
+      const errMsg = err?.error?.message || err?.error?.code || deploymentsRes.statusText;
+      console.error('[Admin Vercel Logs] API error:', errMsg, 'Status:', deploymentsRes.status);
       return NextResponse.json({
-        error: `Vercel API error: ${err?.error?.message || deploymentsRes.statusText}`,
+        error: `Vercel API error: ${errMsg}`,
+        hint: deploymentsRes.status === 403 ? 'The VERCEL_TOKEN may not have the correct scope. Generate a new token from vercel.com/account/tokens with full access.' : undefined,
         logs: [],
       });
     }

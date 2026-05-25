@@ -238,7 +238,17 @@ export default function DashboardPage() {
                   {msg.role === 'assistant' ? 'AI' : (session?.user?.name?.[0] || 'U')}
                 </div>
                 <div className="message-text">
-                  <ChatMessage message={msg} onSave={handleSaveLead} />
+                  {msg.role === 'user' ? (
+                    <p className="text-on-surface text-sm font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  ) : msg.error ? (
+                    <div className="p-4 bg-red-950/20 border border-red-800/30 rounded-2xl">
+                      <p className="text-red-400 text-sm font-medium">{msg.error}</p>
+                    </div>
+                  ) : msg.status === 'chat' || (!msg.leads && !msg.status) ? (
+                    <p className="text-on-surface text-sm font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  ) : (
+                    <ChatMessage message={msg} onSave={handleSaveLead} />
+                  )}
                 </div>
               </div>
             ))}

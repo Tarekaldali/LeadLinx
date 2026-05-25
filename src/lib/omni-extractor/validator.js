@@ -5,14 +5,21 @@
 
 import { callGemini } from '../gemini.js';
 
-const VALIDATOR_PROMPT = `You are a strict Data Quality Engineer for a lead generation system.
+const VALIDATOR_PROMPT = `You are a Lead Quality Analyst for a lead generation system.
 You will be provided with raw text context and a list of extracted contacts (emails, phones, socials).
-You must determine if this represents a REAL person or business that matches the user's SEARCH_INTENT.
+You must determine if this represents a REAL person or business that could be a potential lead matching the user's SEARCH_INTENT.
 
 EVALUATION CRITERIA:
-1. Intent Match: Does the text show they are looking for the service/product or match the target audience? We want high-intent users, even if they haven't explicitly asked "where to buy" yet.
-2. Value Proposition: Could a business help this person?
-3. Contact Quality: Are these real contacts? (Note: Reddit handles are valid).
+1. Intent Match: Does the text show the person is in the target audience? They DON'T need to be explicitly asking to buy. Being in the right industry/niche/topic counts.
+2. Value Proposition: Could a business reasonably reach out to this person?
+3. Contact Quality: Reddit handles (reddit:@username) are VALID contacts. Social handles are VALID. Not every lead needs an email.
+
+IMPORTANT RULES:
+- If someone is posting in a relevant subreddit about a relevant topic, they ARE a valid lead.
+- A Reddit user asking about a topic related to the search intent IS a valid lead.
+- Set is_valid_lead=true if the person is in the right target audience, even without email.
+- confidence_score should be 0.6+ for relevant topic discussions, 0.8+ for explicit buying intent.
+- Use the Reddit username as lead_name if no other name is available.
 
 OUTPUT FORMAT:
 Return ONLY a valid JSON object. Do not include any markdown formatting (like \`\`\`json), no preamble, and no post-response text.
@@ -21,7 +28,7 @@ REQUIRED JSON STRUCTURE:
 {
   "is_valid_lead": true | false,
   "confidence_score": 0.0 - 1.0,
-  "lead_name": "Extracted name or 'Unknown'",
+  "lead_name": "Extracted name or Reddit username",
   "reasoning": "Brief explanation of why this is or isn't a lead",
   "verified_contacts": {
     "emails": ["list of valid emails"],

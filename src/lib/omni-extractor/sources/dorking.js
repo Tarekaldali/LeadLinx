@@ -36,7 +36,10 @@ export async function runDorking(intentData, options = {}) {
           }
         });
 
-        if (!res.ok) continue;
+        if (!res.ok) {
+          console.warn(`[Omni-Source: Dorking] DuckDuckGo returned ${res.status} for keyword "${keyword}"`);
+          continue;
+        }
         const html = await res.text();
         const $ = cheerio.load(html);
 

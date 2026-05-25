@@ -10,7 +10,7 @@ import { ObjectId } from 'mongodb';
 import { findByJobId, findByUserId, exportToCSV, exportToJSONL } from '@/lib/harvester/lead-store';
 
 export async function GET(request) {
-  const authResult = await requireAuth();
+  const authResult = await requireAuth(request);
   if (authResult.error) {
     return NextResponse.json({ error: authResult.error }, { status: authResult.status });
   }

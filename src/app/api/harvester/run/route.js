@@ -10,7 +10,7 @@ import { ObjectId } from 'mongodb';
 import { runHarvestJob, formatLeadsForUI } from '@/lib/harvester/lead-extractor';
 
 export async function POST(request) {
-  const authResult = await requireAuth();
+  const authResult = await requireAuth(request);
   if (authResult.error) {
     return NextResponse.json({ error: authResult.error }, { status: authResult.status });
   }

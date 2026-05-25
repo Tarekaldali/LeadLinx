@@ -57,8 +57,8 @@ export async function requireAuth(request) {
   }
 }
 
-export async function requireAdmin() {
-  const result = await requireAuth();
+export async function requireAdmin(request) {
+  const result = await requireAuth(request);
   if (result.error) return result;
   
   if (result.user.role !== 'admin') {

@@ -61,6 +61,7 @@ export async function POST(request) {
       intentScore: lead.intentScore || lead.score,
       intentReason: lead.intentReason,
       leadType: lead.leadType,
+      status: lead.status || 'New',
       emails: lead.emails || [],
       phones: lead.phones || [],
       socials: lead.socials || [],

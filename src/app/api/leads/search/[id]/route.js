@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 
 export async function GET(request, { params }) {
-  const authResult = await requireAuth();
+  const authResult = await requireAuth(request);
   if (authResult.error) {
     return NextResponse.json({ error: authResult.error }, { status: authResult.status });
   }
