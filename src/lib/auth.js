@@ -12,8 +12,6 @@ export async function verifyPassword(password, hashedPassword) {
 }
 
 export function generateToken(payload) {
-  // Dummy or real JWT implementation if needed by custom routes
-  // Next-auth handles the actual session tokens
   const jwt = require('jsonwebtoken');
   return jwt.sign(payload, process.env.NEXTAUTH_SECRET || 'fallback', { expiresIn: '7d' });
 }
@@ -30,12 +28,33 @@ export async function getCurrentUser() {
   return user;
 }
 
-export async function requireAuth() {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return { error: 'Unauthorized', status: 401 };
+/**
+ * requireAuth — works in Next.js App Router.
+ * The session.user.id is populated by the JWT callback in auth-config.js
+ * which syncs from the DB on every request.
+ */
+export async function requireAuth(request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      console.warn('[AUTH] requireAuth: No session found');
+      return { error: 'Unauthorized — please log in', status: 401 };
+    }
+    if (!session.user.id) {
+      // Fallback: look up user by email to get the id
+      const db = await getDb();
+      const dbUser = await db.collection('users').findOne({ email: session.user.email });
+      if (!dbUser) {
+        console.warn('[AUTH] requireAuth: User not found in DB for email:', session.user.email);
+        return { error: 'Unauthorized — user not found', status: 401 };
+      }
+      return { user: { ...session.user, id: dbUser._id.toString() } };
+    }
+    return { user: session.user };
+  } catch (err) {
+    console.error('[AUTH] requireAuth error:', err);
+    return { error: 'Auth check failed', status: 500 };
   }
-  return { user: session.user };
 }
 
 export async function requireAdmin() {
@@ -48,4 +67,3 @@ export async function requireAdmin() {
   
   return result;
 }
-

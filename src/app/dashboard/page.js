@@ -390,7 +390,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => { fetchMonitors(); fetch('/api/monitors/process').catch(() => {}); }}
+            onClick={() => { fetchMonitors(); fetch('/api/monitors/process?secret=leadlinx-monitor-run').catch(() => {}); }}
             className="px-4 py-2.5 border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-2xl text-sm font-semibold transition-all flex items-center gap-2"
             title="Trigger extraction now"
           >
@@ -697,7 +697,7 @@ export default function DashboardPage() {
 
       {/* Close action menu on outside click */}
       {monitorActionMenu && (
-        <div className="fixed inset-0 z-40" onClick={() => setMonitorActionMenu(null)} />
+        <div className="fixed inset-0 z-[55]" onClick={() => setMonitorActionMenu(null)} />
       )}
 
       {/* Monitor Finish Confirmation */}

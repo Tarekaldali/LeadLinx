@@ -104,6 +104,8 @@ export async function runSocialExtraction(intentData, options = {}) {
         const lead = {
           source: 'reddit',
           subreddit: p.subreddit,
+          name: author,
+          title: title,
           link: url,
           context: context,
           raw_contacts: contacts

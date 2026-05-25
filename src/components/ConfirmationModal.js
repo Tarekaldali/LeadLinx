@@ -52,7 +52,6 @@ export default function ConfirmationModal({ isOpen, onClose, onConfirm, title, m
                   e.preventDefault();
                   e.stopPropagation();
                   onConfirm();
-                  onClose();
                 }}
                 className={`w-full py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.98] ${theme.actionBtn}`}
               >

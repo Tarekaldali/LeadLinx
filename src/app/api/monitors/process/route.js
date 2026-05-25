@@ -10,13 +10,22 @@ export const maxDuration = 300; // 5 minutes (Pro plan Vercel limit)
 
 /**
  * Surveillance Background Processor
- * This endpoint should be triggered by a CRON job every 15-60 minutes.
+ * Triggered by Vercel Cron (vercel.json) or manually from the dashboard "Run Now" button.
+ * Auth: Uses Vercel's native CRON_SECRET header, OR a custom secret query param for manual triggers.
  */
 export async function GET(request) {
-  // Security check: Verify secret token to prevent unauthorized triggers
+  // Vercel Cron sends its secret as a header: x-vercel-cron-secret
+  const vercelCronSecret = request.headers.get('x-vercel-cron-secret');
+  // Allow manual "Run Now" trigger with secret param OR if running locally
   const { searchParams } = new URL(request.url);
-  const secret = searchParams.get('secret');
-  if (secret !== process.env.MONITOR_SECRET && process.env.NODE_ENV === 'production') {
+  const querySecret = searchParams.get('secret');
+  
+  const isVercelCron = vercelCronSecret === process.env.CRON_SECRET;
+  const isManualRun = querySecret === (process.env.MONITOR_SECRET || 'leadlinx-monitor-run');
+  const isDev = process.env.NODE_ENV !== 'production';
+  
+  if (!isVercelCron && !isManualRun && !isDev) {
+    console.warn('[Monitor Processor] Unauthorized access attempt');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -57,7 +66,14 @@ export async function GET(request) {
       );
 
       // 1. Check user credits first
-      const user = await db.collection('users').findOne({ _id: new ObjectId(monitor.userId) });
+      // monitor.userId may be stored as ObjectId or string — handle both
+      let userObjectId;
+      try {
+        userObjectId = ObjectId.isValid(monitor.userId) ? new ObjectId(monitor.userId) : monitor.userId;
+      } catch {
+        userObjectId = monitor.userId;
+      }
+      const user = await db.collection('users').findOne({ _id: userObjectId });
       if (!user || user.credits < 5) {
          console.log(`⚠️ [Monitor] User ${monitor.userId} out of credits. Pausing monitor.`);
          await db.collection('monitors').updateOne(

@@ -16,6 +16,13 @@ import Link from 'next/link';
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
+const STATUS_CONFIG = {
+  'New': { color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', dot: 'bg-blue-400' },
+  'Contacted': { color: 'bg-amber-500/20 text-amber-400 border-amber-500/30', dot: 'bg-amber-400' },
+  'Qualified': { color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', dot: 'bg-emerald-400' },
+  'Lost': { color: 'bg-red-500/20 text-red-400 border-red-500/30', dot: 'bg-red-400' },
+};
+
 export default function LeadsWorkspace() {
   const [view, setView] = useState('groups'); // groups | leads
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -30,6 +37,8 @@ export default function LeadsWorkspace() {
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null); // For drawer
   const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null, type: 'danger' });
+  const [toast, setToast] = useState(null);
+  const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
   // Data Fetching
   const fetchUrl = selectedGroup 
@@ -159,13 +168,18 @@ export default function LeadsWorkspace() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(lead)
       });
+      const data = await res.json();
       if (res.ok) {
         mutate();
         mutateGroups();
         mutateStats();
+        showToast(data.message || 'Lead saved to pipeline!');
+      } else {
+        showToast(data.error || 'Failed to save lead', 'error');
       }
     } catch (err) {
       console.error(err);
+      showToast('Failed to save lead', 'error');
     }
   };
 
@@ -457,6 +471,7 @@ export default function LeadsWorkspace() {
                     />
                   </th>
                   <th>Prospect / Company</th>
+                  <th>Status</th>
                   <th>Contact Info</th>
                   <th>Source / Subreddit</th>
                   <th>Intent Score</th>
@@ -468,12 +483,12 @@ export default function LeadsWorkspace() {
                 {isLoading ? (
                   Array.from({ length: 8 }).map((_, i) => (
                     <tr key={i}>
-                      <td colSpan={7} className="px-6 py-4"><div className="h-10 w-full skeleton" /></td>
+                      <td colSpan={8} className="px-6 py-4"><div className="h-10 w-full skeleton" /></td>
                     </tr>
                   ))
                 ) : data?.leads.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-24 text-center">
+                    <td colSpan={8} className="px-6 py-24 text-center">
                       <div className="flex flex-col items-center gap-4 opacity-50">
                         <div className="p-6 bg-surface-container-low rounded-full">
                           <Bookmark size={48} className="text-on-surface-variant" />
@@ -516,6 +531,18 @@ export default function LeadsWorkspace() {
                             <Building2 size={10} /> {lead.company || 'Individual Prospect'}
                           </span>
                         </div>
+                      </td>
+                      <td>
+                        {(() => {
+                          const status = lead.status || 'New';
+                          const cfg = STATUS_CONFIG[status] || STATUS_CONFIG['New'];
+                          return (
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${cfg.color}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                              {status}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td>
                         <div className="flex flex-col gap-1">
@@ -868,6 +895,16 @@ export default function LeadsWorkspace() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed bottom-8 right-8 z-[200] px-6 py-4 rounded-2xl text-sm font-bold shadow-2xl animate-in slide-in-from-bottom-2 border ${
+          toast.type === 'error' 
+            ? 'bg-red-950/90 text-red-300 border-red-800' 
+            : 'bg-surface text-on-surface border-border-glass'
+        }`}>
+          {toast.msg}
         </div>
       )}
     </div>

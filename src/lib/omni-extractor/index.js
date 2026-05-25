@@ -52,10 +52,12 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
     const batch = rawLeads.slice(i, i + BATCH_SIZE);
     
     const results = await Promise.all(batch.map(async (rawLead) => {
-      const contactCount = rawLead.raw_contacts.emails.length + 
-                           rawLead.raw_contacts.phones.length + 
-                           rawLead.raw_contacts.socials.length;
+      const contactCount = (rawLead.raw_contacts.emails?.length || 0) + 
+                           (rawLead.raw_contacts.phones?.length || 0) + 
+                           (rawLead.raw_contacts.socials?.length || 0);
                              
+      // Only skip leads with ZERO contacts AND not from local maps
+      // Reddit leads always have social handles (reddit:@author) so they pass this check
       if (contactCount === 0 && rawLead.source !== 'local_maps') {
          return { lead: null, usage: { prompt_tokens: 0, completion_tokens: 0 } }; 
       }
@@ -113,7 +115,11 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
     },
     stats: {
       rawFound: rawLeads.length,
-      validated: validatedLeads.length
+      validated: validatedLeads.length,
+      // Aliases expected by leads/search route:
+      pagesCrawled: rawLeads.length,
+      urlsDiscovered: rawLeads.length,
+      duplicatesFiltered: Math.max(0, rawLeads.length - validatedLeads.length),
     },
     leads: validatedLeads
   };
