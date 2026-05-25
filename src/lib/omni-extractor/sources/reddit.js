@@ -8,6 +8,8 @@
  *   3. Direct search intent fallback via Reddit search
  */
 
+import fetch from 'node-fetch';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 import { detectContactsAggressively } from '../detector.js';
 
 const USER_AGENTS = [
@@ -17,8 +19,26 @@ const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
 ];
 
+const PROXIES = [
+  'http://czyysast:hyui5c8xxguq@38.154.203.95:5863',
+  'http://czyysast:hyui5c8xxguq@198.105.121.200:6462',
+  'http://czyysast:hyui5c8xxguq@64.137.96.74:6641',
+  'http://czyysast:hyui5c8xxguq@209.127.138.10:5784',
+  'http://czyysast:hyui5c8xxguq@38.154.185.97:6370',
+  'http://czyysast:hyui5c8xxguq@84.247.60.125:6095',
+  'http://czyysast:hyui5c8xxguq@142.111.67.146:5611',
+  'http://czyysast:hyui5c8xxguq@194.39.32.164:6461',
+  'http://czyysast:hyui5c8xxguq@191.96.254.138:6185',
+  'http://czyysast:hyui5c8xxguq@31.58.9.4:6077'
+];
+
 function getUA() {
   return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+}
+
+function getRandomProxy() {
+  const proxyUrl = PROXIES[Math.floor(Math.random() * PROXIES.length)];
+  return new HttpsProxyAgent(proxyUrl);
 }
 
 function delay(ms) {
@@ -26,7 +46,7 @@ function delay(ms) {
 }
 
 /**
- * Fetch with retry and timeout
+ * Fetch with retry, timeout, and rotating proxies
  */
 async function fetchWithRetry(url, options = {}, retries = 3) {
   for (let attempt = 0; attempt < retries; attempt++) {
@@ -34,8 +54,11 @@ async function fetchWithRetry(url, options = {}, retries = 3) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
       
+      const agent = getRandomProxy();
+      
       const res = await fetch(url, {
         ...options,
+        agent,
         signal: controller.signal,
         headers: {
           'User-Agent': getUA(),
@@ -43,7 +66,6 @@ async function fetchWithRetry(url, options = {}, retries = 3) {
           'Accept-Language': 'en-US,en;q=0.9',
           ...options.headers,
         },
-        cache: 'no-store',
       });
       clearTimeout(timeoutId);
       

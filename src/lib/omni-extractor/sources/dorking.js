@@ -9,45 +9,79 @@
  */
 
 import * as cheerio from 'cheerio';
-import { extractFromHtml, detectContactsAggressively } from '../detector.js';
+import fetch from 'node-fetch';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import { detectContactsAggressively } from '../detector.js';
 
 const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
-  'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0'
+];
+
+const PROXIES = [
+  'http://czyysast:hyui5c8xxguq@38.154.203.95:5863',
+  'http://czyysast:hyui5c8xxguq@198.105.121.200:6462',
+  'http://czyysast:hyui5c8xxguq@64.137.96.74:6641',
+  'http://czyysast:hyui5c8xxguq@209.127.138.10:5784',
+  'http://czyysast:hyui5c8xxguq@38.154.185.97:6370',
+  'http://czyysast:hyui5c8xxguq@84.247.60.125:6095',
+  'http://czyysast:hyui5c8xxguq@142.111.67.146:5611',
+  'http://czyysast:hyui5c8xxguq@194.39.32.164:6461',
+  'http://czyysast:hyui5c8xxguq@191.96.254.138:6185',
+  'http://czyysast:hyui5c8xxguq@31.58.9.4:6077'
 ];
 
 function getUA() {
   return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
 }
 
-function delay(ms) {
-  return new Promise(r => setTimeout(r, ms + Math.random() * 300));
+function getRandomProxy() {
+  const proxyUrl = PROXIES[Math.floor(Math.random() * PROXIES.length)];
+  return new HttpsProxyAgent(proxyUrl);
 }
 
-async function safeFetch(url, options = {}) {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
-    
-    const res = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        'User-Agent': getUA(),
-        'Accept': 'text/html,application/json,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        ...options.headers,
-      },
-      cache: 'no-store',
-    });
-    clearTimeout(timeoutId);
-    
-    if (!res.ok) return null;
-    return res;
-  } catch {
-    return null;
+function delay(ms) {
+  return new Promise(r => setTimeout(r, ms + Math.random() * 500));
+}
+
+async function fetchWithRetry(url, options = {}, retries = 3) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const agent = getRandomProxy();
+      
+      const res = await fetch(url, {
+        ...options,
+        agent,
+        signal: controller.signal,
+        headers: {
+          'User-Agent': getUA(),
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          ...options.headers,
+        },
+      });
+      clearTimeout(timeoutId);
+      
+      if (!res.ok) {
+        if (res.status === 403 || res.status === 429) {
+          console.warn(`[Dorking] Blocked by ${new URL(url).hostname} (${res.status}), retrying with delay...`);
+          await delay((attempt + 1) * 2000);
+          continue;
+        }
+        return null;
+      }
+      return res;
+    } catch (err) {
+      if (err.name === 'AbortError') console.warn(`[Dorking] Timeout for ${url}`);
+      if (attempt === retries - 1) return null;
+      await delay(1000);
+    }
   }
+  return null;
 }
 
 /**
@@ -65,7 +99,7 @@ async function searchSearXNG(query) {
   for (const instance of instances) {
     try {
       const url = `${instance}/search?q=${encodeURIComponent(query)}&format=json&engines=google,bing,duckduckgo&language=en`;
-      const res = await safeFetch(url);
+      const res = await fetchWithRetry(url);
       if (!res) continue;
       
       const data = await res.json();
@@ -93,7 +127,7 @@ async function searchSearXNG(query) {
  */
 async function searchDuckDuckGo(query) {
   const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-  const res = await safeFetch(url);
+  const res = await fetchWithRetry(url);
   if (!res) return [];
   
   try {
