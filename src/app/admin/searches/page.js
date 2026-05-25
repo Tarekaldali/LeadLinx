@@ -37,7 +37,8 @@ export default function AdminSearchesPage() {
                   <XAxis type="number" stroke="#9ca3af" />
                   <YAxis dataKey="_id" type="category" width={120} stroke="#9ca3af" tick={{ fontSize: 11 }} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                    contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-outline-variant)', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', color: 'var(--color-on-surface)' }}
                     itemStyle={{ color: '#dc2626' }}
                   />
                   <Bar dataKey="count" fill="#dc2626" radius={[0, 6, 6, 0]} />
@@ -62,7 +63,8 @@ export default function AdminSearchesPage() {
                   <XAxis type="number" stroke="#9ca3af" />
                   <YAxis dataKey="_id" type="category" width={120} stroke="#9ca3af" tick={{ fontSize: 11 }} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                    contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-outline-variant)', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', color: 'var(--color-on-surface)' }}
                     itemStyle={{ color: '#0d9488' }}
                   />
                   <Bar dataKey="count" fill="#0d9488" radius={[0, 6, 6, 0]} />
