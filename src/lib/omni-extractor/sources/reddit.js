@@ -135,7 +135,7 @@ async function fetchRedditJSON(subreddit, keyword, limit = 100, sort = 'new') {
   }
 }
 
-async function fetchRedditPosts(subreddit, keyword, limit = 25) {
+async function fetchRedditPosts(subreddit, keyword, limit = 50) {
   const allPosts = new Map();
   
   // Pass 1: Sort by NEW (recent high-intent)
