@@ -1,5 +1,5 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = 'google/gemini-2.0-flash-001';
+const MODEL = 'google/gemini-3.5-flash';
 
 async function callGeminiJSON(systemPrompt, userPrompt) {
   const body = {

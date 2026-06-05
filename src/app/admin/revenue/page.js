@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from 'recharts';
+import ExportButtons from '@/components/ExportButtons';
 
 export default function AdminRevenuePage() {
   const [data, setData] = useState(null);
@@ -28,9 +29,14 @@ export default function AdminRevenuePage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <header>
-        <h1 className="text-3xl font-headline mb-2 text-on-surface">Revenue Analytics</h1>
-        <p className="text-on-surface-variant font-body">Subscriptions, churn, and plan distribution metrics.</p>
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-headline mb-2 text-on-surface">Revenue Analytics</h1>
+          <p className="text-on-surface-variant font-body">Subscriptions, churn, and plan distribution metrics.</p>
+        </div>
+        <div className="flex flex-wrap gap-3 items-center">
+          <ExportButtons currentData={data?.recentSubscribers || []} currentPageName="Revenue" />
+        </div>
       </header>
 
       {/* Revenue Stats */}

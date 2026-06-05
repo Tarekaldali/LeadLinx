@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import ExportButtons from '@/components/ExportButtons';
 import './admin.css';
 
 export default function AdminOverviewPage() {
@@ -42,9 +43,12 @@ export default function AdminOverviewPage() {
 
   return (
     <div className="admin-container animate-fade-in">
-      <header className="admin-header">
-        <h1 className="admin-title">Platform Intelligence</h1>
-        <p className="text-on-surface-variant font-medium">Global system telemetry and revenue performance monitoring.</p>
+      <header className="admin-header flex justify-between items-start">
+        <div>
+          <h1 className="admin-title">Platform Intelligence</h1>
+          <p className="text-on-surface-variant font-medium">Global system telemetry and revenue performance monitoring.</p>
+        </div>
+        <ExportButtons currentData={data.planDistribution || []} currentPageName="Overview" />
       </header>
 
       {/* Telemetry Metrics */}

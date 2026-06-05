@@ -31,6 +31,14 @@ export async function GET(request) {
 
   const db = await getDb();
   const now = new Date();
+  
+  // Cleanup: Reset any monitors that got stuck in "processing: true" for more than 15 minutes due to Vercel timeouts
+  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+  await db.collection('monitors').updateMany(
+    { status: 'active', processing: true, updatedAt: { $lt: fifteenMinutesAgo } },
+    { $set: { processing: false, lastError: 'Reset after timeout' } }
+  );
+
   const allActiveMonitors = await db.collection('monitors').find({ status: 'active', processing: { $ne: true } }).toArray();
 
   // Filter monitors based on frequency

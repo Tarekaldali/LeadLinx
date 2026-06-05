@@ -12,6 +12,8 @@
  *   3. Return leads in the format ChatMessage.js expects
  */
 
+export const maxDuration = 60; // Set max duration for Vercel Serverless Function
+
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { requireAuth } from '@/lib/auth';
@@ -157,13 +159,15 @@ export async function POST(request) {
       author: l.author || 'Unknown',
       company: l.company || '',
       title: l.title || '',
-      body: l.reasoning || '',
+      body: l.body || l.reasoning || '',
       link: l.link || '#',
-      subreddit: l.source,
+      subreddit: l.subreddit || l.source || 'reddit',
       emails: l.emails || [],
       phones: l.phones || [],
       socials: l.socials || [],
       score: l.score || 0,
+      type: l.type || 'Solution-Seeking',
+      suggestedReply: l.suggestedReply || '',
       leadType: result.route_data?.targetType === 'b2c' ? 'B2C (Consumer)' : 'B2B (Business)',
     }));
 
@@ -228,8 +232,8 @@ export async function POST(request) {
       insights,
       totalScanned: result.stats.pagesCrawled,
       creditsRemaining: updatedUser?.credits ?? 0,
-      searchQueries: [query],
-      selectedSubreddits: [], // No subreddits — we crawl the web now
+      searchQueries: result.route_data?.searchQueries || [query],
+      selectedSubreddits: result.route_data?.subreddits || [],
     });
 
   } catch (error) {

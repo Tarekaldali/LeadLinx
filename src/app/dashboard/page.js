@@ -7,6 +7,7 @@ import ChatMessage from '@/components/ChatMessage';
 import SettingsContent from '@/components/dashboard/SettingsContent';
 import LeadsWorkspace from '@/components/dashboard/LeadsWorkspace';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { exportToXLSX } from '@/lib/exportUtils';
 import { useDashboard } from './layout';
 
 import './dashboard.css';
@@ -202,6 +203,14 @@ export default function DashboardPage() {
     }
   };
 
+  const handleExportResults = (leads) => {
+    if (!leads || leads.length === 0) {
+      showToast("No leads to export.", "error");
+      return;
+    }
+    exportToXLSX(leads, 'LeadLinx_Results', 'Leads');
+  };
+
   const renderDiscovery = () => (
     <div className="messages-area">
       <div className="chat-max-width">
@@ -232,33 +241,48 @@ export default function DashboardPage() {
         ) : (
           <div className="space-y-2">
             {messages.map((msg, idx) => (
-              <div key={idx} className="message-bubble-human animate-in">
-                <div className={`avatar-minimal ${msg.role === 'assistant' ? 'avatar-ai' : ''}`}>
-                  {msg.role === 'assistant' ? 'AI' : (session?.user?.name?.[0] || 'U')}
-                </div>
-                <div className="message-text">
+              <div key={idx} className={`flex gap-4 mb-8 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in`}>
+                {msg.role === 'assistant' && (
+                  <div className="w-10 h-10 rounded-full bg-[#ff3b30] flex items-center justify-center text-white text-sm font-bold shadow-lg shrink-0 mt-1">
+                    AI
+                  </div>
+                )}
+                
+                <div className={`${
+                  msg.role === 'user' 
+                    ? 'bg-[#007aff] text-white px-5 py-3 rounded-2xl rounded-br-sm shadow-sm max-w-[80%]' 
+                    : (msg.leads && msg.leads.length > 0) || msg.status === 'processing' || msg.insights 
+                      ? 'w-full max-w-full'
+                      : 'bg-surface-dim border border-outline-variant text-on-surface px-5 py-3 rounded-2xl rounded-bl-sm shadow-sm max-w-[80%]'
+                }`}>
                   {msg.role === 'user' ? (
-                    <p className="text-on-surface text-sm font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                    <p className="text-[15px] font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                   ) : msg.error ? (
-                    <div className="p-4 bg-red-950/20 border border-red-800/30 rounded-2xl">
+                    <div className="p-4 bg-red-950/20 border border-red-800/30 rounded-xl">
                       <p className="text-red-400 text-sm font-medium">{msg.error}</p>
                     </div>
                   ) : msg.status === 'chat' || (!msg.leads && !msg.status) ? (
-                    <p className="text-on-surface text-sm font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                    <p className="text-[15px] font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                   ) : (
-                    <ChatMessage message={msg} onSave={handleSaveLead} />
+                    <ChatMessage message={msg} onSave={handleSaveLead} onExport={handleExportResults} />
                   )}
                 </div>
+
+                {msg.role === 'user' && (
+                  <div className="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center text-on-surface text-sm font-bold shadow-sm shrink-0 mt-1">
+                    {session?.user?.name?.[0] || 'U'}
+                  </div>
+                )}
               </div>
             ))}
             {loading && (
-              <div className="message-bubble-human animate-in">
-                <div className="avatar-minimal avatar-ai">AI</div>
-                <div className="message-text">
-                  <div className="flex gap-1.5 mt-2">
-                    <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce"></div>
-                    <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              <div className="flex gap-4 mb-8 justify-start animate-in">
+                <div className="w-10 h-10 rounded-full bg-[#ff3b30] flex items-center justify-center text-white text-sm font-bold shadow-lg shrink-0 mt-1">AI</div>
+                <div className="bg-surface-dim border border-outline-variant px-5 py-4 rounded-2xl rounded-bl-sm shadow-sm">
+                  <div className="flex gap-2 items-center h-full">
+                    <div className="w-2 h-2 bg-[#ff3b30] rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-[#ff3b30] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-[#ff3b30] rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                   </div>
                 </div>
               </div>

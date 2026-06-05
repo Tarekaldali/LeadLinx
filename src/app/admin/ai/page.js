@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Legend } from 'recharts';
+import ExportButtons from '@/components/ExportButtons';
 
 const TYPE_LABELS = {
   lead_search: 'Lead Search',
@@ -60,19 +61,22 @@ export default function AdminAIPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline mb-2 text-on-surface">AI Monitor</h1>
           <p className="text-on-surface-variant font-body">Live token consumption, API costs, and per-type usage breakdown.</p>
         </div>
-        <button
-          onClick={() => loadData(true)}
-          disabled={refreshing}
-          className="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-xl text-sm font-semibold text-on-surface hover:bg-surface-container transition-all"
-        >
-          <span className={`material-symbols-outlined text-[18px] ${refreshing ? 'animate-spin' : ''}`}>refresh</span>
-          {refreshing ? 'Refreshing...' : 'Refresh'}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButtons currentData={data.costBreakdown || []} currentPageName="AI_Monitor" />
+          <button
+            onClick={() => loadData(true)}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-xl text-sm font-semibold text-on-surface hover:bg-surface-container transition-all"
+          >
+            <span className={`material-symbols-outlined text-[18px] ${refreshing ? 'animate-spin' : ''}`}>refresh</span>
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* Summary Stats */}

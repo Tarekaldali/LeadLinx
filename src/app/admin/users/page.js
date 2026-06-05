@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Modal from '@/components/Modal';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import ExportButtons from '@/components/ExportButtons';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
@@ -85,12 +86,13 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <header className="flex justify-between items-center">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-headline mb-2 text-on-surface">User Management</h1>
           <p className="text-on-surface-variant font-body">{filteredUsers.length} users found {searchQuery && `for "${searchQuery}"`}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 items-center">
+          <ExportButtons currentData={filteredUsers} currentPageName="Users" />
           <button onClick={fetchUsers} className="btn-ghost flex items-center gap-2">
             <span className="material-symbols-outlined text-sm">refresh</span>
             Refresh

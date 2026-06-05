@@ -13,16 +13,17 @@ Determine if the query is:
 - B2B (Business to Business): e.g., "beauty salons", "marketing agencies", "plumbers"
 
 Then select the most effective extraction sources from:
-- "dorking": Web OSINT / Google Dorking (best for finding public emails on social media like Instagram/Twitter, or generic web mentions)
 - "social": Reddit / Community forums (best for high-intent B2C users asking questions or product recommendations)
 - "local": Maps / Local Business data (best for B2B brick-and-mortar stores)
+
+CRITICAL: You should ALWAYS recommend "social" for searches to ensure we search on Reddit exclusively. Do NOT recommend "dorking".
 
 If "social" is recommended, you MUST also identify the 5 most relevant subreddits for high-intent conversations.
 
 Return ONLY valid JSON:
 {
   "target_type": "b2c" | "b2b",
-  "recommended_sources": ["dorking", "social", "local"],
+  "recommended_sources": ["social"],
   "search_intent": "concise description of what they are looking for",
   "keywords": ["keyword1", "keyword2"],
   "subreddits": ["SubredditName1", "SubredditName2"]
@@ -54,7 +55,7 @@ export async function routeQuery(query, returnUsage = false) {
 
     const data = {
       targetType: parsed.target_type || 'b2b',
-      sources: parsed.recommended_sources || ['dorking'],
+      sources: ['social'], // Forced social only per user request
       searchIntent: parsed.search_intent || query,
       keywords: parsed.keywords || [query],
       subreddits: parsed.subreddits || []
@@ -72,7 +73,7 @@ export async function routeQuery(query, returnUsage = false) {
     console.error('[Omni-Router] Failed to route query:', error);
     const fallback = {
       targetType: 'b2b',
-      sources: ['dorking', 'social'],
+      sources: ['social'],
       searchIntent: query,
       keywords: [query],
       subreddits: []

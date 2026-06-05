@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import ExportButtons from '@/components/ExportButtons';
 
 export default function AdminCostsPage() {
   const [data, setData] = useState(null);
@@ -82,7 +83,8 @@ export default function AdminCostsPage() {
           <h1 className="text-3xl font-headline text-on-surface">Chat Cost & Profit</h1>
           <p className="text-on-surface-variant mt-1 font-body">Token usage, AI cost, revenue, and profit per search session.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButtons currentData={data.searches || []} currentPageName="ChatCosts" />
           <select
             value={type}
             onChange={e => { setType(e.target.value); setPage(1); }}

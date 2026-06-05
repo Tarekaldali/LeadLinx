@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import ExportButtons from '@/components/ExportButtons';
 
 export default function AdminChatsPage() {
   const [data, setData] = useState({ chats: [], total: 0, totalPages: 0 });
@@ -41,17 +42,20 @@ export default function AdminChatsPage() {
           <h1 className="text-3xl font-headline text-on-surface">Chat History</h1>
           <p className="text-on-surface-variant mt-1 font-body">Complete chat logs, messages, and user session data.</p>
         </div>
-        <select
-          value={days}
-          onChange={e => { setDays(e.target.value); setPage(1); }}
-          className="input-field py-2 px-3 w-40 text-sm"
-        >
-          <option value="1">Last 1 day</option>
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="90">Last 90 days</option>
-          <option value="all">All Time</option>
-        </select>
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButtons currentData={data.chats || []} currentPageName="Chats" />
+          <select
+            value={days}
+            onChange={e => { setDays(e.target.value); setPage(1); }}
+            className="input-field py-2 px-3 w-40 text-sm"
+          >
+            <option value="1">Last 1 day</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
       </div>
 
       <div className="bento-card p-0 overflow-hidden">

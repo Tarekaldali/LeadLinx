@@ -70,14 +70,16 @@ export async function classifyIntent(query) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-chat", // Use DeepSeek V3 for fast classification
+        model: "google/gemini-3.5-flash", // Faster than DeepSeek for this simple intent task
         messages: [
           {
             role: "system",
             content: `You are the LeadLinx Intent Classifier. Determine if the user wants to perform a lead search or just talk.
             
-            - SEARCH: User describes a product, a niche, or says "find leads for...".
-            - CHAT: Greetings, general questions, or small talk.
+            - SEARCH: User describes a SPECIFIC product, a niche, or an industry (e.g. "find leads for my CRM for plumbers").
+            - CHAT: Greetings, general questions, small talk, OR overly generic requests like "find leads" or "get customers" without specifying a niche.
+            
+            If the request is too generic to perform a search, classify as CHAT and set response_message to ask the user for their niche or target audience.
             
             Return ONLY JSON: {"intent": "SEARCH" | "CHAT", "response_message": "A friendly reply if CHAT, otherwise empty string"}`
           },
@@ -110,7 +112,7 @@ export async function generateSearchPlan(query) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
+        model: "google/gemini-3.5-flash",
         messages: [
           { 
             role: "system",
@@ -123,10 +125,11 @@ export async function generateSearchPlan(query) {
             3. SOLUTION SEEKING: Users explicitly asking for recommendations (e.g., "recommend", "looking for a tool").
             
             RULES:
-            - Use Boolean logic (OR, AND, quotes " ").
+            - DO NOT use complex Boolean logic (no AND/OR or nested parentheses). Reddit's API breaks with complex boolean queries.
+            - Use natural, exact-match phrases wrapped in quotes (e.g., "alternative to", "tired of", "looking for").
             - Return ONLY JSON.
             - Exactly 3 advanced search_queries.
-            - Max 5 high-intent subreddits.`
+            - Up to 30 high-intent subreddits.`
           },
           { role: "user", content: `Product/Leads Wanted: "${query}"` }
         ],
@@ -155,7 +158,7 @@ export async function generateSearchPlan(query) {
 export async function analyzeLeadsBatch(batch, userQuery) {
   try {
     // Primary: Gemini 2.0 Flash 001 via OpenRouter
-    return await callOpenRouterAnalysis("google/gemini-2.0-flash-001", batch, userQuery);
+    return await callOpenRouterAnalysis("google/gemini-3.5-flash", batch, userQuery);
   } catch (error) {
     console.warn(`⚠️ Primary Model Failed: ${error.message}. Trying Fallback...`);
     try {
