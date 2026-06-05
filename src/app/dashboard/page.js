@@ -131,7 +131,13 @@ export default function DashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, chatId }),
       });
-      const data = await res.json();
+      
+      let data;
+      try {
+        data = await res.json();
+      } catch (err) {
+        throw new Error(res.status === 504 ? 'Search timed out (Vercel 60s limit). Try a more specific query.' : 'A server error occurred. Please try again.');
+      }
 
       if (!res.ok) throw new Error(data.error || 'Search failed');
       if (data.creditsRemaining !== undefined) updateCredits?.(data.creditsRemaining);

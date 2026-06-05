@@ -121,15 +121,16 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   // 5. LLM Validation & Scoring
   const validatedLeads = [];
   
-  // INCREASED limits to process more candidates (was 25/50, now 40/80)
-  const MAX_LEADS_TO_PROCESS = options.isPremium ? 80 : 40;
+  // Decrease limits to respect Vercel 60s maxDuration
+  const MAX_LEADS_TO_PROCESS = options.isPremium ? 40 : 20;
   
   // Prioritize leads with higher heuristic intent score instead of raw length
   const leadsToProcess = [...rawLeads]
     .sort((a, b) => getHeuristicScore(b) - getHeuristicScore(a))
     .slice(0, MAX_LEADS_TO_PROCESS);
     
-  const BATCH_SIZE = 35; 
+  // Lower BATCH_SIZE to 10 to prevent OpenRouter 429 Rate Limits
+  const BATCH_SIZE = 10; 
   
   for (let i = 0; i < leadsToProcess.length; i += BATCH_SIZE) {
     const batch = leadsToProcess.slice(i, i + BATCH_SIZE);
@@ -189,6 +190,13 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
         totalOutputTokens += res.usage.completion_tokens || 0;
       }
     });
+
+    // EARLY STOPPING: Break loop if we have enough leads to prevent Vercel 60s timeout
+    const targetLeads = options.isPremium ? 12 : 5;
+    if (validatedLeads.length >= targetLeads) {
+      console.log(`⏱️ [Omni-Extractor] Early stop: Reached ${validatedLeads.length} leads to avoid 60s Vercel timeout.`);
+      break;
+    }
   }
   
   validatedLeads.sort((a, b) => b.score - a.score);
