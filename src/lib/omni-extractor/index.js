@@ -1,6 +1,9 @@
 /**
  * Omni-Extractor — Orchestrator
  * Main entry point for the Multi-Channel Extraction Engine.
+ * 
+ * V3 RESTORED: Re-integrates generateSearchPlan() from aiOrchestrator
+ * for advanced Boolean queries + smarter subreddit selection.
  */
 
 import { routeQuery } from './router.js';
@@ -9,6 +12,7 @@ import { runDorking } from './sources/dorking.js';
 import { runSocialExtraction } from './sources/reddit.js';
 import { runLocalExtraction } from './sources/local.js';
 import { callGemini } from '../gemini.js';
+import { generateSearchPlan } from '../aiOrchestrator.js';
 
 export async function extractOmniLeads(query, options = { isPremium: false }) {
   console.log(`\n🚀 [Omni-Extractor] Starting extraction for: "${query}" | Premium: ${options.isPremium}`);
@@ -22,17 +26,54 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   totalInputTokens += routerResult.usage.prompt_tokens;
   totalOutputTokens += routerResult.usage.completion_tokens;
 
-  console.log(`🗺️ [Omni-Router] Target: ${routeData.targetType.toUpperCase()} | Sources: ${routeData.sources.join(', ')} | Subreddits: ${routeData.subreddits.join(', ')}`);
+  // 2. RESTORED: Generate advanced search plan (Boolean queries + smarter subreddits)
+  //    This was the "secret sauce" of the old engine that got disabled.
+  let searchPlan = { subreddits: [], search_queries: [query] };
+  try {
+    searchPlan = await generateSearchPlan(query);
+    console.log(`🧠 [Search Plan] Generated ${searchPlan.search_queries.length} Boolean queries, ${searchPlan.subreddits.length} subreddits`);
+    
+    // Track tokens from search plan
+    if (searchPlan.usage) {
+      totalInputTokens += searchPlan.usage.prompt_tokens || 0;
+      totalOutputTokens += searchPlan.usage.completion_tokens || 0;
+    }
+  } catch (err) {
+    console.warn('[Search Plan] Failed, using router data only:', err.message);
+  }
+
+  // 3. Merge router subreddits + search plan subreddits (deduplicated)
+  const mergedSubreddits = [...new Set([
+    ...(routeData.subreddits || []),
+    ...(searchPlan.subreddits || [])
+  ])];
+
+  // Merge keywords + search plan queries
+  const mergedKeywords = [...new Set([
+    ...(routeData.keywords || []),
+    ...(searchPlan.search_queries || [])
+  ])];
+
+  // Build enriched route data
+  const enrichedRouteData = {
+    ...routeData,
+    subreddits: mergedSubreddits,
+    keywords: mergedKeywords,
+    searchQueries: searchPlan.search_queries || [query],
+    sources: ['social'] // USER REQUEST: Force Reddit only
+  };
+
+  console.log(`🗺️ [Omni-Router] Target: ${enrichedRouteData.targetType.toUpperCase()} | Sources: ${enrichedRouteData.sources.join(', ')} | Subreddits: ${mergedSubreddits.join(', ')} | Queries: ${mergedKeywords.length}`);
   
   const rawLeads = [];
   const sourceResults = {};
   
-  // 2. Parallel Multi-Source Extraction
+  // 4. Parallel Multi-Source Extraction
   const tasks = [];
   
-  if (routeData.sources.includes('dorking')) {
+  if (enrichedRouteData.sources.includes('dorking')) {
     tasks.push(
-      runDorking(routeData, options)
+      runDorking(enrichedRouteData, options)
         .then(res => {
           sourceResults.dorking = res.length;
           rawLeads.push(...res);
@@ -44,9 +85,9 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
     );
   }
   
-  if (routeData.sources.includes('social')) {
+  if (enrichedRouteData.sources.includes('social')) {
     tasks.push(
-      runSocialExtraction(routeData, options)
+      runSocialExtraction(enrichedRouteData, options)
         .then(res => {
           sourceResults.social = res.length;
           rawLeads.push(...res);
@@ -58,9 +99,9 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
     );
   }
   
-  if (routeData.sources.includes('local')) {
+  if (enrichedRouteData.sources.includes('local')) {
     tasks.push(
-      runLocalExtraction(routeData, options)
+      runLocalExtraction(enrichedRouteData, options)
         .then(res => {
           sourceResults.local = res.length;
           rawLeads.push(...res);
@@ -77,60 +118,76 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   console.log(`🔎 [Omni-Extractor] Source results:`, JSON.stringify(sourceResults));
   console.log(`🔎 [Omni-Extractor] Found ${rawLeads.length} raw potential leads across sources.`);
   
-  // 3. LLM Validation & Scoring
+  // 5. LLM Validation & Scoring
   const validatedLeads = [];
-  const BATCH_SIZE = 50; 
   
-  for (let i = 0; i < rawLeads.length; i += BATCH_SIZE) {
-    const batch = rawLeads.slice(i, i + BATCH_SIZE);
+  // INCREASED limits to process more candidates (was 25/50, now 40/80)
+  const MAX_LEADS_TO_PROCESS = options.isPremium ? 80 : 40;
+  
+  // Prioritize leads with higher heuristic intent score instead of raw length
+  const leadsToProcess = [...rawLeads]
+    .sort((a, b) => getHeuristicScore(b) - getHeuristicScore(a))
+    .slice(0, MAX_LEADS_TO_PROCESS);
+    
+  const BATCH_SIZE = 35; 
+  
+  for (let i = 0; i < leadsToProcess.length; i += BATCH_SIZE) {
+    const batch = leadsToProcess.slice(i, i + BATCH_SIZE);
     
     const results = await Promise.all(batch.map(async (rawLead) => {
-      const contactCount = (rawLead.raw_contacts.emails?.length || 0) + 
-                           (rawLead.raw_contacts.phones?.length || 0) + 
-                           (rawLead.raw_contacts.socials?.length || 0);
-                             
-      // Only skip leads with ZERO contacts AND not from local maps
-      // Reddit leads always have social handles (reddit:@author) so they pass this check
-      if (contactCount === 0 && rawLead.source !== 'local_maps') {
-         return { lead: null, usage: { prompt_tokens: 0, completion_tokens: 0 } }; 
+      // FIX: The old code required contactCount > 0 which killed most Reddit leads.
+      // Reddit leads are valid with just a username — the reddit:@username social handle
+      // is their contact. We now only skip leads with very short context.
+      if (!rawLead.context || rawLead.context.trim().length < 20) {
+        return { lead: null, usage: { prompt_tokens: 0, completion_tokens: 0 } };
       }
       
-      const valResult = await validateLeadIntent(
-        rawLead.context, 
-        rawLead.raw_contacts, 
-        routeData.searchIntent,
-        true 
-      );
+      try {
+        const valResult = await validateLeadIntent(
+          rawLead.context, 
+          rawLead.raw_contacts, 
+          enrichedRouteData.searchIntent,
+          true 
+        );
 
-      const validation = valResult.data;
-      
-      if (validation.is_valid_lead) {
-        return {
-          lead: {
-            id: Math.random().toString(36).substring(2, 15),
-            score: Math.round(validation.confidence_score * 100),
-            author: validation.lead_name || rawLead.name || 'Unknown',
-            company: rawLead.source === 'local_maps' ? rawLead.name : null,
-            title: routeData.searchIntent,
-            link: rawLead.link,
-            source: rawLead.source,
-            subreddit: rawLead.subreddit || rawLead.source,
-            emails: validation.verified_contacts.emails || [],
-            phones: validation.verified_contacts.phones || [],
-            socials: validation.verified_contacts.socials || [],
-            reasoning: validation.reasoning
-          },
-          usage: valResult.usage
-        };
+        const validation = valResult.data;
+        
+        if (validation.is_valid_lead) {
+          return {
+            lead: {
+              id: Math.random().toString(36).substring(2, 15),
+              score: Math.round(validation.confidence_score * 100),
+              author: validation.lead_name || rawLead.name || 'Unknown',
+              company: rawLead.source === 'local_maps' ? rawLead.name : null,
+              title: rawLead.title || enrichedRouteData.searchIntent,
+              body: rawLead.context?.substring(0, 500) || '',
+              link: rawLead.link,
+              source: rawLead.source,
+              subreddit: rawLead.subreddit || rawLead.source,
+              emails: validation.verified_contacts.emails || [],
+              phones: validation.verified_contacts.phones || [],
+              socials: validation.verified_contacts.socials || [],
+              reasoning: validation.reasoning,
+              suggestedReply: validation.suggested_reply || '',
+              type: validation.lead_type || 'Solution-Seeking',
+            },
+            usage: valResult.usage
+          };
+        }
+        return { lead: null, usage: valResult.usage };
+      } catch (err) {
+        console.error('[Omni-Extractor] Validation error:', err.message);
+        return { lead: null, usage: { prompt_tokens: 0, completion_tokens: 0 } };
       }
-      return { lead: null, usage: valResult.usage };
     }));
     
     // Safely accumulate tokens and leads
     results.forEach(res => {
-      if (res.lead) validatedLeads.push(res.lead);
-      totalInputTokens += res.usage.prompt_tokens || 0;
-      totalOutputTokens += res.usage.completion_tokens || 0;
+      if (res && res.lead) validatedLeads.push(res.lead);
+      if (res && res.usage) {
+        totalInputTokens += res.usage.prompt_tokens || 0;
+        totalOutputTokens += res.usage.completion_tokens || 0;
+      }
     });
   }
   
@@ -141,7 +198,7 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   return {
     jobId: `omni_${Date.now()}`,
     query: query,
-    route_data: routeData,
+    route_data: enrichedRouteData,
     usage: {
       prompt_tokens: totalInputTokens,
       completion_tokens: totalOutputTokens
@@ -156,5 +213,30 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
     },
     leads: validatedLeads
   };
+}
+
+/**
+ * Fast local heuristic to score raw leads before LLM validation.
+ * Prioritizes high-intent buyer signals over massive spam walls.
+ */
+function getHeuristicScore(lead) {
+  const text = lead.context?.toLowerCase() || '';
+  let score = 0;
+  
+  if (text.includes('looking for')) score += 10;
+  if (text.includes('recommend')) score += 10;
+  if (text.includes('need ')) score += 5;
+  if (text.includes('alternative')) score += 10;
+  if (text.includes('help')) score += 2;
+  if (text.includes('suggest')) score += 8;
+  if (text.includes('best ')) score += 5;
+  if (text.includes('?')) score += 3;
+  
+  // Penalize massive megathreads/spam
+  if (text.length > 2000) score -= 15; 
+  // Penalize ultra short useless comments
+  if (text.length < 50) score -= 5; 
+  
+  return score;
 }
 

@@ -1,67 +1,22 @@
 /**
  * Omni-Extractor — Reddit & Community Module
- * Multi-fallback Reddit extraction that works on Vercel datacenter IPs.
+ * Multi-fallback Reddit extraction.
  * 
  * Strategy:
- *   1. Reddit RSS/Atom feeds (not blocked on server IPs)
- *   2. old.reddit.com JSON (more lenient than www.reddit.com)
- *   3. Direct search intent fallback via Reddit search
+ *   1. Direct search intent fallback via Reddit search JSON
+ *   2. Reddit RSS/Atom feeds
  */
 
-import https from 'https';
-import { HttpsProxyAgent } from 'https-proxy-agent';
 import { detectContactsAggressively } from '../detector.js';
-
-function httpsGet(urlStr, options) {
-  return new Promise((resolve, reject) => {
-    const req = https.request(urlStr, options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        resolve({
-          status: res.statusCode,
-          ok: res.statusCode >= 200 && res.statusCode < 300,
-          text: async () => data,
-          json: async () => JSON.parse(data)
-        });
-      });
-    });
-    req.on('error', reject);
-    req.on('timeout', () => {
-      req.destroy();
-      reject(new Error('Request Timeout'));
-    });
-    req.end();
-  });
-}
 
 const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
   'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
-];
-
-const PROXIES = [
-  'http://czyysast:hyui5c8xxguq@38.154.203.95:5863',
-  'http://czyysast:hyui5c8xxguq@198.105.121.200:6462',
-  'http://czyysast:hyui5c8xxguq@64.137.96.74:6641',
-  'http://czyysast:hyui5c8xxguq@209.127.138.10:5784',
-  'http://czyysast:hyui5c8xxguq@38.154.185.97:6370',
-  'http://czyysast:hyui5c8xxguq@84.247.60.125:6095',
-  'http://czyysast:hyui5c8xxguq@142.111.67.146:5611',
-  'http://czyysast:hyui5c8xxguq@194.39.32.164:6461',
-  'http://czyysast:hyui5c8xxguq@191.96.254.138:6185',
-  'http://czyysast:hyui5c8xxguq@31.58.9.4:6077'
 ];
 
 function getUA() {
   return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
-}
-
-function getRandomProxy() {
-  const proxyUrl = PROXIES[Math.floor(Math.random() * PROXIES.length)];
-  return new HttpsProxyAgent(proxyUrl);
 }
 
 function delay(ms) {
@@ -69,17 +24,17 @@ function delay(ms) {
 }
 
 /**
- * Fetch with retry, timeout, and rotating proxies
+ * Fetch with retry and timeout using native global fetch
  */
 async function fetchWithRetry(url, options = {}, retries = 3) {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const agent = getRandomProxy();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      const res = await httpsGet(url, {
+      const res = await fetch(url, {
         ...options,
-        agent,
-        timeout: 15000,
+        signal: controller.signal,
         headers: {
           'User-Agent': getUA(),
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7',
@@ -87,6 +42,7 @@ async function fetchWithRetry(url, options = {}, retries = 3) {
           ...options.headers,
         },
       });
+      clearTimeout(timeoutId);
       
       if (res.status === 429) {
         console.warn(`[Reddit] Rate limited (429), waiting ${(attempt + 1) * 2}s...`);
@@ -96,7 +52,7 @@ async function fetchWithRetry(url, options = {}, retries = 3) {
       
       if (res.status === 403) {
         console.warn(`[Reddit] Forbidden (403) for ${url}, trying next source...`);
-        return null;
+        return null; // Don't retry on 403
       }
       
       if (!res.ok) {
@@ -118,7 +74,6 @@ async function fetchWithRetry(url, options = {}, retries = 3) {
  */
 function parseRSSFeed(xmlText) {
   const posts = [];
-  // Simple XML parsing for Atom entries
   const entries = xmlText.split('<entry>').slice(1);
   
   for (const entry of entries) {
@@ -146,32 +101,26 @@ function parseRSSFeed(xmlText) {
   return posts;
 }
 
-/**
- * Try fetching Reddit data via RSS feed (most reliable on Vercel)
- */
-async function fetchRedditRSS(subreddit, keyword) {
+async function fetchRedditRSS(subreddit, keyword, sort = 'new') {
   const query = encodeURIComponent(keyword);
   const url = subreddit
-    ? `https://www.reddit.com/r/${subreddit}/search.rss?q=${query}&sort=new&restrict_sr=on&t=month`
-    : `https://www.reddit.com/search.rss?q=${query}&sort=new&t=month&limit=50`;
+    ? `https://www.reddit.com/r/${subreddit}/search.rss?q=${query}&sort=${sort}&restrict_sr=on&t=year&type=link`
+    : `https://www.reddit.com/search.rss?q=${query}&sort=${sort}&t=year&limit=100&type=link`;
   
   const res = await fetchWithRetry(url);
   if (!res) return [];
   
   const text = await res.text();
   const posts = parseRSSFeed(text);
-  console.log(`[Reddit RSS] ${subreddit || 'global'} + "${keyword}": ${posts.length} posts`);
+  console.log(`[Reddit RSS] ${subreddit || 'global'} + "${keyword}" (${sort}): ${posts.length} posts`);
   return posts;
 }
 
-/**
- * Try fetching Reddit data via old.reddit.com JSON (fallback)
- */
-async function fetchOldRedditJSON(subreddit, keyword, limit = 25) {
+async function fetchRedditJSON(subreddit, keyword, limit = 100, sort = 'new') {
   const query = encodeURIComponent(keyword);
   const url = subreddit
-    ? `https://old.reddit.com/r/${subreddit}/search.json?q=${query}&sort=new&restrict_sr=on&t=month&limit=${limit}`
-    : `https://old.reddit.com/search.json?q=${query}&sort=new&t=all&limit=${limit}`;
+    ? `https://www.reddit.com/r/${subreddit}/search.json?q=${query}&sort=${sort}&restrict_sr=on&t=year&limit=${limit}&type=link`
+    : `https://www.reddit.com/search.json?q=${query}&sort=${sort}&t=year&limit=${limit}&type=link`;
   
   const res = await fetchWithRetry(url);
   if (!res) return [];
@@ -179,81 +128,78 @@ async function fetchOldRedditJSON(subreddit, keyword, limit = 25) {
   try {
     const data = await res.json();
     const posts = (data?.data?.children || []).map(c => c.data).filter(Boolean);
-    console.log(`[Reddit JSON] ${subreddit || 'global'} + "${keyword}": ${posts.length} posts`);
+    console.log(`[Reddit JSON] ${subreddit || 'global'} + "${keyword}" (${sort}): ${posts.length} posts`);
     return posts;
   } catch {
     return [];
   }
 }
 
-/**
- * Try fetching from www.reddit.com JSON (original, least reliable on Vercel)
- */
-async function fetchRedditJSON(subreddit, keyword, limit = 25) {
-  const query = encodeURIComponent(keyword);
-  const url = subreddit
-    ? `https://www.reddit.com/r/${subreddit}/search.json?q=${query}&sort=new&restrict_sr=on&t=month&limit=${limit}`
-    : `https://www.reddit.com/search.json?q=${query}&sort=new&t=all&limit=${limit}`;
-  
-  const res = await fetchWithRetry(url);
-  if (!res) return [];
-  
-  try {
-    const data = await res.json();
-    const posts = (data?.data?.children || []).map(c => c.data).filter(Boolean);
-    console.log(`[Reddit WWW] ${subreddit || 'global'} + "${keyword}": ${posts.length} posts`);
-    return posts;
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Multi-fallback Reddit fetch: RSS → old.reddit → www.reddit
- */
 async function fetchRedditPosts(subreddit, keyword, limit = 25) {
-  // Strategy 1: RSS (most reliable on Vercel)
-  let posts = await fetchRedditRSS(subreddit, keyword);
-  if (posts.length > 0) return posts;
+  const allPosts = new Map();
   
-  await delay(500);
+  // Pass 1: Sort by NEW (recent high-intent)
+  let posts = await fetchRedditJSON(subreddit, keyword, limit, 'new');
+  posts.forEach(p => { if (p && p.id) allPosts.set(p.id, p); });
   
-  // Strategy 2: old.reddit.com JSON
-  posts = await fetchOldRedditJSON(subreddit, keyword, limit);
-  if (posts.length > 0) return posts;
+  await delay(100);
   
-  await delay(500);
+  // Pass 2: Sort by RELEVANCE (highest quality matches)
+  const relevantPosts = await fetchRedditJSON(subreddit, keyword, limit, 'relevance');
+  relevantPosts.forEach(p => { if (p && p.id) allPosts.set(p.id, p); });
   
-  // Strategy 3: www.reddit.com JSON (least likely to work on Vercel)
-  posts = await fetchRedditJSON(subreddit, keyword, limit);
-  return posts;
+  // If JSON returned nothing, fall back to RSS
+  if (allPosts.size === 0) {
+    await delay(100);
+    const rssPosts = await fetchRedditRSS(subreddit, keyword);
+    rssPosts.forEach(p => { if (p && p.id) allPosts.set(p.id, p); });
+  }
+  
+  return Array.from(allPosts.values());
 }
 
 export async function runSocialExtraction(intentData, options = {}) {
-  console.log('[Omni-Source: Social] Starting multi-fallback Reddit extraction...');
+  console.log('[Omni-Source: Social] Starting Reddit extraction...');
   const leads = [];
   const leadsMap = new Map();
   
-  const searchKeywords = intentData.keywords.slice(0, 5);
+  const searchKeywords = intentData.keywords.slice(0, 2);
   const subreddits = intentData.subreddits || [];
   
-  // 1. Targeted Subreddit Search (Highest Intent)
-  for (const sub of subreddits.slice(0, 5)) {
-    for (const keyword of searchKeywords.slice(0, 3)) {
-      const posts = await fetchRedditPosts(sub, keyword);
-      
-      for (const p of posts) {
-        if (!p || leadsMap.has(p.id)) continue;
-        processPost(p, sub);
+  // 1. Generate search combinations (up to 3 subreddits * 2 keywords = 6 requests)
+  const combinations = [];
+  for (const sub of subreddits.slice(0, 3)) {
+    for (const keyword of searchKeywords) {
+      combinations.push({ sub, keyword });
+    }
+  }
+
+  // 2. Process in parallel chunks to avoid Vercel timeouts (10s) and Reddit rate limits
+  const CHUNK_SIZE = 10; 
+  for (let i = 0; i < combinations.length; i += CHUNK_SIZE) {
+    const chunk = combinations.slice(i, i + CHUNK_SIZE);
+    
+    await Promise.all(chunk.map(async ({ sub, keyword }) => {
+      try {
+        const posts = await fetchRedditPosts(sub, keyword, options.isPremium ? 20 : 10);
+        for (const p of posts) {
+          if (!p || leadsMap.has(p.id)) continue;
+          processPost(p, sub);
+        }
+      } catch (err) {
+        console.error(`[Reddit] Failed for ${sub} + ${keyword}:`, err.message);
       }
-      
-      await delay(300);
+    }));
+    
+    // Tiny delay between chunks to respect rate limits
+    if (i + CHUNK_SIZE < combinations.length) {
+      await delay(150);
     }
   }
   
   // 2. Global Keyword Search
   for (const keyword of searchKeywords) {
-    const posts = await fetchRedditPosts(null, keyword, options.isPremium ? 50 : 30);
+    const posts = await fetchRedditPosts(null, keyword, options.isPremium ? 40 : 20);
     
     for (const p of posts) {
       if (!p || leadsMap.has(p.id)) continue;
@@ -263,29 +209,19 @@ export async function runSocialExtraction(intentData, options = {}) {
     await delay(500);
   }
   
-  // 3. Direct Goal Fallback
-  const goalQuery = intentData.searchIntent || '';
-  if (goalQuery && goalQuery !== searchKeywords[0]) {
-    const posts = await fetchRedditPosts(null, goalQuery, 25);
-    
-    for (const p of posts) {
-      if (!p || leadsMap.has(p.id)) continue;
-      processPost(p);
-    }
-  }
-  
   function processPost(p, fallbackSubreddit) {
     const title = p.title || '';
     const selftext = p.selftext || '';
     const author = p.author;
     const subreddit = p.subreddit || fallbackSubreddit || 'unknown';
     
-    // Build permalink
     let url;
     if (p.permalink && p.permalink.startsWith('http')) {
       url = p.permalink;
     } else if (p.permalink) {
       url = `https://reddit.com${p.permalink}`;
+    } else if (p.id && p.id.startsWith('http')) {
+      url = p.id;
     } else {
       url = `https://reddit.com/r/${subreddit}/comments/${p.id || 'unknown'}`;
     }
