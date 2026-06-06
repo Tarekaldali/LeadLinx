@@ -20,24 +20,25 @@ function getUA() {
 }
 
 function delay(ms) {
-  return new Promise(r => setTimeout(r, ms + Math.random() * 500));
+  return new Promise(r => setTimeout(r, ms + Math.random() * 200));
 }
 
 /**
  * Fetch with retry and timeout using native global fetch
  */
-async function fetchWithRetry(url, options = {}, retries = 3) {
+async function fetchWithRetry(url, options = {}, retries = 2) {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      // 5s timeout — tight but leaves budget for validation
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
       const res = await fetch(url, {
         ...options,
         signal: controller.signal,
         headers: {
           'User-Agent': getUA(),
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7',
+          'Accept': 'application/json,*/*;q=0.7',
           'Accept-Language': 'en-US,en;q=0.9',
           ...options.headers,
         },
@@ -45,25 +46,23 @@ async function fetchWithRetry(url, options = {}, retries = 3) {
       clearTimeout(timeoutId);
       
       if (res.status === 429) {
-        console.warn(`[Reddit] Rate limited (429), waiting ${(attempt + 1) * 2}s...`);
-        await delay((attempt + 1) * 2000);
+        console.warn(`[Reddit] Rate limited (429), waiting 1s...`);
+        await delay(1000); // flat 1s — don't blow the time budget
         continue;
       }
       
       if (res.status === 403) {
-        console.warn(`[Reddit] Forbidden (403) for ${url}, trying next source...`);
-        return null; // Don't retry on 403
+        console.warn(`[Reddit] Forbidden (403) for ${url}`);
+        return null;
       }
       
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       
       return res;
     } catch (err) {
-      console.warn(`[Reddit] Fetch error on attempt ${attempt + 1}: ${err.message}`);
+      console.warn(`[Reddit] Fetch error attempt ${attempt + 1}: ${err.message}`);
       if (attempt === retries - 1) return null;
-      await delay(1000 * (attempt + 1));
+      await delay(300);
     }
   }
   return null;
@@ -138,19 +137,17 @@ async function fetchRedditJSON(subreddit, keyword, limit = 100, sort = 'new') {
 async function fetchRedditPosts(subreddit, keyword, limit = 50) {
   const allPosts = new Map();
   
-  // Pass 1: Sort by NEW (recent high-intent)
-  let posts = await fetchRedditJSON(subreddit, keyword, limit, 'new');
-  posts.forEach(p => { if (p && p.id) allPosts.set(p.id, p); });
+  // Run NEW and RELEVANCE in PARALLEL — half the time cost
+  const [newPosts, relevantPosts] = await Promise.all([
+    fetchRedditJSON(subreddit, keyword, limit, 'new'),
+    fetchRedditJSON(subreddit, keyword, limit, 'relevance'),
+  ]);
   
-  await delay(100);
-  
-  // Pass 2: Sort by RELEVANCE (highest quality matches)
-  const relevantPosts = await fetchRedditJSON(subreddit, keyword, limit, 'relevance');
+  newPosts.forEach(p => { if (p && p.id) allPosts.set(p.id, p); });
   relevantPosts.forEach(p => { if (p && p.id) allPosts.set(p.id, p); });
   
-  // If JSON returned nothing, fall back to RSS
+  // Only fall back to RSS if we got nothing at all
   if (allPosts.size === 0) {
-    await delay(100);
     const rssPosts = await fetchRedditRSS(subreddit, keyword);
     rssPosts.forEach(p => { if (p && p.id) allPosts.set(p.id, p); });
   }
@@ -163,50 +160,48 @@ export async function runSocialExtraction(intentData, options = {}) {
   const leads = [];
   const leadsMap = new Map();
   
-  const searchKeywords = intentData.keywords.slice(0, 6);
+  // Hard wall-clock budget: 28s for ALL extraction (leaves ~27s for LLM validation)
+  const EXTRACTION_DEADLINE = Date.now() + 28000;
+  const withinBudget = () => Date.now() < EXTRACTION_DEADLINE;
+
+  const searchKeywords = intentData.keywords.slice(0, 5);
   const subreddits = intentData.subreddits || [];
   
-  // 1. Generate search combinations (up to 6 subreddits * 6 keywords = 36 requests)
+  // Phase 1: Subreddit-specific searches — all in parallel (no chunking)
   const combinations = [];
-  for (const sub of subreddits.slice(0, 6)) {
+  for (const sub of subreddits.slice(0, 5)) {
     for (const keyword of searchKeywords) {
       combinations.push({ sub, keyword });
     }
   }
 
-  // 2. Process in parallel chunks to avoid Vercel timeouts (10s) and Reddit rate limits
-  const CHUNK_SIZE = 10; 
-  for (let i = 0; i < combinations.length; i += CHUNK_SIZE) {
-    const chunk = combinations.slice(i, i + CHUNK_SIZE);
-    
-    await Promise.all(chunk.map(async ({ sub, keyword }) => {
+  await Promise.allSettled(combinations.map(async ({ sub, keyword }) => {
+    if (!withinBudget()) return;
+    try {
+      const posts = await fetchRedditPosts(sub, keyword, options.isPremium ? 25 : 15);
+      for (const p of posts) {
+        if (!p || leadsMap.has(p.id)) continue;
+        processPost(p, sub);
+      }
+    } catch (err) {
+      console.error(`[Reddit] Failed for ${sub} + ${keyword}:`, err.message);
+    }
+  }));
+  
+  // Phase 2: Global keyword searches — also all in PARALLEL
+  if (withinBudget()) {
+    await Promise.allSettled(searchKeywords.map(async (keyword) => {
+      if (!withinBudget()) return;
       try {
-        const posts = await fetchRedditPosts(sub, keyword, options.isPremium ? 50 : 30);
+        const posts = await fetchRedditPosts(null, keyword, options.isPremium ? 50 : 25);
         for (const p of posts) {
           if (!p || leadsMap.has(p.id)) continue;
-          processPost(p, sub);
+          processPost(p);
         }
       } catch (err) {
-        console.error(`[Reddit] Failed for ${sub} + ${keyword}:`, err.message);
+        console.error(`[Reddit] Global search failed for "${keyword}":`, err.message);
       }
     }));
-    
-    // Tiny delay between chunks to respect rate limits
-    if (i + CHUNK_SIZE < combinations.length) {
-      await delay(150);
-    }
-  }
-  
-  // 2. Global Keyword Search — run for ALL keywords for maximum coverage
-  for (const keyword of searchKeywords) {
-    const posts = await fetchRedditPosts(null, keyword, options.isPremium ? 100 : 50);
-    
-    for (const p of posts) {
-      if (!p || leadsMap.has(p.id)) continue;
-      processPost(p);
-    }
-    
-    await delay(300);
   }
   
   function processPost(p, fallbackSubreddit) {

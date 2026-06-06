@@ -117,14 +117,25 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   console.log(`🔎 [Omni-Extractor] Source results:`, JSON.stringify(sourceResults));
   console.log(`🔎 [Omni-Extractor] Found ${rawLeads.length} raw potential leads across sources.`);
   
-  // Process ALL raw leads to maximise yield — no artificial cap
+  // Process top-scored leads first; hard cap at 150 to guarantee we finish in time
+  const MAX_TO_VALIDATE = 150;
   const leadsToProcess = [...rawLeads]
-    .sort((a, b) => getHeuristicScore(b) - getHeuristicScore(a));
+    .sort((a, b) => getHeuristicScore(b) - getHeuristicScore(a))
+    .slice(0, MAX_TO_VALIDATE);
+
+  // Give validation a strict 22s budget (extraction took ~28s, 60s total = 10s safety buffer)
+  const VALIDATION_DEADLINE = Date.now() + 22000;
     
-  // BATCH_SIZE = 15 is a sweet spot to avoid 429s but finish quickly
-  const BATCH_SIZE = 15; 
+  // BATCH_SIZE = 25 — process more leads in parallel to finish faster
+  const BATCH_SIZE = 25; 
   
   for (let i = 0; i < leadsToProcess.length; i += BATCH_SIZE) {
+    // Hard stop if we've used up our time budget
+    if (Date.now() >= VALIDATION_DEADLINE) {
+      console.log(`⏰ [Omni-Extractor] Validation time budget exhausted after ${validatedLeads.length} leads.`);
+      break;
+    }
+
     const batch = leadsToProcess.slice(i, i + BATCH_SIZE);
     
     const results = await Promise.all(batch.map(async (rawLead) => {
@@ -134,8 +145,10 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
       }
       
       try {
+        // Trim context to 1200 chars — enough signal, cuts LLM latency significantly
+        const trimmedContext = rawLead.context.substring(0, 1200);
         const valResult = await validateLeadIntent(
-          rawLead.context, 
+          trimmedContext, 
           rawLead.raw_contacts, 
           enrichedRouteData.searchIntent,
           true 
