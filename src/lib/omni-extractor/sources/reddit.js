@@ -163,12 +163,12 @@ export async function runSocialExtraction(intentData, options = {}) {
   const leads = [];
   const leadsMap = new Map();
   
-  const searchKeywords = intentData.keywords.slice(0, 2);
+  const searchKeywords = intentData.keywords.slice(0, 6);
   const subreddits = intentData.subreddits || [];
   
-  // 1. Generate search combinations (up to 3 subreddits * 2 keywords = 6 requests)
+  // 1. Generate search combinations (up to 6 subreddits * 6 keywords = 36 requests)
   const combinations = [];
-  for (const sub of subreddits.slice(0, 3)) {
+  for (const sub of subreddits.slice(0, 6)) {
     for (const keyword of searchKeywords) {
       combinations.push({ sub, keyword });
     }
@@ -181,7 +181,7 @@ export async function runSocialExtraction(intentData, options = {}) {
     
     await Promise.all(chunk.map(async ({ sub, keyword }) => {
       try {
-        const posts = await fetchRedditPosts(sub, keyword, options.isPremium ? 20 : 10);
+        const posts = await fetchRedditPosts(sub, keyword, options.isPremium ? 50 : 30);
         for (const p of posts) {
           if (!p || leadsMap.has(p.id)) continue;
           processPost(p, sub);
@@ -197,16 +197,16 @@ export async function runSocialExtraction(intentData, options = {}) {
     }
   }
   
-  // 2. Global Keyword Search
+  // 2. Global Keyword Search — run for ALL keywords for maximum coverage
   for (const keyword of searchKeywords) {
-    const posts = await fetchRedditPosts(null, keyword, options.isPremium ? 40 : 20);
+    const posts = await fetchRedditPosts(null, keyword, options.isPremium ? 100 : 50);
     
     for (const p of posts) {
       if (!p || leadsMap.has(p.id)) continue;
       processPost(p);
     }
     
-    await delay(500);
+    await delay(300);
   }
   
   function processPost(p, fallbackSubreddit) {

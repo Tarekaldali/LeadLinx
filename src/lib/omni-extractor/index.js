@@ -117,13 +117,9 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   console.log(`🔎 [Omni-Extractor] Source results:`, JSON.stringify(sourceResults));
   console.log(`🔎 [Omni-Extractor] Found ${rawLeads.length} raw potential leads across sources.`);
   
-  // Increased limits to process more candidates for higher yield
-  const MAX_LEADS_TO_PROCESS = options.isPremium ? 80 : 50;
-  
-  // Prioritize leads with higher heuristic intent score instead of raw length
+  // Process ALL raw leads to maximise yield — no artificial cap
   const leadsToProcess = [...rawLeads]
-    .sort((a, b) => getHeuristicScore(b) - getHeuristicScore(a))
-    .slice(0, MAX_LEADS_TO_PROCESS);
+    .sort((a, b) => getHeuristicScore(b) - getHeuristicScore(a));
     
   // BATCH_SIZE = 15 is a sweet spot to avoid 429s but finish quickly
   const BATCH_SIZE = 15; 
@@ -132,10 +128,8 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
     const batch = leadsToProcess.slice(i, i + BATCH_SIZE);
     
     const results = await Promise.all(batch.map(async (rawLead) => {
-      // FIX: The old code required contactCount > 0 which killed most Reddit leads.
-      // Reddit leads are valid with just a username — the reddit:@username social handle
-      // is their contact. We now only skip leads with very short context.
-      if (!rawLead.context || rawLead.context.trim().length < 20) {
+      // Only skip leads with completely empty/trivial context
+      if (!rawLead.context || rawLead.context.trim().length < 10) {
         return { lead: null, usage: { prompt_tokens: 0, completion_tokens: 0 } };
       }
       
@@ -187,10 +181,10 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
       }
     });
 
-    // EARLY STOPPING: Break loop if we have enough leads to prevent Vercel 60s timeout
-    const targetLeads = options.isPremium ? 20 : 10;
+    // SOFT CAP: Stop only once we have plenty of validated leads
+    const targetLeads = options.isPremium ? 60 : 40;
     if (validatedLeads.length >= targetLeads) {
-      console.log(`⏱️ [Omni-Extractor] Early stop: Reached ${validatedLeads.length} leads to avoid 60s Vercel timeout.`);
+      console.log(`⏱️ [Omni-Extractor] Soft cap reached: ${validatedLeads.length} validated leads.`);
       break;
     }
   }
@@ -215,7 +209,8 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
       urlsDiscovered: rawLeads.length,
       duplicatesFiltered: Math.max(0, rawLeads.length - validatedLeads.length),
     },
-    leads: validatedLeads
+    leads: validatedLeads,
+    validatedLeads: validatedLeads
   };
 }
 
