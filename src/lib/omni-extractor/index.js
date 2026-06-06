@@ -67,8 +67,7 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   
   const rawLeads = [];
   const sourceResults = {};
-  
-  // 4. Parallel Multi-Source Extraction
+  const validatedLeads = []; // 4. Parallel Multi-Source Extraction
   const tasks = [];
   
   if (enrichedRouteData.sources.includes('dorking')) {
