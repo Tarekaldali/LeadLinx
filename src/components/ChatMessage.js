@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import styles from './ChatMessage.module.css';
 
 const TYPE_CONFIG = {
   'Pain-Point': { icon: '🚨', label: 'Pain-Point' },
@@ -10,6 +11,29 @@ const TYPE_CONFIG = {
 export default function ChatMessage({ message, onSave, onExport, onSuggestionClick }) {
   const [toast, setToast] = useState(null);
   const [savedLeads, setSavedLeads] = useState(new Set());
+
+  const progressTimers = useRef([]);
+  const rafRef = useRef(null);
+
+  const STEPS = [
+    'Searching subreddits',
+    'Filtering results',
+    'Identifying user intent',
+    'Ranking leads',
+    'De-duplicating',
+    'Enriching contacts',
+  ];
+
+  // Animation state
+  const [visibleSteps, setVisibleSteps] = useState(1);
+  const [activeStep, setActiveStep] = useState(-1);
+  const [completed, setCompleted] = useState(() => Array(STEPS.length).fill(false));
+  const [progressPct, setProgressPct] = useState(0);
+  const [allDone, setAllDone] = useState(false);
+
+  // Typing/filters state
+  const [typedKeywords, setTypedKeywords] = useState([]);
+  const [currentTyping, setCurrentTyping] = useState('');
 
   const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 2500); };
   const copy = (text) => { navigator.clipboard.writeText(text); showToast('Copied!'); };
@@ -22,9 +46,102 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
     }
   };
 
-  const { leads = [], insights, selectedSubreddits = [], searchQueries = [], totalScanned, error, status } = message;
+  const { leads = [], insights, selectedSubreddits = [], searchQueries = [], totalScanned = 0, error, status } = message;
   const isProcessing = status === 'processing';
   const isCompleted = status === 'completed';
+
+  const clearAllTimers = () => {
+    progressTimers.current.forEach(id => clearTimeout(id));
+    progressTimers.current = [];
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  };
+
+  const sleep = (ms) => new Promise(r => { const id = setTimeout(r, ms); progressTimers.current.push(id); });
+
+  useEffect(() => {
+    // Reset when not processing
+    if (!isProcessing) {
+      clearAllTimers();
+      setVisibleSteps(1);
+      setActiveStep(-1);
+      setCompleted(Array(STEPS.length).fill(false));
+      setProgressPct(0);
+      setAllDone(false);
+      setTypedKeywords([]);
+      setCurrentTyping('');
+      return () => clearAllTimers();
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      setVisibleSteps(1);
+      setProgressPct(0);
+
+      // Start animated sequence for steps
+      for (let i = 0; i < STEPS.length; i++) {
+        if (cancelled) break;
+        setActiveStep(i);
+        setVisibleSteps(prev => Math.max(prev, i + 1));
+
+        // Animate progress for this step (800-1200ms)
+        const from = Math.round((i / STEPS.length) * 100);
+        const to = Math.round(((i + 1) / STEPS.length) * 100);
+        const duration = 800 + Math.floor(Math.random() * 400);
+        const start = performance.now();
+
+        await new Promise(resolve => {
+          function frame(now) {
+            if (cancelled) return resolve();
+            const t = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - t, 3);
+            setProgressPct(Math.round(from + (to - from) * eased));
+            if (t < 1) {
+              rafRef.current = requestAnimationFrame(frame);
+            } else resolve();
+          }
+          rafRef.current = requestAnimationFrame(frame);
+        });
+
+        if (cancelled) break;
+        await sleep(120);
+        setCompleted(prev => { const copy = [...prev]; copy[i] = true; return copy; });
+        await sleep(120);
+      }
+
+      if (!cancelled) {
+        setActiveStep(-1);
+        setProgressPct(100);
+        setAllDone(true);
+      }
+    })();
+
+    // Typing for logic filters (run concurrently)
+    (async () => {
+      const keywords = (searchQueries && searchQueries.length > 0) ? searchQueries : (message.query ? [message.query] : []);
+      for (let k = 0; k < keywords.length; k++) {
+        if (cancelled) break;
+        const kw = keywords[k];
+        setCurrentTyping('');
+        for (let i = 1; i <= kw.length; i++) {
+          if (cancelled) break;
+          setCurrentTyping(kw.slice(0, i));
+          await sleep(18 + Math.floor(Math.random() * 20));
+        }
+        if (cancelled) break;
+        await sleep(200);
+        setTypedKeywords(prev => [...prev, kw]);
+        setCurrentTyping('');
+        await sleep(140);
+      }
+    })();
+
+    return () => { cancelled = true; clearAllTimers(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isProcessing, JSON.stringify(searchQueries)]);
 
   return (
     <div className="space-y-8">
@@ -53,15 +170,54 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {searchQueries.length > 0 && (
+            {isProcessing && (
+              <div className="md:col-span-2 space-y-3">
+                <span className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">Live Progress</span>
+
+                <div className={`${styles.progressCard} ${allDone ? styles.success : ''}`}>
+                  <div className={styles.progressBar} aria-hidden>
+                    <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
+                  </div>
+
+                  <div className={styles.stepRow}>
+                    {STEPS.slice(0, visibleSteps).map((kw, i) => {
+                      const isActive = i === activeStep;
+                      const isDone = completed[i];
+                      return (
+                        <div key={kw} className={`${styles.stepPill} ${isActive ? styles.active : ''} ${isDone ? styles.done : ''}`} style={{ transform: isActive ? 'translateY(-4px) scale(1.02)' : 'translateY(0) scale(1)' }}>
+                          <div className={styles.stepInner}>
+                            <div className={styles.stepLabel}>{kw}</div>
+                            <div className={styles.stepIcon}>
+                              {isDone ? (
+                                <svg className={styles.check} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              ) : isActive ? (
+                                <span className={styles.dot} />
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+            {(searchQueries.length > 0 || currentTyping) && (
               <div className="space-y-2">
                 <span className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">Logic Filters</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {searchQueries.map((q, idx) => (
-                    <span key={idx} className="px-2.5 py-1 bg-surface border border-outline-variant rounded-lg text-[10px] font-medium text-on-surface font-mono shadow-sm">
-                      {q}
+                <div className={`${styles.typingContainer} flex flex-wrap gap-1.5`}> 
+                  {typedKeywords.map((kw, idx) => (
+                    <span key={idx} className={`${styles.keywordPill} ${styles.keywordGlow} `}>
+                      {kw}
                     </span>
                   ))}
+
+                  {currentTyping && (
+                    <span className={`${styles.typingPill}`}>
+                      {currentTyping}
+                      <span className="ml-1 opacity-80">▍</span>
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -98,6 +254,7 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
 
           <div className="space-y-4">
             {leads.map((lead, idx) => {
+                
               const type = TYPE_CONFIG[lead.type] || { icon: '🎯', label: lead.type };
               const score = lead.score || lead.intentScore || 0;
               const scoreColor = score >= 8 ? 'text-[#28cd41]' : score >= 6 ? 'text-[#ff3b30]' : 'text-[#ff3b30]';

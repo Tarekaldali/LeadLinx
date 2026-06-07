@@ -94,6 +94,10 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
     // 1. Get User and Tier Limits
     const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
     const config = getTierConfig(user?.plan || 'free');
+    // Select a model for cost accounting based on user plan (cheaper for lower tiers)
+    const modelForCost = (user?.plan === 'pro' || user?.plan === 'enterprise')
+      ? 'google/gemini-2.0-flash-001'
+      : 'mistralai/mistral-7b-instruct:free';
     
     // 2. Fetch Initial Batch of Posts from Reddit
     // Save the plan to DB so UI can show "Context"
@@ -132,7 +136,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
     if (searchPlan.usage) {
       totalUsage.prompt_tokens += searchPlan.usage.prompt_tokens || 0;
       totalUsage.completion_tokens += searchPlan.usage.completion_tokens || 0;
-      totalRawCost += getRawCost("google/gemini-2.0-flash-001", searchPlan.usage);
+      totalRawCost += getRawCost(modelForCost, searchPlan.usage);
     }
     // 4. The 6x6 Micro-Batching Loop (Pass 1)
     async function processPool(pool) {
@@ -141,7 +145,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
         const batch = pool.slice(poolProcessed, poolProcessed + 6);
         console.log(`🔄 Processing batch: ${postsProcessed / 6 + 1} | Leads so far: ${foundLeads.length}/${config.maxLeads}`);
         
-        const { leads: analyzedBatch, usage, model } = await analyzeLeadsBatch(batch, userQuery);
+        const { leads: analyzedBatch, usage, model } = await analyzeLeadsBatch(batch, userQuery, { plan: user?.plan || 'free', maxChars: 300 });
         
         if (usage) {
           totalUsage.prompt_tokens += usage.prompt_tokens || 0;
@@ -226,7 +230,8 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
       try {
         const { leads: _, usage: insightUsage, model } = await analyzeLeadsBatch(
           foundLeads.slice(0, 5).map(l => ({ title: l.title, text: l.text.substring(0, 300) })),
-          `Generate 3 top pain points, 3 trending complaints, and 3 saas/product ideas based on these reddit leads. Format as JSON: {"topPainPoints": [], "trendingComplaints": [], "saasIdeas": []}`
+          `Generate 3 top pain points, 3 trending complaints, and 3 saas/product ideas based on these reddit leads. Format as JSON: {"topPainPoints": [], "trendingComplaints": [], "saasIdeas": []}`,
+          { plan: user?.plan || 'free', maxChars: 400 }
         );
         if (insightUsage) {
           totalUsage.prompt_tokens += insightUsage.prompt_tokens || 0;
@@ -258,7 +263,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
         if (insightData.usage) {
           totalUsage.prompt_tokens += insightData.usage.prompt_tokens || 0;
           totalUsage.completion_tokens += insightData.usage.completion_tokens || 0;
-          totalRawCost += getRawCost("google/gemini-2.0-flash-001", insightData.usage);
+          totalRawCost += getRawCost(modelForCost, insightData.usage);
         }
       } catch (err) {
         console.error("Insights generation failed:", err);
@@ -266,7 +271,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
     }
 
     // 7. Storage & Credits
-    const creditsToDeduct = calculateCreditsToDeduct("google/gemini-2.0-flash-001", totalUsage, user?.plan || 'free');
+    const creditsToDeduct = calculateCreditsToDeduct(modelForCost, totalUsage, user?.plan || 'free');
 
     // Deduct Credits
     await db.collection('users').updateOne(

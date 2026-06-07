@@ -34,6 +34,11 @@ export async function POST(request) {
     const userId = new ObjectId(authResult.user.id);
     const user = await db.collection('users').findOne({ _id: userId });
 
+    // Choose a cost model according to user plan
+    const modelForCost = (user?.plan === 'pro' || user?.plan === 'enterprise')
+      ? 'google/gemini-2.0-flash-001'
+      : 'mistralai/mistral-7b-instruct:free';
+
     if (!user || user.credits < 1) {
       return NextResponse.json({ error: 'Insufficient credits. Please top up your balance or upgrade your plan.' }, { status: 402 });
     }
@@ -52,7 +57,7 @@ export async function POST(request) {
     if (classification.intent === 'CHAT') {
       const aiResponse = classification.response_message || 'How can I help you find leads today?';
       const chatUsage = classificationResult.usage || { prompt_tokens: 0, completion_tokens: 0 };
-      const rawCostUsd = getRawCost('google/gemini-2.0-flash-001', chatUsage);
+      const rawCostUsd = getRawCost(modelForCost, chatUsage);
 
       await db.collection('ai_usage').insertOne({
         userId,
@@ -191,7 +196,7 @@ async function runSearchJob({ query, userId, userEmail, userPlan, searchId, chat
     };
 
     const { calculateCreditsToDeduct, getRawCost } = await import('@/lib/creditManager.js');
-    const totalCost = calculateCreditsToDeduct('google/gemini-2.0-flash-001', combinedUsage, userPlan);
+    const totalCost = calculateCreditsToDeduct(modelForCost, combinedUsage, userPlan);
     const remainingToDeduct = Math.max(0, totalCost - 1);
 
     if (remainingToDeduct > 0) {
@@ -204,7 +209,7 @@ async function runSearchJob({ query, userId, userEmail, userPlan, searchId, chat
     const updatedUser = await db.collection('users').findOne({ _id: userObjectId });
     const leads = formatLeads(result, searchObjectId, userObjectId, chatId, query);
     const insights = generateInsights(result);
-    const rawCostUsd = getRawCost('google/gemini-2.0-flash-001', combinedUsage);
+    const rawCostUsd = getRawCost(modelForCost, combinedUsage);
 
     await db.collection('ai_usage').insertOne({
       userId: userObjectId,

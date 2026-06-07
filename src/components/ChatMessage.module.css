@@ -1,0 +1,221 @@
+/* Premium animated progress styles for ChatMessage
+   - Sequential reveal of step pills
+   - Gradient border, pulsing glow, shimmer, and check animations
+*/
+
+.progressCard {
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04);
+  backdrop-filter: blur(6px) saturate(120%);
+  box-shadow: 0 6px 20px rgba(8,15,30,0.25);
+}
+
+.progressBar {
+  height: 8px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.progressFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(255,59,48,0.95), rgba(255,152,124,0.9));
+  border-radius: 999px;
+  transform-origin: left center;
+  transition: width 420ms cubic-bezier(.2,.9,.2,1);
+  box-shadow: 0 6px 18px rgba(255,59,48,0.12);
+  background-size: 200% 100%;
+  animation: fillShift 3s linear infinite;
+}
+
+@keyframes fillShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.stepRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.stepPill {
+  --pad-x: 14px;
+  --pad-y: 8px;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--pad-y) var(--pad-x);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: rgba(255,255,255,0.9);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 6px 18px rgba(6,8,14,0.45);
+  transform: translateY(0) scale(1);
+  transition: transform 350ms cubic-bezier(.2,.9,.2,1), box-shadow 350ms ease, opacity 250ms ease;
+  position: relative;
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+
+.stepPill::before {
+  content: '';
+  position: absolute;
+  left: -50%;
+  top: 0;
+  height: 100%;
+  width: 200%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 100%);
+  transform: translateX(-100%);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.stepPill:hover::before {
+  opacity: 1;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0%); }
+}
+
+.stepPill.active {
+  box-shadow: 0 10px 30px rgba(255,59,48,0.18), 0 2px 8px rgba(255,59,48,0.06);
+  transform: translateY(-6px) scale(1.03);
+}
+
+.stepPill.active::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(90deg, rgba(255,59,48,0.15), rgba(255,152,124,0.12));
+  filter: blur(6px);
+  z-index: -1;
+}
+
+.stepPill.done {
+  background: linear-gradient(90deg, #1abc9c, #16a085);
+  color: white;
+  border: 0;
+  box-shadow: 0 10px 30px rgba(18, 130, 110, 0.18);
+}
+
+.stepInner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.stepLabel {
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stepIcon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle at 30% 30%, #fff, #ff3b30 50%);
+  border-radius: 50%;
+  box-shadow: 0 6px 14px rgba(255,59,48,0.22);
+  animation: dotPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes dotPulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.check {
+  width: 18px;
+  height: 18px;
+  display: block;
+  transform-origin: center;
+  animation: checkIn 420ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes checkIn {
+  0% { transform: scale(0.6) translateY(6px); opacity: 0; }
+  60% { transform: scale(1.06) translateY(-2px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Typing & Keywords */
+.typingContainer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.typingPill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.02);
+  color: rgba(255,255,255,0.9);
+  border: 1px solid rgba(255,255,255,0.03);
+  font-weight: 600;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 280ms cubic-bezier(.2,.9,.2,1), box-shadow 280ms;
+}
+
+.keywordPill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 6px 18px rgba(6,8,14,0.35);
+  color: rgba(255,255,255,0.95);
+  font-weight: 700;
+}
+
+.keywordGlow {
+  box-shadow: 0 8px 30px rgba(255,152,124,0.08), 0 2px 6px rgba(255,59,48,0.06);
+}
+
+/* subtle entrance */
+.pillEnter {
+  transform: translateY(6px);
+  opacity: 0;
+  transition: transform 360ms cubic-bezier(.2,.9,.2,1), opacity 360ms;
+}
+.pillEnter.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.success {
+  animation: successPop 680ms cubic-bezier(.2,.9,.2,1) 1;
+}
+
+@keyframes successPop {
+  0% { transform: translateY(0) scale(1); box-shadow: 0 6px 20px rgba(8,15,30,0.18); }
+  40% { transform: translateY(-6px) scale(1.03); box-shadow: 0 14px 36px rgba(18,130,110,0.12); }
+  100% { transform: translateY(0) scale(1); box-shadow: 0 20px 40px rgba(18,130,110,0.10); }
+}

@@ -42,7 +42,9 @@ export async function runHarvestJob({
     noEnrich: options.noEnrich ?? false,
     dryRun: options.dryRun ?? false,
     syncCrm: options.syncCrm ?? false,
-    minScore: options.minScore ?? 25,
+    minScore: options.minScore ?? 50,
+    // Raise default quality threshold to prefer higher-intent leads
+    // Users can still override via options.minScore
   };
 
   console.log(`\n🚀 [Harvester] Starting job: "${query}" | Mode: ${mode}`);

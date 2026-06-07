@@ -8,6 +8,7 @@ import { getDb } from '@/lib/mongodb';
 import { requireAuth } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 import { runHarvestJob, formatLeadsForUI } from '@/lib/harvester/lead-extractor';
+import { calculateCreditsToDeduct, getRawCost } from '@/lib/creditManager';
 
 export async function POST(request) {
   const authResult = await requireAuth(request);
@@ -50,8 +51,16 @@ export async function POST(request) {
       options: { depth, maxPages, maxUrls, noEnrich, dryRun, syncCrm },
     });
 
-    // Deduct credits based on mode
-    const creditsToDeduct = mode === 'llm' ? Math.max(2, result.leads.length) : 1;
+    // Deduct credits based on actual AI usage when available
+    const usage = { prompt_tokens: result.stats.aiTokensIn || 0, completion_tokens: result.stats.aiTokensOut || 0 };
+    let creditsToDeduct = 1;
+    if ((usage.prompt_tokens || 0) + (usage.completion_tokens || 0) > 0) {
+      creditsToDeduct = calculateCreditsToDeduct('google/gemini-2.0-flash-001', usage, user?.plan || 'free');
+    } else {
+      // Fallback legacy behavior
+      creditsToDeduct = mode === 'llm' ? Math.max(2, result.leads.length) : 1;
+    }
+
     await db.collection('users').updateOne(
       { _id: userId },
       {
@@ -59,6 +68,20 @@ export async function POST(request) {
         $set: { updatedAt: new Date() },
       }
     );
+
+    // Record AI usage for auditing
+    try {
+      await db.collection('ai_usage').insertOne({
+        userId,
+        type: 'harvest',
+        query,
+        usage,
+        creditsCharged: creditsToDeduct,
+        timestamp: new Date()
+      });
+    } catch (e) {
+      console.warn('[Harvester API] Failed to record ai_usage:', e.message);
+    }
 
     const updatedUser = await db.collection('users').findOne({ _id: userId });
 

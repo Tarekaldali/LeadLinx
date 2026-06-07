@@ -6,6 +6,14 @@
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Low-cost vs high-cost model selection
+const CHEAP_MODEL = process.env.CHEAP_AI_MODEL || 'mistralai/mistral-7b-instruct:free';
+const EXPENSIVE_MODEL = process.env.EXPENSIVE_AI_MODEL || 'google/gemini-2.0-flash-001';
+const MAX_LOCAL_SUMMARY_CHARS = process.env.AI_SUMMARY_CHARS ? parseInt(process.env.AI_SUMMARY_CHARS, 10) : 300;
+
+// Local heuristic to reduce LLM usage: require a minimal localScore to send a post to the LLM
+const LOCAL_SCORE_THRESHOLD = parseInt(process.env.AI_LOCAL_SCORE_THRESHOLD || '8', 10);
+
 /**
  * Robust JSON Extractor
  * @param {string} text - Raw AI response
@@ -70,7 +78,8 @@ export async function classifyIntent(query) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
+        // Use low-cost model for intent classification by default
+        model: CHEAP_MODEL,
         messages: [
           {
             role: "system",
@@ -112,7 +121,8 @@ export async function generateSearchPlan(query) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
+        // Generate the search plan using the cheaper model first to save tokens
+        model: CHEAP_MODEL,
         messages: [
           { 
             role: "system",
@@ -156,27 +166,58 @@ export async function generateSearchPlan(query) {
 /**
  * PHASE 2: Lead Scorer Orchestration
  */
-export async function analyzeLeadsBatch(batch, userQuery) {
+export async function analyzeLeadsBatch(batch, userQuery, opts = {}) {
+  // opts: { plan: 'free'|'plus'|'pro'|'enterprise', maxChars }
+  const plan = opts.plan || 'free';
+  const maxChars = opts.maxChars || MAX_LOCAL_SUMMARY_CHARS;
+
+  // Prefer cheap models for lower-tier plans; pro/enterprise can use expensive model
+  const primaryModel = (plan === 'pro' || plan === 'enterprise') ? EXPENSIVE_MODEL : CHEAP_MODEL;
+
+  // Heuristic gating: if posts have localScore, prefer high-scoring ones to reduce LLM calls
+  let candidates = batch;
+  const hasLocalScores = batch.some(p => typeof p.localScore === 'number');
+  if (hasLocalScores) {
+    const high = batch.filter(p => (p.localScore || 0) >= LOCAL_SCORE_THRESHOLD).slice(0, 6);
+    if (high.length > 0) candidates = high;
+    else candidates = batch.sort((a, b) => (b.localScore || 0) - (a.localScore || 0)).slice(0, Math.min(2, batch.length));
+  }
+
   try {
-    return await callOpenRouterAnalysis("google/gemini-2.0-flash-001", batch, userQuery);
-  } catch (error) {
-    console.warn(`⚠️ Primary Model Failed: ${error.message}. Trying Fallback...`);
-    try {
-      // Fallback: Mistral 7B Free via OpenRouter
-      return await callOpenRouterAnalysis("mistralai/mistral-7b-instruct:free", batch, userQuery);
-    } catch (fallbackError) {
-      console.error("❌ All AI Providers Failed:", fallbackError.message);
-      return { leads: [], usage: null }; 
+    // First attempt with primary (cheap) model
+    const cheapRes = await callOpenRouterAnalysis(primaryModel, candidates, userQuery, { maxChars });
+    if (cheapRes && Array.isArray(cheapRes.leads) && cheapRes.leads.length > 0) {
+      return cheapRes;
     }
+
+    // If cheap model returned nothing and plan allows escalation, try expensive model on the original batch
+    if (primaryModel !== EXPENSIVE_MODEL) {
+      try {
+        const escRes = await callOpenRouterAnalysis(EXPENSIVE_MODEL, batch, userQuery, { maxChars: Math.max(800, maxChars * 2) });
+        return escRes;
+      } catch (escErr) {
+        console.warn('⚠️ Escalation to expensive model failed:', escErr.message);
+        return { leads: [], usage: cheapRes?.usage || null, model: cheapRes?.model || primaryModel };
+      }
+    }
+
+    return { leads: [], usage: cheapRes?.usage || null, model: cheapRes?.model || primaryModel };
+  } catch (error) {
+    console.error('❌ analyzeLeadsBatch failed:', error.message);
+    return { leads: [], usage: null };
   }
 }
 
 /**
  * Helper: Call OpenRouter for Analysis
  */
-async function callOpenRouterAnalysis(model, batch, userQuery, retries = 2) {
+async function callOpenRouterAnalysis(model, batch, userQuery, options = {}, retries = 2) {
+  const maxChars = options.maxChars || MAX_LOCAL_SUMMARY_CHARS;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
+      // Build a compact summary payload to reduce token usage
+      const summary = batch.map(p => ({ id: p.postId || p.id || p.postId, title: p.title, text: (p.text || '').substring(0, maxChars) }));
+
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -188,28 +229,11 @@ async function callOpenRouterAnalysis(model, batch, userQuery, retries = 2) {
           messages: [
             {
               role: "system",
-              content: `You are the "LeadLinx Ruthless Scorer," a strict qualification engine.
-              Analyze Reddit posts for "Buyer Intent" based on the user's goal: "${userQuery}".
-              
-              CONTEXT:
-              The user's goal is to find high-intent prospects. If the goal is a service (e.g. "Find real estate agents"), then a HOT LEAD is someone EXPLICITLY looking for that service.
-              
-              SCORING MASTER FORMULA:
-              - 1-6 (TRASH/AWARE): General chat, self-promotion, or no clear intent.
-              - 7-8 (HOT LEAD): User has a pain point or is ACTIVELY seeking advice/alternatives related to the goal.
-              - 9-10 (READY TO BUY): User is asking for direct recommendations, mentioning budget, or expressing extreme urgency.
-              
-              STRICT RULES:
-              1. Filter out ANY post scoring below 7.
-              2. If none found, return: {"leads": []}.
-              3. reasoning: Max 10 words. Explain WHY they are a lead.
-              4. suggestedReply: Max 20 words hook.
-              
-              Return ONLY JSON: {"leads": [{"postId": "...", "intentScore": number(7-10), "leadType": "Pain-Point"|"Competitor-Frustration"|"Solution-Seeking", "reasoning": "...", "suggestedReply": "..."}]}`
+              content: `You are the "LeadLinx Ruthless Scorer," a strict qualification engine.\nAnalyze Reddit posts for "Buyer Intent" based on the user's goal: "${userQuery}".`
             },
             {
               role: "user",
-              content: `Analyze these posts:\n${JSON.stringify(batch.map(p => ({ id: p.postId, title: p.title, text: p.text.substring(0, 600) })))}`
+              content: `Analyze these posts:\n${JSON.stringify(summary)}`
             }
           ],
           response_format: { type: "json_object" }
