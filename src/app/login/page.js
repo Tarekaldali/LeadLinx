@@ -1,9 +1,14 @@
 'use client';
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = false;
 
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,15 +16,21 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestedCallbackUrl = searchParams.get('callbackUrl');
+  const [requestedCallbackUrl, setRequestedCallbackUrl] = useState(null);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setRequestedCallbackUrl(params.get('callbackUrl'));
+  }, []);
   const callbackUrl = requestedCallbackUrl?.startsWith('/') ? requestedCallbackUrl : '/dashboard';
 
   const handleGoogleLogin = async () => {
+    setLoading(true);
     try {
       await signIn('google', { callbackUrl });
     } catch (err) {
-      setError('Failed to connect to Google. Please try again.');
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -27,19 +38,15 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     try {
       const res = await fetch('/api/auth/send-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send code');
-
       setCodeSent(true);
-      // Redirect to verify page with email in query param
       router.push(`/verify?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err.message);
@@ -49,6 +56,7 @@ export default function LoginPage() {
   };
 
   return (
+    <Suspense fallback={null}>
     <div className="min-h-screen bg-background text-on-surface flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(13,148,136,0.10),transparent_28%)] pointer-events-none" />
       <div className="w-full max-w-[440px] space-y-8">
@@ -127,5 +135,6 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  </Suspense>
   );
 }
