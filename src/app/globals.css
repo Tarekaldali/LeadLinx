@@ -84,15 +84,15 @@
 
 @layer base {
   .dark {
-    --color-background: #09090b;
-    --color-surface: #1e293b;
-    --color-surface-dim: #09090b;
-    --color-surface-bright: #334155;
-    --color-surface-container-lowest: #020617;
-    --color-surface-container-low: #0f172a;
-    --color-surface-container: #1e293b;
-    --color-surface-container-high: #334155;
-    --color-surface-container-highest: #475569;
+    --color-background: #111827;
+    --color-surface: #182235;
+    --color-surface-dim: #0f172a;
+    --color-surface-bright: #26344d;
+    --color-surface-container-lowest: #111827;
+    --color-surface-container-low: #172033;
+    --color-surface-container: #1f2a3d;
+    --color-surface-container-high: #2d3a52;
+    --color-surface-container-highest: #3b4a63;
 
     --color-on-surface: #f8fafc;
     --color-on-surface-variant: #94a3b8;
@@ -104,7 +104,7 @@
     --color-outline-variant: #334155;
 
     /* Sidebar — DARK THEME (Midnight) */
-    --color-sidebar: #0f1117;
+    --color-sidebar: #111827;
     --color-sidebar-fg: #f1f3f9;
     --color-sidebar-muted: #6b7280;
     --color-sidebar-hover: rgba(255, 255, 255, 0.06);
@@ -112,7 +112,7 @@
     --color-sidebar-border: rgba(255, 255, 255, 0.08);
     
     /* Dark body background */
-    background-color: #09090b;
+    background-color: #111827;
     color: #f8fafc;
   }
 }

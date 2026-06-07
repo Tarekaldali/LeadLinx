@@ -22,20 +22,26 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Search not found' }, { status: 404 });
     }
 
-    // If completed, fetch the leads
+    // If completed, fetch the leads stored for this exact search
     let leads = [];
     if (search.status === 'completed') {
       leads = await db.collection('leads').find({ 
         userId: search.userId,
-        query: search.query,
-        createdAt: { $gte: search.createdAt }
+        searchId: search._id
       }).toArray();
     }
 
     return NextResponse.json({
       status: search.status,
+      error: search.error || null,
+      progress: search.progress || null,
       leadCount: search.leadCount || leads.length,
-      leads: leads,
+      leads: leads.map(({ _id, userId, searchId, chatId, searchQuery, leadId, createdAt, source, ...lead }) => ({
+        ...lead,
+        id: lead.id || leadId || _id.toString(),
+        source,
+        subreddit: lead.subreddit || source || 'reddit',
+      })),
       insights: search.insights || null,
       totalScanned: search.totalScanned || 0,
       selectedSubreddits: search.selectedSubreddits || [],

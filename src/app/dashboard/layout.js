@@ -64,7 +64,10 @@ export default function DashboardLayout({ children }) {
   }, [loading, session]);
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/' });
+    localStorage.removeItem('leadlinx.activeChatId');
+    await signOut({ redirect: false, callbackUrl: '/' });
+    router.replace('/');
+    router.refresh();
   };
 
   const [localCredits, setLocalCredits] = useState(null);

@@ -1,25 +1,17 @@
 /**
  * LeadLinx Search API — /api/leads/search
- * V3: Powered by LeadHarvester (Web Crawl + AI Classification)
- *
- * Replaces the legacy Reddit scraping engine. Now discovers company
- * websites, crawls them, extracts contact info, classifies with AI,
- * deduplicates, scores, and returns formatted leads.
- *
- * Flow:
- *   1. Classify intent (CHAT vs SEARCH)
- *   2. If SEARCH → run harvester pipeline
- *   3. Return leads in the format ChatMessage.js expects
+ * Starts a persisted extraction job and lets Next.js `after()` finish it
+ * independently of client-side navigation.
  */
 
-export const maxDuration = 60; // Set max duration for Vercel Serverless Function
+export const maxDuration = 300;
+export const dynamic = 'force-dynamic';
 
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { requireAuth } from '@/lib/auth';
 import { classifyIntent } from '@/lib/aiOrchestrator';
 import { ObjectId } from 'mongodb';
-import { calcCost } from '@/lib/gemini';
 import { sendSearchCompletionEmail } from '@/lib/email';
 
 export async function POST(request) {
@@ -30,48 +22,37 @@ export async function POST(request) {
 
   try {
     const body = await request.json();
-    const query = body.query;
+    const query = body.query?.trim();
     const chatId = body.chatId;
+    const assistantMessageId = body.assistantMessageId;
 
-    if (!query?.trim()) {
+    if (!query) {
       return NextResponse.json({ error: 'A search query is required' }, { status: 400 });
     }
 
     const db = await getDb();
     const userId = new ObjectId(authResult.user.id);
-
-    // 1. Pre-check credits & Plan Limitations
     const user = await db.collection('users').findOne({ _id: userId });
 
-    // Check if subscription exists and is active (if required by business logic)
-    const subscription = await db.collection('subscriptions').findOne({ userId });
-    const isPremium = subscription && subscription.status === 'active';
-
-    // Require at least 1 credit to start a search
-    if (user.credits < 1) {
+    if (!user || user.credits < 1) {
       return NextResponse.json({ error: 'Insufficient credits. Please top up your balance or upgrade your plan.' }, { status: 402 });
     }
 
-    // 2. Intent Classification (DeepSeek V3)
-    // Deduct 1 credit upfront for "Real-time" feel
     await db.collection('users').updateOne(
       { _id: userId, credits: { $gt: 0 } },
       { $inc: { credits: -1 }, $set: { updatedAt: new Date() } }
     );
 
     const classificationResult = await classifyIntent(query);
-    const classification = classificationResult.data;
+    const classification = classificationResult.data || { intent: 'SEARCH', response_message: '' };
     console.log('🎯 Intent Classification:', classification);
 
-    const { calculateCreditsToDeduct, getRawCost } = await import('@/lib/creditManager.js');
+    const { getRawCost } = await import('@/lib/creditManager.js');
 
     if (classification.intent === 'CHAT') {
       const aiResponse = classification.response_message || 'How can I help you find leads today?';
-      
       const chatUsage = classificationResult.usage || { prompt_tokens: 0, completion_tokens: 0 };
       const rawCostUsd = getRawCost('google/gemini-2.0-flash-001', chatUsage);
-      const totalCostUsd = rawCostUsd * 10;
-      const profitUsd = totalCostUsd - rawCostUsd;
 
       await db.collection('ai_usage').insertOne({
         userId,
@@ -80,201 +61,328 @@ export async function POST(request) {
         query,
         totalUsage: chatUsage,
         rawCostUsd,
-        totalCostUsd,
-        profitUsd,
-        creditsCharged: 1, // 1 credit deducted upfront
+        totalCostUsd: rawCostUsd * 10,
+        profitUsd: rawCostUsd * 9,
+        creditsCharged: 1,
         leadsReturned: 0,
         postsAnalyzed: 0,
         plan: user?.plan || 'free',
         timestamp: new Date()
       });
 
-      return NextResponse.json({ status: 'chat', message: aiResponse }, { status: 200 });
-    }
-
-    // 3. Run Omni-Extractor pipeline
-    console.log(`🚀 Running Omni-Extractor for: "${query}"`);
-
-    // Import omni dynamically so we don't break if files are moving
-    const { extractOmniLeads } = await import('@/lib/omni-extractor/index.js');
-
-    // Pass isPremium flag to allow aggressive fetching
-    const result = await extractOmniLeads(query, { isPremium });
-
-    // Aggregate usage from both Classification and Extraction
-    const combinedUsage = {
-      prompt_tokens: (classificationResult.usage?.prompt_tokens || 0) + (result.usage?.prompt_tokens || 0),
-      completion_tokens: (classificationResult.usage?.completion_tokens || 0) + (result.usage?.completion_tokens || 0)
-    };
-
-    // 4. Dynamic Credit Deduction (Based on Combined Token Usage + 10x Margin)
-    const totalCost = calculateCreditsToDeduct('google/gemini-2.0-flash-001', combinedUsage, user.plan);
-
-    // Adjust for the 1 credit already deducted upfront
-    const remainingToDeduct = Math.max(0, totalCost - 1);
-
-    console.log(`💰 [Billing] Total cost: ${totalCost}, Remaining to deduct: ${remainingToDeduct}`);
-
-    if (remainingToDeduct > 0) {
-      await db.collection('users').updateOne(
-        { _id: userId, credits: { $gte: remainingToDeduct } },
-        {
-          $inc: { credits: -remainingToDeduct },
-          $set: { updatedAt: new Date() },
+      await updateChatMessage(db, {
+        userId,
+        chatId,
+        assistantMessageId,
+        patch: {
+          status: 'chat',
+          content: aiResponse,
+          leads: [],
+          insights: null,
+          updatedAt: new Date(),
         }
-      );
+      });
+
+      return NextResponse.json({ status: 'chat', message: aiResponse, creditsRemaining: Math.max(0, user.credits - 1) }, { status: 200 });
     }
 
-    const updatedUser = await db.collection('users').findOne({ _id: userId });
+    const subscription = await db.collection('subscriptions').findOne({ userId });
+    const isPremium = subscription?.status === 'active';
 
-    // Insert ai_usage for SEARCH
-    const searchRawCostUsd = getRawCost('google/gemini-2.0-flash-001', combinedUsage);
-    const searchTotalCostUsd = searchRawCostUsd * 10;
-    const searchProfitUsd = searchTotalCostUsd - searchRawCostUsd;
-
-    await db.collection('ai_usage').insertOne({
-      userId,
-      chatId: chatId && ObjectId.isValid(chatId) ? new ObjectId(chatId) : null,
-      type: 'lead_search',
-      query,
-      totalUsage: combinedUsage,
-      rawCostUsd: searchRawCostUsd,
-      totalCostUsd: searchTotalCostUsd,
-      profitUsd: searchProfitUsd,
-      creditsCharged: totalCost,
-      leadsReturned: result.leads.length,
-      postsAnalyzed: result.stats?.pagesCrawled || 0,
-      plan: user?.plan || 'free',
-      timestamp: new Date()
-    });
-
-    // Send email notification (non-blocking)
-    if (result.leads.length > 0 && authResult.user.email) {
-      sendSearchCompletionEmail(authResult.user.email, result.leads.length, query).catch(e => console.error(e));
-    }
-
-    // 5. Format leads for the ChatMessage UI component
-    const leads = result.leads.map(l => ({
-      id: l.id,
-      author: l.author || 'Unknown',
-      company: l.company || '',
-      title: l.title || '',
-      body: l.body || l.reasoning || '',
-      link: l.link || '#',
-      subreddit: l.subreddit || l.source || 'reddit',
-      emails: l.emails || [],
-      phones: l.phones || [],
-      socials: l.socials || [],
-      score: l.score || 0,
-      type: l.type || 'Solution-Seeking',
-      suggestedReply: l.suggestedReply || '',
-      leadType: result.route_data?.targetType === 'b2c' ? 'B2C (Consumer)' : 'B2B (Business)',
-    }));
-
-    // 6. Log search for analytics and get searchId
     const searchLog = {
       userId,
       query,
-      chatId: chatId || null,
-      status: 'completed',
-      searchPlan: {
-        mode: result.mode,
-        discoveredUrls: result.stats.urlsDiscovered,
-        search_queries: [query],
+      chatId: chatId && ObjectId.isValid(chatId) ? new ObjectId(chatId) : null,
+      status: 'processing',
+      progress: {
+        stage: 'queued',
+        message: 'Extraction queued and running in the background.',
+        percent: 5,
       },
-      leadCount: leads.length,
-      stats: result.stats,
+      searchPlan: { search_queries: [query] },
+      leadCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     const searchResult = await db.collection('searches').insertOne(searchLog);
-    const searchId = searchResult.insertedId;
+    const searchId = searchResult.insertedId.toString();
 
-    // 5b. Store leads in the 'leads' collection in MongoDB
-    if (leads.length > 0) {
-      const leadsToStore = leads.map(l => ({
-        userId,
-        searchId, // Link to the specific search event
-        chatId: chatId || null,
-        searchQuery: query,
-        leadId: l.id,
-        author: l.author,
-        company: l.company,
-        title: l.title,
-        body: l.body,
-        link: l.link,
-        source: l.subreddit,
-        emails: l.emails,
-        phones: l.phones,
-        socials: l.socials,
-        score: l.score,
-        leadType: l.leadType,
-        createdAt: new Date(),
-      }));
-
-      try {
-        await db.collection('leads').insertMany(leadsToStore, { ordered: false });
-      } catch (e) {
-        // Ignore duplicate key errors if leads already exist
-        if (e.code !== 11000) console.error('Lead storage error:', e);
+    await updateChatMessage(db, {
+      userId,
+      chatId,
+      assistantMessageId,
+      patch: {
+        searchId,
+        status: 'processing',
+        content: query,
+        leads: [],
+        insights: null,
+        progress: searchLog.progress,
+        updatedAt: new Date(),
       }
-    }
-
-    // 7. Build insights from results
-    const insights = generateInsights(result);
-
-    // 8. Return in existing dashboard format
-    return NextResponse.json({
-      status: 'completed',
-      searchId: result.jobId,
-      leads,
-      insights,
-      totalScanned: result.stats.pagesCrawled,
-      creditsRemaining: updatedUser?.credits ?? 0,
-      searchQueries: result.route_data?.searchQueries || [query],
-      selectedSubreddits: result.route_data?.subreddits || [],
     });
 
+    after(async () => {
+      await runSearchJob({
+        query,
+        userId: userId.toString(),
+        userEmail: authResult.user.email,
+        userPlan: user?.plan || 'free',
+        searchId,
+        chatId,
+        assistantMessageId,
+        classificationUsage: classificationResult.usage || { prompt_tokens: 0, completion_tokens: 0 },
+        isPremium,
+      });
+    });
+
+    return NextResponse.json({
+      status: 'processing',
+      searchId,
+      leads: [],
+      insights: null,
+      totalScanned: 0,
+      creditsRemaining: Math.max(0, user.credits - 1),
+      searchQueries: [query],
+      selectedSubreddits: [],
+      progress: searchLog.progress,
+    }, { status: 202 });
+
   } catch (error) {
-    console.error('Search error:', error);
+    console.error('Search start error:', error);
     return NextResponse.json({ error: error.message || 'Search failed.' }, { status: 500 });
   }
 }
 
-/**
- * Generate market intelligence insights from harvest results.
- */
+async function runSearchJob({ query, userId, userEmail, userPlan, searchId, chatId, assistantMessageId, classificationUsage, isPremium }) {
+  const db = await getDb();
+  const userObjectId = new ObjectId(userId);
+  const searchObjectId = new ObjectId(searchId);
+
+  try {
+    await db.collection('searches').updateOne(
+      { _id: searchObjectId, userId: userObjectId },
+      {
+        $set: {
+          status: 'processing',
+          progress: {
+            stage: 'extracting',
+            message: 'Searching Reddit posts and comments for buyer intent.',
+            percent: 20,
+          },
+          updatedAt: new Date(),
+        }
+      }
+    );
+
+    const { extractOmniLeads } = await import('@/lib/omni-extractor/index.js');
+    const result = await extractOmniLeads(query, {
+      isPremium,
+      targetLeads: 50,
+      maxToValidate: isPremium ? 500 : 400,
+      extractionMs: 90000,
+      validationMs: 180000,
+    });
+
+    const combinedUsage = {
+      prompt_tokens: (classificationUsage?.prompt_tokens || 0) + (result.usage?.prompt_tokens || 0),
+      completion_tokens: (classificationUsage?.completion_tokens || 0) + (result.usage?.completion_tokens || 0)
+    };
+
+    const { calculateCreditsToDeduct, getRawCost } = await import('@/lib/creditManager.js');
+    const totalCost = calculateCreditsToDeduct('google/gemini-2.0-flash-001', combinedUsage, userPlan);
+    const remainingToDeduct = Math.max(0, totalCost - 1);
+
+    if (remainingToDeduct > 0) {
+      await db.collection('users').updateOne(
+        { _id: userObjectId, credits: { $gte: remainingToDeduct } },
+        { $inc: { credits: -remainingToDeduct }, $set: { updatedAt: new Date() } }
+      );
+    }
+
+    const updatedUser = await db.collection('users').findOne({ _id: userObjectId });
+    const leads = formatLeads(result, searchObjectId, userObjectId, chatId, query);
+    const insights = generateInsights(result);
+    const rawCostUsd = getRawCost('google/gemini-2.0-flash-001', combinedUsage);
+
+    await db.collection('ai_usage').insertOne({
+      userId: userObjectId,
+      chatId: chatId && ObjectId.isValid(chatId) ? new ObjectId(chatId) : null,
+      type: 'lead_search',
+      query,
+      totalUsage: combinedUsage,
+      rawCostUsd,
+      totalCostUsd: rawCostUsd * 10,
+      profitUsd: rawCostUsd * 9,
+      creditsCharged: totalCost,
+      leadsReturned: leads.length,
+      postsAnalyzed: result.stats?.pagesCrawled || 0,
+      plan: userPlan,
+      timestamp: new Date()
+    });
+
+    if (leads.length > 0) {
+      try {
+        await db.collection('leads').insertMany(leads, { ordered: false });
+      } catch (error) {
+        if (error.code !== 11000) console.error('Lead storage error:', error);
+      }
+    }
+
+    const completedPatch = {
+      status: 'completed',
+      leadCount: leads.length,
+      stats: result.stats,
+      totalScanned: result.stats?.pagesCrawled || 0,
+      insights,
+      selectedSubreddits: result.route_data?.subreddits || [],
+      searchQueries: result.route_data?.searchQueries || result.route_data?.keywords || [query],
+      searchPlan: {
+        mode: result.mode,
+        discoveredUrls: result.stats?.urlsDiscovered || 0,
+        search_queries: result.route_data?.searchQueries || [query],
+      },
+      progress: {
+        stage: 'completed',
+        message: `Found ${leads.length} qualified leads.`,
+        percent: 100,
+      },
+      updatedAt: new Date(),
+    };
+
+    await db.collection('searches').updateOne(
+      { _id: searchObjectId, userId: userObjectId },
+      { $set: completedPatch }
+    );
+
+    await updateChatMessage(db, {
+      userId: userObjectId,
+      chatId,
+      assistantMessageId,
+      patch: {
+        status: 'completed',
+        content: query,
+        searchId,
+        leads: stripDbFields(leads),
+        insights,
+        totalScanned: completedPatch.totalScanned,
+        selectedSubreddits: completedPatch.selectedSubreddits,
+        searchQueries: completedPatch.searchQueries,
+        creditsRemaining: updatedUser?.credits ?? 0,
+        progress: completedPatch.progress,
+        updatedAt: new Date(),
+      }
+    });
+
+    if (leads.length > 0 && userEmail) {
+      sendSearchCompletionEmail(userEmail, leads.length, query).catch(error => console.error(error));
+    }
+  } catch (error) {
+    console.error('Background search error:', error);
+    await db.collection('searches').updateOne(
+      { _id: searchObjectId, userId: userObjectId },
+      {
+        $set: {
+          status: 'failed',
+          error: error.message || 'Search failed.',
+          progress: {
+            stage: 'failed',
+            message: error.message || 'Search failed.',
+            percent: 100,
+          },
+          updatedAt: new Date(),
+        }
+      }
+    );
+
+    await updateChatMessage(db, {
+      userId: userObjectId,
+      chatId,
+      assistantMessageId,
+      patch: {
+        status: 'failed',
+        error: error.message || 'Search failed.',
+        searchId,
+        updatedAt: new Date(),
+      }
+    });
+  }
+}
+
+async function updateChatMessage(db, { userId, chatId, assistantMessageId, patch }) {
+  if (!chatId || !ObjectId.isValid(chatId) || !assistantMessageId) return;
+
+  try {
+    await db.collection('chats').updateOne(
+      {
+        _id: new ObjectId(chatId),
+        userId,
+        'messages.id': assistantMessageId,
+      },
+      {
+        $set: Object.fromEntries(
+          Object.entries(patch).map(([key, value]) => [`messages.$.${key}`, value])
+        )
+      }
+    );
+  } catch (error) {
+    console.error('Chat message update failed:', error);
+  }
+}
+
+function formatLeads(result, searchId, userId, chatId, query) {
+  return result.leads.map(lead => ({
+    userId,
+    searchId,
+    chatId: chatId && ObjectId.isValid(chatId) ? new ObjectId(chatId) : null,
+    searchQuery: query,
+    leadId: lead.id,
+    id: lead.id,
+    author: lead.author || 'Unknown',
+    company: lead.company || '',
+    title: lead.title || '',
+    body: lead.body || lead.reasoning || '',
+    link: lead.link || '#',
+    source: lead.subreddit || lead.source || 'reddit',
+    subreddit: lead.subreddit || lead.source || 'reddit',
+    emails: lead.emails || [],
+    phones: lead.phones || [],
+    socials: lead.socials || [],
+    score: lead.score || 0,
+    type: lead.type || 'Solution-Seeking',
+    suggestedReply: lead.suggestedReply || '',
+    leadType: result.route_data?.targetType === 'b2c' ? 'B2C (Consumer)' : 'B2B (Business)',
+    createdAt: new Date(),
+  }));
+}
+
+function stripDbFields(leads) {
+  return leads.map(({ userId, searchId, chatId, searchQuery, leadId, createdAt, source, ...lead }) => ({
+    ...lead,
+    source,
+    subreddit: lead.subreddit || source || 'reddit',
+  }));
+}
+
 function generateInsights(result) {
   if (!result.leads.length) return null;
 
   const leads = result.leads;
-
-  // Extract unique companies
-  const companies = [...new Set(leads.map(l => l.company).filter(Boolean))];
-
-  // Extract industries from enrichment data
-  const industries = [...new Set(
-    leads
-      .map(l => l.enrichment_data?.industry_guess || l.enrichment_data?.clearbit?.industry)
-      .filter(Boolean)
-  )];
-
-  // Count signal types
-  const emailCount = leads.filter(l => l.emails?.length > 0).length;
-  const phoneCount = leads.filter(l => l.phones?.length > 0).length;
+  const emailCount = leads.filter(lead => lead.emails?.length > 0).length;
+  const redditContactCount = leads.filter(lead => lead.socials?.some(social => social.startsWith('reddit:@'))).length;
+  const hotCount = leads.filter(lead => lead.score >= 8).length;
 
   return {
     topPainPoints: [
-      `Found ${emailCount} leads with verified email addresses`,
-      `Found ${phoneCount} leads with direct phone numbers`,
-      `Crawled ${result.stats.pagesCrawled} pages across ${result.stats.urlsDiscovered} websites`,
-      leads.some(l => l.score >= 80) ? `${leads.filter(l => l.score >= 80).length} HOT leads (score 80+) ready for outreach` : null,
+      `Found ${hotCount} hot leads with strong buying intent`,
+      `Found ${redditContactCount} Reddit usernames ready for direct outreach`,
+      emailCount > 0 ? `Found ${emailCount} leads with email addresses` : null,
+      `Analyzed ${result.stats?.pagesCrawled || 0} Reddit signals`,
     ].filter(Boolean),
     saasIdeas: [
-      companies.length > 0 ? `Companies found: ${companies.slice(0, 5).join(', ')}` : null,
-      industries.length > 0 ? `Industries: ${industries.slice(0, 5).join(', ')}` : null,
-      `${result.stats.duplicatesFiltered} duplicate contacts filtered out`,
+      `${result.stats?.duplicatesFiltered || 0} low-quality or duplicate signals filtered out`,
+      `${result.route_data?.subreddits?.slice(0, 5).join(', ') || 'Reddit'} produced the strongest signal pool`,
     ].filter(Boolean),
   };
 }

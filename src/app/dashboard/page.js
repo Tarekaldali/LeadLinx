@@ -12,6 +12,8 @@ import { useDashboard } from './layout';
 
 import './dashboard.css';
 
+const ACTIVE_CHAT_STORAGE_KEY = 'leadlinx.activeChatId';
+
 export default function DashboardPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -44,23 +46,47 @@ export default function DashboardPage() {
   const messagesRef = useRef(messages);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
-  const showToast = (msg, type = 'success') => {
+  const showToast = useCallback((msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
-  };
+  }, []);
+
+  const persistChatMessages = useCallback((chatId, nextMessages, title) => {
+    if (!chatId) return Promise.resolve();
+    return fetch(`/api/chats/${chatId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: nextMessages, title }),
+    }).catch(() => { });
+  }, []);
+
+  const loadChatById = useCallback(async (chatId) => {
+    try {
+      const res = await fetch(`/api/chats/${chatId}`);
+      const data = await res.json();
+      if (!res.ok || !data.chat) throw new Error(data.error || 'Failed to load chat');
+      setActiveTab?.('discovery');
+      setActiveChatId(chatId);
+      localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, chatId);
+      setMessages(data.chat.messages || []);
+      return data.chat;
+    } catch {
+      showToast('Failed to load chat', 'error');
+      return null;
+    }
+  }, [setActiveTab, showToast]);
 
   // Sidebar listeners
   useEffect(() => {
-    const onNewChat = () => { setActiveTab('discovery'); setActiveChatId(null); setMessages([]); setInput(''); };
+    const onNewChat = () => {
+      setActiveTab('discovery');
+      setActiveChatId(null);
+      localStorage.removeItem(ACTIVE_CHAT_STORAGE_KEY);
+      setMessages([]);
+      setInput('');
+    };
     const onLoadChat = async (e) => {
-      const { chatId } = e.detail;
-      try {
-        const res = await fetch(`/api/chats/${chatId}`);
-        const data = await res.json();
-        setActiveTab('discovery');
-        setActiveChatId(chatId);
-        setMessages(data.chat?.messages || []);
-      } catch { showToast('Failed to load chat', 'error'); }
+      await loadChatById(e.detail.chatId);
     };
     const onUsePrompt = (e) => {
       setActiveTab('discovery');
@@ -80,7 +106,14 @@ export default function DashboardPage() {
       window.removeEventListener('usePrompt', onUsePrompt);
       window.removeEventListener('switchTab', onSwitchTab);
     };
-  }, []);
+  }, [loadChatById, setActiveTab]);
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q || activeChatId || messagesRef.current.length > 0) return;
+    const storedChatId = localStorage.getItem(ACTIVE_CHAT_STORAGE_KEY);
+    if (storedChatId) loadChatById(storedChatId);
+  }, [searchParams, activeChatId, loadChatById]);
 
   // Handle hash-based tab navigation when coming from another page
   useEffect(() => {
@@ -112,7 +145,15 @@ export default function DashboardPage() {
     setLoading(true);
 
     const userMsg = { id: Date.now().toString(), role: 'user', content: query, timestamp: new Date() };
-    setMessages(prev => [...prev, userMsg]);
+    const assistantMsg = {
+      id: (Date.now() + 1).toString(),
+      role: 'assistant',
+      content: query,
+      status: 'processing',
+      leads: [],
+      insights: null,
+      timestamp: new Date(),
+    };
 
     let chatId = activeChatId;
     if (!chatId) {
@@ -121,15 +162,20 @@ export default function DashboardPage() {
         const data = await res.json();
         chatId = data.chatId;
         setActiveChatId(chatId);
+        localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, chatId);
         addChat?.({ _id: chatId, title: query.substring(0, 45), updatedAt: new Date() });
       } catch { /* fail silent */ }
     }
+
+    const nextMessages = [...messagesRef.current, userMsg, assistantMsg];
+    setMessages(nextMessages);
+    await persistChatMessages(chatId, nextMessages, query.substring(0, 50));
 
     try {
       const res = await fetch('/api/leads/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, chatId }),
+        body: JSON.stringify({ query, chatId, assistantMessageId: assistantMsg.id }),
       });
       
       let data;
@@ -142,38 +188,34 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error(data.error || 'Search failed');
       if (data.creditsRemaining !== undefined) updateCredits?.(data.creditsRemaining);
 
-      const assistantMsg = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
+      const updatedAssistantMsg = {
+        ...assistantMsg,
         content: data.status === 'chat' ? data.message : query,
         searchId: data.searchId,
         status: data.status || 'processing',
         leads: data.leads || [],
         insights: data.insights || null,
-        timestamp: new Date(),
+        totalScanned: data.totalScanned || 0,
+        selectedSubreddits: data.selectedSubreddits || [],
+        searchQueries: data.searchQueries || [],
+        progress: data.progress || null,
       };
-      setMessages(prev => [...prev, assistantMsg]);
+      const finalMessages = nextMessages.map(m => m.id === assistantMsg.id ? updatedAssistantMsg : m);
+      setMessages(finalMessages);
 
-      if (chatId) {
-        const allMessages = [...messagesRef.current.filter(m => m.id !== userMsg.id), userMsg, assistantMsg];
-        fetch(`/api/chats/${chatId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: allMessages, title: query.substring(0, 50) }),
-        }).catch(() => { });
-      }
+      await persistChatMessages(chatId, finalMessages, query.substring(0, 50));
     } catch (err) {
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: query,
+      const failedMessages = nextMessages.map(m => m.id === assistantMsg.id ? {
+        ...assistantMsg,
+        status: 'failed',
         error: err.message,
-        timestamp: new Date(),
-      }]);
+      } : m);
+      setMessages(failedMessages);
+      await persistChatMessages(chatId, failedMessages, query.substring(0, 50));
     } finally {
       setLoading(false);
     }
-  }, [input, loading, activeChatId, updateCredits, addChat]);
+  }, [input, loading, activeChatId, updateCredits, addChat, persistChatMessages]);
 
   useEffect(() => {
     const q = searchParams.get('q');

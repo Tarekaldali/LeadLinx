@@ -23,6 +23,88 @@ function delay(ms) {
   return new Promise(r => setTimeout(r, ms + Math.random() * 200));
 }
 
+async function runWithConcurrency(items, limit, worker) {
+  const executing = new Set();
+  const results = [];
+
+  for (const item of items) {
+    const promise = Promise.resolve().then(() => worker(item));
+    results.push(promise);
+    executing.add(promise);
+    promise.finally(() => executing.delete(promise));
+
+    if (executing.size >= limit) {
+      await Promise.race(executing);
+    }
+  }
+
+  return Promise.allSettled(results);
+}
+
+function uniqueClean(items) {
+  const seen = new Set();
+  return items
+    .filter(Boolean)
+    .map(item => String(item).trim())
+    .filter(item => {
+      const key = item.toLowerCase();
+      if (!item || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function getFallbackSubreddits(intentData) {
+  const text = [
+    intentData.searchIntent,
+    ...(intentData.keywords || []),
+    ...(intentData.searchQueries || []),
+  ].join(' ').toLowerCase();
+
+  if (/(skin\s*care|skincare|acne|beauty|moisturizer|sunscreen|retinol|serum)/i.test(text)) {
+    return ['SkincareAddiction', 'AsianBeauty', '30PlusSkinCare', 'acne', 'beauty', 'Sephora', 'Ulta', 'tretinoin'];
+  }
+
+  if (/(fitness|gym|workout|weight loss|protein|supplement)/i.test(text)) {
+    return ['fitness', 'loseit', 'xxfitness', 'bodyweightfitness', 'nutrition', 'Supplements'];
+  }
+
+  if (/(crm|sales|lead|pipeline|cold email)/i.test(text)) {
+    return ['sales', 'smallbusiness', 'Entrepreneur', 'SaaS', 'startups', 'salesforce'];
+  }
+
+  if (/(shopify|ecommerce|store|dropship)/i.test(text)) {
+    return ['shopify', 'ecommerce', 'Entrepreneur', 'smallbusiness', 'dropshipping', 'AmazonFBA'];
+  }
+
+  return ['AskReddit', 'NoStupidQuestions', 'BuyItForLife', 'Productivity', 'Entrepreneur', 'smallbusiness'];
+}
+
+function expandBuyerQueries(intentData) {
+  const base = uniqueClean([
+    ...(intentData.searchQueries || []),
+    ...(intentData.keywords || []),
+    intentData.searchIntent,
+  ]);
+  const intent = intentData.searchIntent || base[0] || '';
+  const compactIntent = intent
+    .replace(/\b(people|users|customers|leads|actively|looking|buy|purchase|want|need|for)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const target = compactIntent || intent;
+
+  return uniqueClean([
+    ...base,
+    target,
+    `looking for ${target}`,
+    `recommend ${target}`,
+    `best ${target}`,
+    `need help with ${target}`,
+    `where to buy ${target}`,
+    `alternative to ${target}`,
+  ]);
+}
+
 /**
  * Fetch with retry and timeout using native global fetch
  */
@@ -115,19 +197,34 @@ async function fetchRedditRSS(subreddit, keyword, sort = 'new') {
   return posts;
 }
 
-async function fetchRedditJSON(subreddit, keyword, limit = 100, sort = 'new') {
+function normalizeRedditPost(p, resultType = 'link') {
+  const id = p.name || p.id || p.permalink || p.link_permalink;
+  return {
+    ...p,
+    id,
+    title: p.title || p.link_title || '',
+    selftext: p.selftext || p.body || '',
+    permalink: p.permalink || p.link_permalink || '',
+    resultType,
+  };
+}
+
+async function fetchRedditJSON(subreddit, keyword, limit = 100, sort = 'new', type = 'link') {
   const query = encodeURIComponent(keyword);
   const url = subreddit
-    ? `https://www.reddit.com/r/${subreddit}/search.json?q=${query}&sort=${sort}&restrict_sr=on&t=year&limit=${limit}&type=link`
-    : `https://www.reddit.com/search.json?q=${query}&sort=${sort}&t=year&limit=${limit}&type=link`;
+    ? `https://www.reddit.com/r/${subreddit}/search.json?q=${query}&sort=${sort}&restrict_sr=on&t=year&limit=${limit}&type=${type}&raw_json=1`
+    : `https://www.reddit.com/search.json?q=${query}&sort=${sort}&t=year&limit=${limit}&type=${type}&raw_json=1`;
   
   const res = await fetchWithRetry(url);
   if (!res) return [];
   
   try {
     const data = await res.json();
-    const posts = (data?.data?.children || []).map(c => c.data).filter(Boolean);
-    console.log(`[Reddit JSON] ${subreddit || 'global'} + "${keyword}" (${sort}): ${posts.length} posts`);
+    const posts = (data?.data?.children || [])
+      .map(c => c.data)
+      .filter(Boolean)
+      .map(p => normalizeRedditPost(p, type));
+    console.log(`[Reddit JSON] ${subreddit || 'global'} + "${keyword}" (${sort}/${type}): ${posts.length} posts`);
     return posts;
   } catch {
     return [];
@@ -138,13 +235,15 @@ async function fetchRedditPosts(subreddit, keyword, limit = 50) {
   const allPosts = new Map();
   
   // Run NEW and RELEVANCE in PARALLEL — half the time cost
-  const [newPosts, relevantPosts] = await Promise.all([
-    fetchRedditJSON(subreddit, keyword, limit, 'new'),
-    fetchRedditJSON(subreddit, keyword, limit, 'relevance'),
+  const [newPosts, relevantPosts, commentPosts] = await Promise.all([
+    fetchRedditJSON(subreddit, keyword, limit, 'new', 'link'),
+    fetchRedditJSON(subreddit, keyword, limit, 'relevance', 'link'),
+    fetchRedditJSON(subreddit, keyword, Math.min(limit, 50), 'relevance', 'comment'),
   ]);
   
   newPosts.forEach(p => { if (p && p.id) allPosts.set(p.id, p); });
   relevantPosts.forEach(p => { if (p && p.id) allPosts.set(p.id, p); });
+  commentPosts.forEach(p => { if (p && p.id) allPosts.set(p.id, p); });
   
   // Only fall back to RSS if we got nothing at all
   if (allPosts.size === 0) {
@@ -160,25 +259,24 @@ export async function runSocialExtraction(intentData, options = {}) {
   const leads = [];
   const leadsMap = new Map();
   
-  // Hard wall-clock budget: 28s for ALL extraction (leaves ~27s for LLM validation)
-  const EXTRACTION_DEADLINE = Date.now() + 28000;
+  const EXTRACTION_DEADLINE = Date.now() + (options.extractionMs || 90000);
   const withinBudget = () => Date.now() < EXTRACTION_DEADLINE;
 
-  const searchKeywords = intentData.keywords.slice(0, 5);
-  const subreddits = intentData.subreddits || [];
+  const searchKeywords = expandBuyerQueries(intentData).slice(0, options.isPremium ? 10 : 8);
+  const subreddits = uniqueClean([...(intentData.subreddits || []), ...getFallbackSubreddits(intentData)]).slice(0, options.isPremium ? 12 : 10);
   
   // Phase 1: Subreddit-specific searches — all in parallel (no chunking)
   const combinations = [];
-  for (const sub of subreddits.slice(0, 5)) {
+  for (const sub of subreddits) {
     for (const keyword of searchKeywords) {
       combinations.push({ sub, keyword });
     }
   }
 
-  await Promise.allSettled(combinations.map(async ({ sub, keyword }) => {
+  await runWithConcurrency(combinations, options.isPremium ? 10 : 8, async ({ sub, keyword }) => {
     if (!withinBudget()) return;
     try {
-      const posts = await fetchRedditPosts(sub, keyword, options.isPremium ? 25 : 15);
+      const posts = await fetchRedditPosts(sub, keyword, options.isPremium ? 100 : 75);
       for (const p of posts) {
         if (!p || leadsMap.has(p.id)) continue;
         processPost(p, sub);
@@ -186,14 +284,14 @@ export async function runSocialExtraction(intentData, options = {}) {
     } catch (err) {
       console.error(`[Reddit] Failed for ${sub} + ${keyword}:`, err.message);
     }
-  }));
+  });
   
   // Phase 2: Global keyword searches — also all in PARALLEL
   if (withinBudget()) {
-    await Promise.allSettled(searchKeywords.map(async (keyword) => {
+    await runWithConcurrency(searchKeywords, options.isPremium ? 6 : 4, async (keyword) => {
       if (!withinBudget()) return;
       try {
-        const posts = await fetchRedditPosts(null, keyword, options.isPremium ? 50 : 25);
+        const posts = await fetchRedditPosts(null, keyword, options.isPremium ? 100 : 75);
         for (const p of posts) {
           if (!p || leadsMap.has(p.id)) continue;
           processPost(p);
@@ -201,7 +299,7 @@ export async function runSocialExtraction(intentData, options = {}) {
       } catch (err) {
         console.error(`[Reddit] Global search failed for "${keyword}":`, err.message);
       }
-    }));
+    });
   }
   
   function processPost(p, fallbackSubreddit) {

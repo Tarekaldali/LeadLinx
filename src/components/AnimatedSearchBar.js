@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 const EXAMPLES = [
   "find startups needing leads",
@@ -18,6 +19,7 @@ const SUGGESTIONS = [
 
 export default function AnimatedSearchBar() {
   const router = useRouter();
+  const { status } = useSession();
   const [placeholder, setPlaceholder] = useState("");
   const [exampleIndex, setExampleIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -53,10 +55,22 @@ export default function AnimatedSearchBar() {
     return () => clearTimeout(typingTimer);
   }, [placeholder, isDeleting, exampleIndex, isFocused]);
 
+  const goToSearch = (value) => {
+    const query = value.trim();
+    if (!query) return;
+
+    const dashboardPath = `/dashboard?q=${encodeURIComponent(query)}`;
+    if (status !== 'authenticated') {
+      router.push(`/login?callbackUrl=${encodeURIComponent(dashboardPath)}`);
+      return;
+    }
+
+    router.push(dashboardPath);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
-    router.push(`/dashboard?q=${encodeURIComponent(inputValue)}`);
+    goToSearch(inputValue);
   };
 
   return (
@@ -106,7 +120,7 @@ export default function AnimatedSearchBar() {
                   onMouseDown={(e) => {
                     e.preventDefault(); // Prevent focus loss
                     setInputValue(sug);
-                    router.push(`/dashboard?q=${encodeURIComponent(sug)}`);
+                    goToSearch(sug);
                   }}
                 >
                   <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-[20px]">search</span>

@@ -2,7 +2,7 @@ import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
 export default withAuth(
-  function middleware(req) {
+  function proxy(req) {
     const { token } = req.nextauth;
     const isAuthPage = req.nextUrl.pathname.startsWith("/login") || req.nextUrl.pathname.startsWith("/signup");
 
@@ -14,8 +14,8 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const isAuthPage = req.nextUrl.pathname.startsWith("/login") || req.nextUrl.pathname.startsWith("/signup");
-        if (isAuthPage) return true; // Always allow access to auth pages (we handle redirect in middleware function)
-        return !!token; // Protect other routes
+        if (isAuthPage) return true;
+        return !!token;
       },
     },
   }

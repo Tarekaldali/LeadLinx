@@ -117,14 +117,12 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   console.log(`🔎 [Omni-Extractor] Source results:`, JSON.stringify(sourceResults));
   console.log(`🔎 [Omni-Extractor] Found ${rawLeads.length} raw potential leads across sources.`);
   
-  // Process top-scored leads first; hard cap at 150 to guarantee we finish in time
-  const MAX_TO_VALIDATE = 150;
+  const MAX_TO_VALIDATE = options.maxToValidate || 400;
   const leadsToProcess = [...rawLeads]
     .sort((a, b) => getHeuristicScore(b) - getHeuristicScore(a))
     .slice(0, MAX_TO_VALIDATE);
 
-  // Give validation a strict 22s budget (extraction took ~28s, 60s total = 10s safety buffer)
-  const VALIDATION_DEADLINE = Date.now() + 22000;
+  const VALIDATION_DEADLINE = Date.now() + (options.validationMs || 180000);
     
   // BATCH_SIZE = 25 — process more leads in parallel to finish faster
   const BATCH_SIZE = 25; 
@@ -160,7 +158,7 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
           return {
             lead: {
               id: Math.random().toString(36).substring(2, 15),
-              score: Math.round(validation.confidence_score * 100),
+              score: Math.max(1, Math.min(10, Math.round((validation.confidence_score || 0) * 10))),
               author: validation.lead_name || rawLead.name || 'Unknown',
               company: rawLead.source === 'local_maps' ? rawLead.name : null,
               title: rawLead.title || enrichedRouteData.searchIntent,
@@ -168,9 +166,9 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
               link: rawLead.link,
               source: rawLead.source,
               subreddit: rawLead.subreddit || rawLead.source,
-              emails: validation.verified_contacts.emails || [],
-              phones: validation.verified_contacts.phones || [],
-              socials: validation.verified_contacts.socials || [],
+              emails: validation.verified_contacts?.emails?.length ? validation.verified_contacts.emails : (rawLead.raw_contacts?.emails || []),
+              phones: validation.verified_contacts?.phones?.length ? validation.verified_contacts.phones : (rawLead.raw_contacts?.phones || []),
+              socials: validation.verified_contacts?.socials?.length ? validation.verified_contacts.socials : (rawLead.raw_contacts?.socials || []),
               reasoning: validation.reasoning,
               suggestedReply: validation.suggested_reply || '',
               type: validation.lead_type || 'Solution-Seeking',
@@ -181,6 +179,12 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
         return { lead: null, usage: valResult.usage };
       } catch (err) {
         console.error('[Omni-Extractor] Validation error:', err.message);
+        if (getHeuristicScore(rawLead) >= 18) {
+          return {
+            lead: buildHeuristicLead(rawLead, enrichedRouteData.searchIntent),
+            usage: { prompt_tokens: 0, completion_tokens: 0 }
+          };
+        }
         return { lead: null, usage: { prompt_tokens: 0, completion_tokens: 0 } };
       }
     }));
@@ -194,8 +198,7 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
       }
     });
 
-    // SOFT CAP: Stop only once we have plenty of validated leads
-    const targetLeads = options.isPremium ? 60 : 40;
+    const targetLeads = options.targetLeads || 50;
     if (validatedLeads.length >= targetLeads) {
       console.log(`⏱️ [Omni-Extractor] Soft cap reached: ${validatedLeads.length} validated leads.`);
       break;
@@ -252,3 +255,26 @@ function getHeuristicScore(lead) {
   return score;
 }
 
+function buildHeuristicLead(rawLead, searchIntent) {
+  const heuristicScore = getHeuristicScore(rawLead);
+  const contacts = rawLead.raw_contacts || { emails: [], phones: [], socials: [] };
+  const text = rawLead.context?.toLowerCase() || '';
+
+  return {
+    id: Math.random().toString(36).substring(2, 15),
+    score: Math.max(6, Math.min(8, Math.round(heuristicScore / 4))),
+    author: rawLead.name || 'Unknown',
+    company: null,
+    title: rawLead.title || searchIntent,
+    body: rawLead.context?.substring(0, 500) || '',
+    link: rawLead.link,
+    source: rawLead.source,
+    subreddit: rawLead.subreddit || rawLead.source,
+    emails: contacts.emails || [],
+    phones: contacts.phones || [],
+    socials: contacts.socials || [],
+    reasoning: 'High-intent language matched locally after validation retry failed.',
+    suggestedReply: 'Saw your post and had a practical suggestion that may help.',
+    type: text.includes('alternative') ? 'Competitor-Frustration' : 'Solution-Seeking',
+  };
+}

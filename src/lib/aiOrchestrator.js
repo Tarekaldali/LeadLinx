@@ -70,7 +70,7 @@ export async function classifyIntent(query) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-3.5-flash", // Faster than DeepSeek for this simple intent task
+        model: "google/gemini-2.0-flash-001",
         messages: [
           {
             role: "system",
@@ -112,7 +112,7 @@ export async function generateSearchPlan(query) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-3.5-flash",
+        model: "google/gemini-2.0-flash-001",
         messages: [
           { 
             role: "system",
@@ -128,7 +128,8 @@ export async function generateSearchPlan(query) {
             - DO NOT use complex Boolean logic (no AND/OR or nested parentheses). Reddit's API breaks with complex boolean queries.
             - Use natural, exact-match phrases wrapped in quotes (e.g., "alternative to", "tired of", "looking for").
             - Return ONLY JSON.
-            - Exactly 3 advanced search_queries.
+            - Return 6 to 8 search_queries mixing exact buyer phrases, problem phrases, and recommendation phrases.
+            - Include plain-language phrases Reddit users actually type; avoid overly narrow jargon.
             - Up to 30 high-intent subreddits.`
           },
           { role: "user", content: `Product/Leads Wanted: "${query}"` }
@@ -157,8 +158,7 @@ export async function generateSearchPlan(query) {
  */
 export async function analyzeLeadsBatch(batch, userQuery) {
   try {
-    // Primary: Gemini 2.0 Flash 001 via OpenRouter
-    return await callOpenRouterAnalysis("google/gemini-3.5-flash", batch, userQuery);
+    return await callOpenRouterAnalysis("google/gemini-2.0-flash-001", batch, userQuery);
   } catch (error) {
     console.warn(`⚠️ Primary Model Failed: ${error.message}. Trying Fallback...`);
     try {
