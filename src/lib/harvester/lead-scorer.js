@@ -26,20 +26,14 @@ export function scoreLead({ candidates = [], classification = null, pageMeta = {
   // ── 1. Email signal (+25 max) ─────────────────────────────────
   const emails = candidates.filter(c => c.type === 'email');
   if (emails.length > 0) {
-    // Weight emails by confidence and penalize generic routing addresses
-    const avgConfidence = emails.reduce((s, e) => s + (e.confidence || 0.6), 0) / emails.length;
+    // Business emails are worth more than personal
     const hasBizEmail = emails.some(e =>
       !e.value.includes('@gmail.') &&
       !e.value.includes('@yahoo.') &&
       !e.value.includes('@hotmail.') &&
-      !e.value.includes('@outlook.') &&
-      !(e.generic)
+      !e.value.includes('@outlook.')
     );
-    const genericCount = emails.filter(e => !!e.generic).length;
-    const base = hasBizEmail ? 25 : 15;
-    // reduce score for generic addresses
-    const penalty = Math.min(10, genericCount * 5);
-    breakdown.email = Math.max(0, Math.round(base * avgConfidence) - penalty);
+    breakdown.email = hasBizEmail ? 25 : 15;
   }
 
   // ── 2. Phone signal (+15 max) ──────────────────────────────────
@@ -60,11 +54,8 @@ export function scoreLead({ candidates = [], classification = null, pageMeta = {
   if (classification?.intent_score) {
     breakdown.intent = Math.round(classification.intent_score * 30);
   } else if (classification === null) {
-    // No AI classification used — derive intent heuristically from context
-    const titleSignals = candidates.some(c => c.titleHints && c.titleHints.length > 0);
-    if (titleSignals) breakdown.intent = 20;
-    else if (emails.length > 0) breakdown.intent = 10;
-    else breakdown.intent = 3;
+    // No AI classification used — give moderate base score for heuristic-only mode
+    breakdown.intent = emails.length > 0 ? 15 : 5;
   }
 
   // ── 5. Query Relevance (+10 max) ──────────────────────────────

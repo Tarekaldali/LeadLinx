@@ -16,11 +16,6 @@ const MODEL_PRICES = {
     input: 0.10,
     output: 0.40
   },
-  // Low-cost alternative (Mistral 7B via OpenRouter free tier)
-  'mistralai/mistral-7b-instruct:free': {
-    input: 0.02,
-    output: 0.05
-  },
   // Default fallback pricing
   'default': {
     input: 0.50,

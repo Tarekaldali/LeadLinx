@@ -15,16 +15,6 @@ const IGNORE_EMAIL_PATTERNS = [
   /sentry\./i, /webpack/i, /wixpress/i, /schema\.org/i,
 ];
 
-// Common generic local-parts that often indicate routing or non-decision-maker addresses
-const GENERIC_EMAIL_PREFIXES = [
-  'info', 'support', 'contact', 'admin', 'hello', 'team', 'sales', 'office', 'marketing', 'jobs', 'careers', 'privacy', 'postmaster', 'webmaster'
-];
-
-// Sections we should ignore when an email appears inside them (footers, comments, share widgets)
-const DISALLOWED_PARENT_SELECTORS = [
-  'footer', '[class*="footer"]', '[id*="footer"]', '.comment', '.comments', '.author', '.byline', '.post-meta', '.site-info', 'nav', '.share', '.social-links', '.subscribe'
-];
-
 // ── Phone Patterns ──────────────────────────────────────────────
 const PHONE_PATTERNS = [
   /\+?1?\s*\(?[2-9]\d{2}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g,       // US/CA
@@ -85,53 +75,17 @@ export function detectLeads(html, sourceUrl = '') {
     const email = rawEmail.toLowerCase().trim();
     if (seenEmails.has(email)) continue;
     if (IGNORE_EMAIL_PATTERNS.some(p => p.test(email))) continue;
-
-    // Skip emails that appear inside known footer/comment/share sections
-    let inDisallowedSection = false;
-    for (const sel of DISALLOWED_PARENT_SELECTORS) {
-      try {
-        const block = $(sel).text() || '';
-        if (block && block.toLowerCase().includes(email)) {
-          inDisallowedSection = true;
-          break;
-        }
-      } catch (e) {
-        // ignore selector errors
-      }
-    }
-    if (inDisallowedSection) continue;
-
     seenEmails.add(email);
 
     // Get context — surrounding text
     const idx = text.toLowerCase().indexOf(email);
-    const context = text.slice(Math.max(0, idx - 120), idx + email.length + 120).trim();
-
-    // Generic local-part detection (info@, contact@, support@, etc.)
-    const localPart = email.split('@')[0] || '';
-    const genericLocal = GENERIC_EMAIL_PREFIXES.some(p => localPart === p || localPart.startsWith(p + '.') || localPart.startsWith(p + '-') || localPart.startsWith(p + '_'));
-
-    // Base confidence: business domains > personal providers
-    let confidence = (email.includes('@gmail.') || email.includes('@yahoo.') || email.includes('@hotmail.') || email.includes('@outlook.')) ? 0.5 : 0.85;
-    if (genericLocal) confidence = Math.min(confidence, 0.55);
-
-    // If there is a mailto link explicitly for this email, treat as higher-confidence
-    const mailtoFound = $(`a[href*="mailto:${email}"]`).length > 0 || $(`a[href*="mailto:"]`).filter((_, el) => ($(el).attr('href')||'').toLowerCase().includes(email)).length > 0;
-    if (mailtoFound) confidence = Math.max(confidence, 0.9);
-
-    // Title / role hint detection around the context
-    const TITLE_PATTERNS = /(ceo|founder|cto|cfo|coo|vp\b|vice president|director|head of|manager|owner|principal)/i;
-    const titleMatch = context.match(TITLE_PATTERNS) || ($('body').text().slice(0, 500).match(TITLE_PATTERNS));
-    const titleHints = titleMatch ? [titleMatch[0]] : [];
-    if (titleHints.length > 0) confidence = Math.min(1, confidence + 0.07);
+    const context = text.slice(Math.max(0, idx - 80), idx + email.length + 80).trim();
 
     candidates.push({
       type: 'email',
       value: email,
       context,
-      confidence,
-      generic: genericLocal,
-      titleHints,
+      confidence: email.includes('@gmail.com') || email.includes('@yahoo.com') ? 0.5 : 0.85,
       sourceUrl,
     });
   }

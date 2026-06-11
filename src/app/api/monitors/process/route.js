@@ -94,10 +94,7 @@ export async function GET(request) {
         const engineResult = await extractOmniLeads(monitor.goal, { isPremium: true });
 
         // 3. Billing Logic (The Economic Engine)
-        const modelForCost = (user?.plan === 'pro' || user?.plan === 'enterprise')
-          ? 'google/gemini-2.0-flash-001'
-          : 'mistralai/mistral-7b-instruct:free';
-        const creditsToDeduct = calculateMonitorCredits(modelForCost, engineResult.usage);
+        const creditsToDeduct = calculateMonitorCredits('google/gemini-2.0-flash-001', engineResult.usage);
         console.log(`💰 [Billing] Deducting ${creditsToDeduct} credits for surveillance.`);
 
         // 4. Save Leads & Deduct Credits (Atomically)
