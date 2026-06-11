@@ -11,8 +11,8 @@ const PLAN_RATES = {
 };
 
 const MODEL_PRICES = {
-  // Prices per 1M tokens (OpenRouter: google/gemini-2.0-flash-001)
-  'google/gemini-2.0-flash-001': {
+  // Prices per 1M tokens (OpenRouter: google/gemini-2.5-flash-lite)
+  'google/gemini-2.5-flash-lite': {
     input: 0.10,
     output: 0.40
   },

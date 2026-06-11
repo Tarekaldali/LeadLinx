@@ -1,9 +1,9 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const DEFAULT_MODEL = 'google/gemini-2.0-flash-001';
+const DEFAULT_MODEL = 'google/gemini-2.5-flash-lite';
 
 // ─── Pricing Logic (Mapped to Credits) ──────────────────────────────────────
 const PROFIT_MARGIN = 3.5; 
-export function calcCost(inputTokens, outputTokens, model = 'gemini-2.0-flash') {
+export function calcCost(inputTokens, outputTokens, model = 'google/gemini-2.5-flash-lite') {
   // Use a generic pricing for simplified calculation
   const p = { input: 0.10, output: 0.40 };
   const inputCost  = (inputTokens  / 1_000_000) * p.input;

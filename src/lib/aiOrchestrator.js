@@ -70,7 +70,7 @@ export async function classifyIntent(query) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           {
             role: "system",
@@ -112,7 +112,7 @@ export async function generateSearchPlan(query) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { 
             role: "system",
@@ -158,7 +158,7 @@ export async function generateSearchPlan(query) {
  */
 export async function analyzeLeadsBatch(batch, userQuery) {
   try {
-    return await callOpenRouterAnalysis("google/gemini-2.0-flash-001", batch, userQuery);
+    return await callOpenRouterAnalysis("google/gemini-2.5-flash-lite", batch, userQuery);
   } catch (error) {
     console.warn(`⚠️ Primary Model Failed: ${error.message}. Trying Fallback...`);
     try {

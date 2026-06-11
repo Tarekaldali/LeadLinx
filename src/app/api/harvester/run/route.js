@@ -50,8 +50,15 @@ export async function POST(request) {
       options: { depth, maxPages, maxUrls, noEnrich, dryRun, syncCrm },
     });
 
-    // Deduct credits based on mode
-    const creditsToDeduct = mode === 'llm' ? Math.max(2, result.leads.length) : 1;
+    // Deduct credits based on actual AI usage when available
+    const usage = { prompt_tokens: result.stats.aiTokensIn || 0, completion_tokens: result.stats.aiTokensOut || 0 };
+    let creditsToDeduct = 1;
+    if ((usage.prompt_tokens || 0) + (usage.completion_tokens || 0) > 0) {
+      creditsToDeduct = calculateCreditsToDeduct('google/gemini-2.5-flash-lite', usage, user?.plan || 'free');
+    } else {
+      // Fallback legacy behavior
+      creditsToDeduct = mode === 'llm' ? Math.max(2, result.leads.length) : 1;
+    }
     await db.collection('users').updateOne(
       { _id: userId },
       {
