@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, Suspense } from 'react';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import Modal from '@/components/Modal';
 
@@ -105,17 +105,6 @@ export default function DashboardLayout({ children }) {
     window.addEventListener('switchTab', onSwitchTab);
     return () => window.removeEventListener('switchTab', onSwitchTab);
   }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-sidebar flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <span className="text-sidebar-muted text-sm">Loading LeadLinx...</span>
-        </div>
-      </div>
-    );
-  }
 
   const tierConfig = getTierConfig(user?.plan);
   const maxCredits = tierConfig.maxCredits;
@@ -311,6 +300,16 @@ export default function DashboardLayout({ children }) {
   return (
     <DashboardContext.Provider value={{ user, refreshUser, updateCredits, addChat, activeTab, setActiveTab }}>
       <div className="flex h-screen overflow-hidden bg-background text-on-surface selection:bg-[#ff3b30]/10 selection:text-[#ff3b30]">
+        
+        {loading && (
+          <div className="absolute inset-0 z-50 bg-sidebar flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <span className="text-sidebar-muted text-sm">Loading LeadLinx...</span>
+            </div>
+          </div>
+        )}
+
         {/* Mobile overlay */}
         {sidebarOpen && (
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] md:hidden" onClick={() => setSidebarOpen(false)} />
@@ -346,12 +345,16 @@ export default function DashboardLayout({ children }) {
           {/* Page content */}
           {pathname === '/dashboard' ? (
             <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden relative z-10">
-              {children}
+              <Suspense fallback={<div>Loading...</div>}>
+                {children}
+              </Suspense>
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto relative z-10 custom-scrollbar">
               <div className="max-w-7xl mx-auto p-6 md:p-10">
-                {children}
+                <Suspense fallback={<div>Loading...</div>}>
+                  {children}
+                </Suspense>
               </div>
             </div>
           )}
