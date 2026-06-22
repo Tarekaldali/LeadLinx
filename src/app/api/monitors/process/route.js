@@ -94,7 +94,7 @@ export async function GET(request) {
         const engineResult = await extractOmniLeads(monitor.goal, { isPremium: true });
 
         // 3. Billing Logic (The Economic Engine)
-        const creditsToDeduct = calculateMonitorCredits('google/gemini-2.5-flash-lite', engineResult.usage);
+        const creditsToDeduct = calculateMonitorCredits('deepseek/deepseek-chat', engineResult.usage);
         console.log(`💰 [Billing] Deducting ${creditsToDeduct} credits for surveillance.`);
 
         // 4. Save Leads & Deduct Credits (Atomically)

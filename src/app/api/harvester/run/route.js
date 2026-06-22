@@ -54,7 +54,7 @@ export async function POST(request) {
     const usage = { prompt_tokens: result.stats.aiTokensIn || 0, completion_tokens: result.stats.aiTokensOut || 0 };
     let creditsToDeduct = 1;
     if ((usage.prompt_tokens || 0) + (usage.completion_tokens || 0) > 0) {
-      creditsToDeduct = calculateCreditsToDeduct('google/gemini-2.5-flash-lite', usage, user?.plan || 'free');
+      creditsToDeduct = calculateCreditsToDeduct('deepseek/deepseek-chat', usage, user?.plan || 'free');
     } else {
       // Fallback legacy behavior
       creditsToDeduct = mode === 'llm' ? Math.max(2, result.leads.length) : 1;

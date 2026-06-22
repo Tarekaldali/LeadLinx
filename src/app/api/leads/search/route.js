@@ -52,7 +52,7 @@ export async function POST(request) {
     if (classification.intent === 'CHAT') {
       const aiResponse = classification.response_message || 'How can I help you find leads today?';
       const chatUsage = classificationResult.usage || { prompt_tokens: 0, completion_tokens: 0 };
-      const rawCostUsd = getRawCost('google/gemini-2.5-flash-lite', chatUsage);
+      const rawCostUsd = getRawCost('deepseek/deepseek-chat', chatUsage);
 
       await db.collection('ai_usage').insertOne({
         userId,
@@ -191,7 +191,7 @@ async function runSearchJob({ query, userId, userEmail, userPlan, searchId, chat
     };
 
     const { calculateCreditsToDeduct, getRawCost } = await import('@/lib/creditManager.js');
-    const totalCost = calculateCreditsToDeduct('google/gemini-2.5-flash-lite', combinedUsage, userPlan);
+    const totalCost = calculateCreditsToDeduct('deepseek/deepseek-chat', combinedUsage, userPlan);
     const remainingToDeduct = Math.max(0, totalCost - 1);
 
     if (remainingToDeduct > 0) {
@@ -204,7 +204,7 @@ async function runSearchJob({ query, userId, userEmail, userPlan, searchId, chat
     const updatedUser = await db.collection('users').findOne({ _id: userObjectId });
     const leads = formatLeads(result, searchObjectId, userObjectId, chatId, query);
     const insights = generateInsights(result);
-    const rawCostUsd = getRawCost('google/gemini-2.5-flash-lite', combinedUsage);
+    const rawCostUsd = getRawCost('deepseek/deepseek-chat', combinedUsage);
 
     await db.collection('ai_usage').insertOne({
       userId: userObjectId,

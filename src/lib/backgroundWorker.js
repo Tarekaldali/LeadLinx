@@ -132,7 +132,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
     if (searchPlan.usage) {
       totalUsage.prompt_tokens += searchPlan.usage.prompt_tokens || 0;
       totalUsage.completion_tokens += searchPlan.usage.completion_tokens || 0;
-      totalRawCost += getRawCost("google/gemini-2.5-flash-lite", searchPlan.usage);
+      totalRawCost += getRawCost("deepseek/deepseek-chat", searchPlan.usage);
     }
     // 4. The 6x6 Micro-Batching Loop (Pass 1)
     async function processPool(pool) {
@@ -243,7 +243,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash-lite",
+            model: "deepseek/deepseek-chat",
             messages: [
               { role: "system", content: "You are a market researcher. Synthesize Reddit data into insights. Return JSON ONLY." },
               { role: "user", content: `Leads: ${JSON.stringify(foundLeads.slice(0, 10))}\n\nReturn JSON: {"topPainPoints": ["..."], "trendingComplaints": ["..."], "saasIdeas": ["..."]}` }
@@ -258,7 +258,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
         if (insightData.usage) {
           totalUsage.prompt_tokens += insightData.usage.prompt_tokens || 0;
           totalUsage.completion_tokens += insightData.usage.completion_tokens || 0;
-          totalRawCost += getRawCost("google/gemini-2.5-flash-lite", insightData.usage);
+          totalRawCost += getRawCost("deepseek/deepseek-chat", insightData.usage);
         }
       } catch (err) {
         console.error("Insights generation failed:", err);
@@ -266,7 +266,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
     }
 
     // 7. Storage & Credits
-    const creditsToDeduct = calculateCreditsToDeduct("google/gemini-2.5-flash-lite", totalUsage, user?.plan || 'free');
+    const creditsToDeduct = calculateCreditsToDeduct("deepseek/deepseek-chat", totalUsage, user?.plan || 'free');
 
     // Deduct Credits
     await db.collection('users').updateOne(

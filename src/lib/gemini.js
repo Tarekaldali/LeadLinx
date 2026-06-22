@@ -1,11 +1,11 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const DEFAULT_MODEL = 'google/gemini-2.5-flash-lite';
+const DEFAULT_MODEL = 'deepseek/deepseek-chat';
 
 // ─── Pricing Logic (Mapped to Credits) ──────────────────────────────────────
 const PROFIT_MARGIN = 3.5; 
-export function calcCost(inputTokens, outputTokens, model = 'google/gemini-2.5-flash-lite') {
-  // Use a generic pricing for simplified calculation
-  const p = { input: 0.10, output: 0.40 };
+export function calcCost(inputTokens, outputTokens, model = 'deepseek/deepseek-chat') {
+  // DeepSeek pricing per million tokens
+  const p = { input: 0.14, output: 0.28 };
   const inputCost  = (inputTokens  / 1_000_000) * p.input;
   const outputCost = (outputTokens / 1_000_000) * p.output;
   const rawCost    = inputCost + outputCost;

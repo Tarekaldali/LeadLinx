@@ -16,10 +16,14 @@ export default function DashboardError({ error, reset }) {
           <span className="material-symbols-outlined text-[32px]">warning</span>
         </div>
         <h2 className="text-2xl font-bold text-on-surface mb-2">Something went wrong</h2>
-        <p className="text-on-surface-variant text-sm mb-8 leading-relaxed">
-          We encountered an issue loading your dashboard. This usually happens if there's a temporary database connection timeout. 
-          Please try refreshing the page.
+        <p className="text-on-surface-variant text-sm mb-4 leading-relaxed">
+          We encountered an issue loading your dashboard:
         </p>
+        <div className="bg-red-950/30 border border-red-900/50 p-4 rounded-xl mb-8">
+          <code className="text-red-400 text-xs text-left block whitespace-pre-wrap">
+            {error?.message || 'Unknown error occurred'}
+          </code>
+        </div>
         
         <div className="flex flex-col gap-3">
           <button

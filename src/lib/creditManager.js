@@ -11,8 +11,8 @@ const PLAN_RATES = {
 };
 
 const MODEL_PRICES = {
-  // Prices per 1M tokens (OpenRouter: google/gemini-2.5-flash-lite)
-  'google/gemini-2.5-flash-lite': {
+  // Prices per 1M tokens (OpenRouter: deepseek/deepseek-chat)
+  'deepseek/deepseek-chat': {
     input: 0.10,
     output: 0.40
   },

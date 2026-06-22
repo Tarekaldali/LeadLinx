@@ -1,5 +1,5 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = 'google/gemini-3.5-flash';
+const MODEL = 'deepseek/deepseek-chat';
 
 async function callGeminiJSON(systemPrompt, userPrompt) {
   const body = {
