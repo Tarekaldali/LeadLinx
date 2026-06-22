@@ -36,6 +36,9 @@ export default function DashboardLayout({ children }) {
   const [chatsCollapsed, setChatsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('discovery');
 
+  // Feature flag: toggle Monitors visibility without deleting code
+  const SHOW_MONITORS = process.env.NEXT_PUBLIC_SHOW_MONITORS === 'true';
+
   const user = session?.user;
   const loading = status === "loading";
 
@@ -185,20 +188,22 @@ export default function DashboardLayout({ children }) {
             <span className="text-sm font-medium">Leads</span>
           </button>
 
-          <button
-            onClick={() => { 
-              setSidebarOpen(false); 
-              if (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/')) {
-                window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'monitors' } }));
-              } else {
-                router.push('/dashboard#monitors');
-              }
-            }}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname === '/dashboard' && activeTab === 'monitors' ? 'text-on-surface bg-surface shadow-sm border border-outline-variant' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/50'}`}
-          >
-            <span className="material-symbols-outlined text-[20px]">sensors</span>
-            <span className="text-sm font-medium">Monitors</span>
-          </button>
+          {SHOW_MONITORS && (
+            <button
+              onClick={() => { 
+                setSidebarOpen(false); 
+                if (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/')) {
+                  window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'monitors' } }));
+                } else {
+                  router.push('/dashboard#monitors');
+                }
+              }}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname === '/dashboard' && activeTab === 'monitors' ? 'text-on-surface bg-surface shadow-sm border border-outline-variant' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/50'}`}
+            >
+              <span className="material-symbols-outlined text-[20px]">sensors</span>
+              <span className="text-sm font-medium">Monitors</span>
+            </button>
+          )}
 
           <Link
             href="/dashboard/settings"

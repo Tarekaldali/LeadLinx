@@ -12,6 +12,9 @@ import { useDashboard } from './layout';
 
 import './dashboard.css';
 
+// Feature flag: show or hide the Monitors section without deleting code.
+const SHOW_MONITORS = process.env.NEXT_PUBLIC_SHOW_MONITORS === 'true';
+
 const ACTIVE_CHAT_STORAGE_KEY = 'leadlinx.activeChatId';
 
 export default function DashboardPage() {
@@ -117,15 +120,18 @@ export default function DashboardPage() {
 
   // Handle hash-based tab navigation when coming from another page
   useEffect(() => {
+    const availableTabs = ['discovery', 'leads'];
+    if (SHOW_MONITORS) availableTabs.push('monitors');
+
     const hash = window.location.hash?.replace('#', '');
-    if (hash && ['discovery', 'leads', 'monitors'].includes(hash)) {
+    if (hash && availableTabs.includes(hash)) {
       setActiveTab?.(hash);
       // Clean the hash without causing a re-render
       history.replaceState(null, '', window.location.pathname);
     }
     // Also handle ?tab= query param for backward compatibility
     const tab = searchParams.get('tab');
-    if (tab && ['discovery', 'leads', 'monitors'].includes(tab)) {
+    if (tab && availableTabs.includes(tab)) {
       setActiveTab?.(tab);
     }
   }, [searchParams, setActiveTab]);
@@ -449,8 +455,8 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    // Initial fetch
-    fetchMonitors();
+    // Initial fetch (only if monitors are enabled)
+    if (SHOW_MONITORS) fetchMonitors();
   }, [fetchMonitors]);
 
   // Real-time polling: while on monitors tab, refresh every 15s to show live lead counts
@@ -609,7 +615,7 @@ export default function DashboardPage() {
   return (
     <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full bg-background">
       <div className="h-[72px] shrink-0 border-b border-outline-variant flex items-center px-8 bg-background/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="tab-container">
+          <div className="tab-container">
           <div onClick={() => setActiveTab('discovery')} className={`tab-item ${activeTab === 'discovery' ? 'active' : ''}`}>
             <span className="material-symbols-outlined text-[20px]">explore</span>
             Discovery
@@ -618,10 +624,12 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined text-[20px]">group</span>
             Leads
           </div>
-          <div onClick={() => setActiveTab('monitors')} className={`tab-item ${activeTab === 'monitors' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined text-[20px]">sensors</span>
-            Monitors
-          </div>
+          {SHOW_MONITORS && (
+            <div onClick={() => setActiveTab('monitors')} className={`tab-item ${activeTab === 'monitors' ? 'active' : ''}`}>
+              <span className="material-symbols-outlined text-[20px]">sensors</span>
+              Monitors
+            </div>
+          )}
         </div>
       </div>
 
@@ -629,7 +637,7 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           {activeTab === 'discovery' && renderDiscovery()}
           {activeTab === 'leads' && renderLeads()}
-          {activeTab === 'monitors' && renderMonitors()}
+          {SHOW_MONITORS && activeTab === 'monitors' && renderMonitors()}
         </div>
 
         {activeTab === 'discovery' && (
