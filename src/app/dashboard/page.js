@@ -318,7 +318,18 @@ export default function DashboardPage() {
                   ) : msg.status === 'chat' || (!msg.leads && !msg.status) ? (
                     <p className="text-[15px] font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                   ) : (
-                    <ChatMessage message={msg} onSave={handleSaveLead} onExport={handleExportResults} />
+                    <ChatMessage
+                      message={msg}
+                      onSave={handleSaveLead}
+                      onExport={handleExportResults}
+                      onUpdate={(updatedData) => {
+                        setMessages(prev => {
+                          const next = prev.map(m => m.id === msg.id ? { ...m, ...updatedData } : m);
+                          persistChatMessages(activeChatId, next);
+                          return next;
+                        });
+                      }}
+                    />
                   )}
                 </div>
 

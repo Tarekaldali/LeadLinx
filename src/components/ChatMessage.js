@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const TYPE_CONFIG = {
   'Pain-Point': { icon: '🚨', label: 'Pain-Point' },
@@ -7,7 +7,7 @@ const TYPE_CONFIG = {
   'Solution-Seeking': { icon: '🔍', label: 'Seeking Solution' },
 };
 
-export default function ChatMessage({ message, onSave, onExport, onSuggestionClick }) {
+export default function ChatMessage({ message, onSave, onExport, onSuggestionClick, onUpdate }) {
   const [toast, setToast] = useState(null);
   const [savedLeads, setSavedLeads] = useState(new Set());
 
@@ -22,9 +22,42 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
     }
   };
 
-  const { leads = [], insights, selectedSubreddits = [], searchQueries = [], totalScanned, error, status } = message;
+  const { leads = [], insights, selectedSubreddits = [], searchQueries = [], totalScanned, error, status, searchId } = message;
   const isProcessing = status === 'processing';
   const isCompleted = status === 'completed';
+
+  // Poll for results when processing in the background
+  const pollRef = useRef(null);
+  useEffect(() => {
+    if (!isProcessing || !searchId) return;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/leads/search/${searchId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status === 'completed' || data.status === 'failed') {
+          clearInterval(pollRef.current);
+          onUpdate?.({
+            status: data.status,
+            leads: data.leads || [],
+            insights: data.insights || null,
+            totalScanned: data.totalScanned || 0,
+            selectedSubreddits: data.selectedSubreddits || [],
+            searchQueries: data.searchQueries || [],
+            error: data.error || null,
+            progress: data.progress || null,
+          });
+        }
+      } catch { /* fail silently */ }
+    };
+
+    pollRef.current = setInterval(poll, 5000);
+    // Also poll immediately
+    poll();
+    return () => clearInterval(pollRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isProcessing, searchId]);
 
   // Fix React Error #31: DeepSeek occasionally returns objects instead of strings
   const safeQueries = searchQueries.flatMap(q => {
@@ -93,6 +126,16 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
               </div>
             )}
           </div>
+
+          {/* Email notification note during processing */}
+          {isProcessing && (
+            <div className="flex items-center gap-2 pt-2 border-t border-outline-variant/50">
+              <span className="material-symbols-outlined text-[14px] text-on-surface-variant">mail</span>
+              <span className="text-[10px] text-on-surface-variant font-medium">
+                We'll notify you by email when extraction finishes — you can safely close this tab.
+              </span>
+            </div>
+          )}
         </div>
       )}
 
