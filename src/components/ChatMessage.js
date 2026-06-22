@@ -26,10 +26,26 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
   const isProcessing = status === 'processing';
   const isCompleted = status === 'completed';
 
+  // Fix React Error #31: DeepSeek occasionally returns objects instead of strings
+  const safeQueries = searchQueries.flatMap(q => {
+    if (typeof q === 'string') return [q];
+    if (typeof q === 'object' && q !== null) return q.search_query || q.query || JSON.stringify(q);
+    return [];
+  });
+
+  const safeSubreddits = selectedSubreddits.flatMap(s => {
+    if (typeof s === 'string') return [s];
+    if (typeof s === 'object' && s !== null) {
+      if (Array.isArray(s.subreddits)) return s.subreddits;
+      return s.name || s.subreddit || JSON.stringify(s);
+    }
+    return [];
+  });
+
   return (
     <div className="space-y-8">
       {/* Search Progress & Strategy Context */}
-      {(selectedSubreddits.length > 0 || searchQueries.length > 0 || isProcessing) && (
+      {(safeSubreddits.length > 0 || safeQueries.length > 0 || isProcessing) && (
         <div className="p-6 bg-surface-dim rounded-[24px] border border-outline-variant space-y-4 animate-in fade-in relative overflow-hidden shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -53,11 +69,11 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {searchQueries.length > 0 && (
+            {safeQueries.length > 0 && (
               <div className="space-y-2">
                 <span className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">Logic Filters</span>
                 <div className="flex flex-wrap gap-1.5">
-                  {searchQueries.map((q, idx) => (
+                  {safeQueries.map((q, idx) => (
                     <span key={idx} className="px-2.5 py-1 bg-surface border border-outline-variant rounded-lg text-[10px] font-medium text-on-surface font-mono shadow-sm">
                       {q}
                     </span>
@@ -66,12 +82,12 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
               </div>
             )}
 
-            {selectedSubreddits.length > 0 && (
+            {safeSubreddits.length > 0 && (
               <div className="space-y-2">
                 <span className="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">Sources</span>
                 <div className="flex flex-wrap gap-1.5">
-                  {selectedSubreddits.map(s => (
-                    <span key={s} className="px-2.5 py-1 rounded-lg bg-surface text-on-surface text-[10px] font-bold border border-outline-variant shadow-sm">r/{s}</span>
+                  {safeSubreddits.map((s, idx) => (
+                    <span key={idx} className="px-2.5 py-1 rounded-lg bg-surface text-on-surface text-[10px] font-bold border border-outline-variant shadow-sm">r/{s}</span>
                   ))}
                 </div>
               </div>
