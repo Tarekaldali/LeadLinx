@@ -203,9 +203,8 @@ async function callOpenRouterAnalysis(model, batch, userQuery, retries = 2) {
               1. Filter out ANY post scoring below 7.
               2. If none found, return: {"leads": []}.
               3. reasoning: Max 10 words. Explain WHY they are a lead.
-              4. suggestedReply: Max 20 words hook.
               
-              Return ONLY JSON: {"leads": [{"postId": "...", "intentScore": number(7-10), "leadType": "Pain-Point"|"Competitor-Frustration"|"Solution-Seeking", "reasoning": "...", "suggestedReply": "..."}]}`
+              Return ONLY JSON: {"leads": [{"postId": "...", "intentScore": number(7-10), "leadType": "Pain-Point"|"Competitor-Frustration"|"Solution-Seeking", "reasoning": "..."}]}`
             },
             {
               role: "user",

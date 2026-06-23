@@ -35,6 +35,7 @@ export default function DashboardLayout({ children }) {
   const [promptFilter, setPromptFilter] = useState('All');
   const [chatsCollapsed, setChatsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('discovery');
+  const [activeSidebarChatId, setActiveSidebarChatId] = useState(null);
 
   // Feature flag: toggle Monitors visibility without deleting code
   const SHOW_MONITORS = process.env.NEXT_PUBLIC_SHOW_MONITORS === 'true';
@@ -91,12 +92,17 @@ export default function DashboardLayout({ children }) {
       const res = await fetch(`/api/chats/${chatId}`, { method: 'DELETE' });
       if (res.ok) {
         setChats(prev => prev.filter(c => c._id !== chatId));
+        setShowConfirmDelete(null); // close modal immediately
         // If we are currently in this chat, navigate to a new chat state
-        window.dispatchEvent(new CustomEvent('newChat'));
+        if (activeSidebarChatId === chatId) {
+          setActiveSidebarChatId(null);
+          window.dispatchEvent(new CustomEvent('newChat'));
+        }
         router.push('/dashboard');
       }
     } catch (err) {
       console.error('Delete failed:', err);
+      setShowConfirmDelete(null);
     }
   };
 
@@ -159,7 +165,7 @@ export default function DashboardLayout({ children }) {
             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all ${pathname === '/dashboard' && activeTab === 'discovery' ? 'text-on-surface bg-surface shadow-sm border border-outline-variant' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/50'}`}
           >
             <span className="material-symbols-outlined text-[20px]">explore</span>
-            <span className="text-sm font-medium">Discovery</span>
+            <span className="text-sm font-medium">Find Leads</span>
           </button>
 
           <button
@@ -219,14 +225,21 @@ export default function DashboardLayout({ children }) {
                 <p className="text-[11px] text-on-surface-variant px-4 py-2 italic font-mono text-center">Empty history</p>
               ) : (
                 chats.slice(0, 8).map(chat => (
-                  <div key={chat._id} className="group flex items-center justify-between rounded-xl hover:bg-surface transition-colors">
+                  <div key={chat._id} className={`group flex items-center justify-between rounded-xl transition-colors ${activeSidebarChatId === chat._id ? 'bg-surface border border-outline-variant' : 'hover:bg-surface/50'}`}>
                     <Link
                       href="/dashboard"
-                      onClick={() => { setSidebarOpen(false); window.dispatchEvent(new CustomEvent('loadChat', { detail: { chatId: chat._id } })); }}
-                      className={`flex items-center gap-3 px-4 py-2.5 flex-1 min-w-0 ${pathname === '/dashboard' ? 'text-on-surface' : 'text-on-surface-variant hover:text-on-surface'}`}
+                      onClick={() => {
+                        setSidebarOpen(false);
+                        setActiveSidebarChatId(chat._id);
+                        window.dispatchEvent(new CustomEvent('loadChat', { detail: { chatId: chat._id } }));
+                      }}
+                      className={`flex items-center gap-3 px-4 py-2.5 flex-1 min-w-0 ${activeSidebarChatId === chat._id ? 'text-on-surface' : 'text-on-surface-variant hover:text-on-surface'}`}
                     >
-                      <span className="material-symbols-outlined text-[18px] shrink-0 opacity-40">chat_bubble</span>
+                      <span className={`material-symbols-outlined text-[18px] shrink-0 ${activeSidebarChatId === chat._id ? 'text-[#ff3b30] opacity-100' : 'opacity-40'}`}>chat_bubble</span>
                       <span className="truncate text-xs font-medium flex-1">{chat.title || 'Untitled'}</span>
+                      {activeSidebarChatId === chat._id && (
+                        <span className="w-1.5 h-1.5 bg-[#ff3b30] rounded-full shrink-0" />
+                      )}
                     </Link>
                     <button
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowConfirmDelete(chat._id); }}

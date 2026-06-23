@@ -7,9 +7,26 @@ const TYPE_CONFIG = {
   'Solution-Seeking': { icon: '🔍', label: 'Seeking Solution' },
 };
 
+// Strip all HTML tags from a string
+function stripHtml(str) {
+  if (!str || typeof str !== 'string') return str;
+  return str
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .trim();
+}
+
 export default function ChatMessage({ message, onSave, onExport, onSuggestionClick, onUpdate }) {
   const [toast, setToast] = useState(null);
   const [savedLeads, setSavedLeads] = useState(new Set());
+  // minScore comes from the message (set at search time in the input area)
+  const minScore = message.minScore ?? 6;
 
   const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 2500); };
   const copy = (text) => { navigator.clipboard.writeText(text); showToast('Copied!'); };
@@ -142,21 +159,34 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
       {/* Lead Results */}
       {leads.length > 0 ? (
         <div className="space-y-6 animate-in slide-in-from-bottom-8 duration-700">
-          <div className="flex justify-between items-center px-2">
+          {/* Score filter indicator + header */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between px-2">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-4 bg-[#ff3b30] rounded-full" />
-              <h4 className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Qualified Prospects</h4>
+              <h4 className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">
+                Qualified Prospects
+                <span className="ml-2 text-on-surface-variant/60 font-medium normal-case tracking-normal">
+                  ({leads.filter(l => (l.score || l.intentScore || 0) >= minScore).length} shown)
+                </span>
+              </h4>
             </div>
-            {onExport && (
-              <button onClick={() => onExport(leads)} className="text-[10px] font-black text-[#ff3b30] hover:text-[#d72f25] transition-colors flex items-center gap-2 uppercase tracking-widest">
-                <span className="material-symbols-outlined text-[16px]">download</span>
-                Export Intelligence
-              </button>
-            )}
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Active filter badge */}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#ff3b30]/8 border border-[#ff3b30]/20 rounded-lg">
+                <span className="material-symbols-outlined text-[12px] text-[#ff3b30]">verified</span>
+                <span className="text-[10px] font-bold text-[#ff3b30]">Score ≥ {minScore}/10</span>
+              </div>
+              {onExport && (
+                <button onClick={() => onExport(leads)} className="text-[10px] font-black text-[#ff3b30] hover:text-[#d72f25] transition-colors flex items-center gap-2 uppercase tracking-widest">
+                  <span className="material-symbols-outlined text-[16px]">download</span>
+                  Export
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-4">
-            {leads.map((lead, idx) => {
+            {leads.filter(lead => (lead.score || lead.intentScore || 0) >= minScore).map((lead, idx) => {
               const type = TYPE_CONFIG[lead.type] || { icon: '🎯', label: lead.type };
               const score = lead.score || lead.intentScore || 0;
               const scoreColor = score >= 8 ? 'text-[#28cd41]' : score >= 6 ? 'text-[#ff3b30]' : 'text-[#ff3b30]';
@@ -229,32 +259,16 @@ export default function ChatMessage({ message, onSave, onExport, onSuggestionCli
                     </div>
                   </div>
 
-                  {/* Reasoning & Drafts */}
-                  <div className="mt-8 space-y-3">
-                    {lead.body && (
-                      <div className="p-5 bg-surface-dim rounded-2xl border border-outline-variant">
-                        <div className="flex items-center gap-2 text-[9px] font-black text-[#ff3b30] uppercase mb-3 tracking-[0.2em]">
-                          <span className="material-symbols-outlined text-[16px]">neurology</span>
-                          Intent Classification Reasoning
-                        </div>
-                        <p className="text-sm text-on-surface font-medium leading-relaxed italic pr-4">"{lead.body}"</p>
+                  {/* Reasoning */}
+                  {lead.body && (
+                    <div className="mt-6 p-5 bg-surface-dim rounded-2xl border border-outline-variant">
+                      <div className="flex items-center gap-2 text-[9px] font-black text-[#ff3b30] uppercase mb-3 tracking-[0.2em]">
+                        <span className="material-symbols-outlined text-[16px]">neurology</span>
+                        Intent Classification Reasoning
                       </div>
-                    )}
-
-                    {lead.suggestedReply && (
-                      <div className="relative p-5 bg-[#ff3b30]/5 border border-[#ff3b30]/10 rounded-2xl group/reply cursor-pointer hover:bg-[#ff3b30]/10 transition-all" onClick={() => copy(lead.suggestedReply)}>
-                        <div className="flex items-center gap-2 text-[9px] font-black text-[#ff3b30] uppercase mb-2 tracking-[0.2em]">
-                          <span className="material-symbols-outlined text-[16px]">edit_note</span>
-                          Suggested Outreach Strategy
-                        </div>
-                        <p className="text-sm text-on-surface leading-relaxed font-medium">"{lead.suggestedReply}"</p>
-                        <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-[#ff3b30] uppercase tracking-widest opacity-0 group-hover/reply:opacity-100 transition-opacity">
-                          <span className="material-symbols-outlined text-[14px]">content_copy</span>
-                          Copy Strategy
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      <p className="text-sm text-on-surface font-medium leading-relaxed italic pr-4">&ldquo;{stripHtml(lead.body)}&rdquo;</p>
+                    </div>
+                  )}
                 </div>
               );
             })}

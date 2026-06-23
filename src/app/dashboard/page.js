@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [minScore, setMinScore] = useState(6);
   
   // Monitor States
   const [monitors, setMonitors] = useState([]);
@@ -158,6 +159,7 @@ export default function DashboardPage() {
       status: 'processing',
       leads: [],
       insights: null,
+      minScore,
       timestamp: new Date(),
     };
 
@@ -629,7 +631,7 @@ export default function DashboardPage() {
           <div className="tab-container">
           <div onClick={() => setActiveTab('discovery')} className={`tab-item ${activeTab === 'discovery' ? 'active' : ''}`}>
             <span className="material-symbols-outlined text-[20px]">explore</span>
-            Discovery
+            Find Leads
           </div>
           <div onClick={() => setActiveTab('leads')} className={`tab-item ${activeTab === 'leads' ? 'active' : ''}`}>
             <span className="material-symbols-outlined text-[20px]">group</span>
@@ -652,8 +654,34 @@ export default function DashboardPage() {
         </div>
 
         {activeTab === 'discovery' && (
-          <div className="input-container shrink-0"> 
+          <div className="input-container shrink-0">
             <div className="chat-max-width">
+              {/* Pre-search score filter */}
+              <div className="flex items-center gap-2 mb-3 px-1 flex-wrap">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[13px] text-[#ff3b30]">verified</span>
+                  Min Quality Score
+                </span>
+                <div className="flex gap-1.5">
+                  {[5, 6, 7, 8, 9].map(score => (
+                    <button
+                      key={score}
+                      onClick={() => setMinScore(score)}
+                      className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all border ${
+                        minScore === score
+                          ? 'bg-[#ff3b30] text-white border-[#ff3b30] shadow-md shadow-red-500/20'
+                          : 'bg-surface-dim border-outline-variant text-on-surface-variant hover:border-[#ff3b30]/40 hover:text-on-surface'
+                      }`}
+                    >
+                      {score}+
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[10px] text-on-surface-variant ml-1">
+                  Showing leads scored <span className="font-bold text-[#ff3b30]">{minScore}/10</span> and above
+                </span>
+              </div>
+
               <div className="input-wrapper">
                 <textarea
                   ref={textareaRef}

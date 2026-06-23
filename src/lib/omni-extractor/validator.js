@@ -44,7 +44,6 @@ REQUIRED JSON STRUCTURE:
   "lead_name": "Extracted name or Reddit username",
   "lead_type": "Pain-Point" | "Competitor-Frustration" | "Solution-Seeking",
   "reasoning": "Brief explanation of why this is or isn't a lead (max 15 words)",
-  "suggested_reply": "A short, natural 1-2 sentence hook to start a conversation with this person (max 25 words)",
   "verified_contacts": {
     "emails": ["list of valid emails"],
     "phones": ["list of valid phones"],
