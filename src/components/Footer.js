@@ -11,6 +11,7 @@ export default function Footer() {
         <div className="flex gap-6 mt-6 md:mt-0">
           <Link className="text-on-surface-variant hover:text-primary transition-colors text-xs" href="/privacy">Privacy Policy</Link>
           <Link className="text-on-surface-variant hover:text-primary transition-colors text-xs" href="/terms">Terms of Service</Link>
+          <Link className="text-on-surface-variant hover:text-primary transition-colors text-xs" href="/contact">Contact Us</Link>
           <Link className="text-on-surface-variant hover:text-primary transition-colors text-xs" href="/blog">Blog</Link>
         </div>
       </div>

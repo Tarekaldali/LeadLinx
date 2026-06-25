@@ -49,6 +49,7 @@ export default function AdminLayout({ children }) {
       items: [
         { href: '/admin/ai', icon: 'smart_toy', label: 'AI Monitor' },
         { href: '/admin/logs', icon: 'data_object', label: 'System Logs' },
+        { href: '/admin/support', icon: 'support_agent', label: 'Support Tickets' },
         { href: '/admin/settings', icon: 'settings', label: 'Settings' },
       ],
     },

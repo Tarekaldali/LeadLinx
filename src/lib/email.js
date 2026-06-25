@@ -273,10 +273,90 @@ export async function sendMonitorThresholdEmail(email, monitor, leadCount) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`Monitor threshold alert sent to ${email}`);
     return true;
   } catch (error) {
     console.error('Failed to send monitor alert email:', error);
     return false;
   }
 }
+
+export async function sendAdminPurchaseNotification(userEmail, planName, amount) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+
+  const mailOptions = {
+    from: `"LeadLinx System" <${process.env.EMAIL_USER}>`,
+    to: 'tarekaldali1234@gmail.com',
+    subject: `💰 New Subscription Purchased: ${planName}`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px;">
+        <h2>New Subscription Alert</h2>
+        <p><strong>User:</strong> ${userEmail}</p>
+        <p><strong>Plan:</strong> ${planName}</p>
+        <p><strong>Amount:</strong> $${amount.toFixed(2)}</p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Failed to send admin purchase notification:', error);
+  }
+}
+
+export async function sendSupportTicketAlert(ticket) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+
+  const mailOptions = {
+    from: `"LeadLinx Contact Form" <${process.env.EMAIL_USER}>`,
+    to: 'tarekaldali1234@gmail.com',
+    subject: `📩 New Support Ticket: ${ticket.subject}`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px;">
+        <h2>New Contact Us Submission</h2>
+        <p><strong>Name:</strong> ${ticket.name}</p>
+        <p><strong>Email:</strong> ${ticket.email}</p>
+        <p><strong>Subject:</strong> ${ticket.subject}</p>
+        <p><strong>Message:</strong></p>
+        <blockquote style="background-color: #f3f4f6; padding: 15px; border-radius: 5px;">
+          ${ticket.message.replace(/\n/g, '<br/>')}
+        </blockquote>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Failed to send support ticket alert:', error);
+  }
+}
+
+export async function sendSupportTicketReply(userEmail, subject, replyMessage) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+
+  const mailOptions = {
+    from: `"LeadLinx Support" <${process.env.EMAIL_USER}>`,
+    to: userEmail,
+    subject: `Re: ${subject}`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #dc2626;">LeadLinx Support</h2>
+        <p style="color: #4b5563; line-height: 1.6;">
+          ${replyMessage.replace(/\n/g, '<br/>')}
+        </p>
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
+        <p style="color: #9ca3af; font-size: 12px;">
+          Best regards,<br/>The LeadLinx Team
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Failed to send support ticket reply:', error);
+  }
+}
+

@@ -57,7 +57,7 @@ export async function getDb() {
     isInitialized = true;
     (async () => {
       try {
-        const collections = ['users', 'searches', 'leads', 'alerts', 'subscriptions', 'logs', 'blog', 'saved_leads', 'ai_usage', 'chats', 'harvested_leads', 'harvest_jobs'];
+        const collections = ['users', 'searches', 'leads', 'alerts', 'subscriptions', 'logs', 'blog', 'saved_leads', 'ai_usage', 'chats', 'harvested_leads', 'harvest_jobs', 'support_tickets'];
         const existingCollections = await db.listCollections().toArray();
         const existingNames = existingCollections.map(c => c.name);
 

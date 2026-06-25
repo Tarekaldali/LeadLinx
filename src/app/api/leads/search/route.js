@@ -34,14 +34,11 @@ export async function POST(request) {
     const userId = new ObjectId(authResult.user.id);
     const user = await db.collection('users').findOne({ _id: userId });
 
-    if (!user || user.credits < 1) {
-      return NextResponse.json({ error: 'Insufficient credits. Please top up your balance or upgrade your plan.' }, { status: 402 });
+    if (!user || user.credits < 50) {
+      return NextResponse.json({ error: 'Insufficient credits. You need 30 credits to perform this action. Please top up your account.' }, { status: 402 });
     }
 
-    await db.collection('users').updateOne(
-      { _id: userId, credits: { $gt: 0 } },
-      { $inc: { credits: -1 }, $set: { updatedAt: new Date() } }
-    );
+    // Do not deduct partial credits upfront, we will deduct the exact calculated cost after the job.
 
     const classificationResult = await classifyIntent(query);
     const classification = classificationResult.data || { intent: 'SEARCH', response_message: '' };
@@ -70,6 +67,11 @@ export async function POST(request) {
         timestamp: new Date()
       });
 
+      await db.collection('users').updateOne(
+        { _id: userId, credits: { $gte: 1 } },
+        { $inc: { credits: -1 }, $set: { updatedAt: new Date() } }
+      );
+
       await updateChatMessage(db, {
         userId,
         chatId,
@@ -83,7 +85,7 @@ export async function POST(request) {
         }
       });
 
-      return NextResponse.json({ status: 'chat', message: aiResponse, creditsRemaining: Math.max(0, user.credits - 1) }, { status: 200 });
+      return NextResponse.json({ status: 'chat', message: aiResponse, creditsRemaining: user.credits - 1 }, { status: 200 });
     }
 
     const subscription = await db.collection('subscriptions').findOne({ userId });
@@ -143,7 +145,7 @@ export async function POST(request) {
       leads: [],
       insights: null,
       totalScanned: 0,
-      creditsRemaining: Math.max(0, user.credits - 1),
+      creditsRemaining: user.credits,
       searchQueries: [query],
       selectedSubreddits: [],
       progress: searchLog.progress,
@@ -192,13 +194,19 @@ async function runSearchJob({ query, userId, userEmail, userPlan, searchId, chat
 
     const { calculateCreditsToDeduct, getRawCost } = await import('@/lib/creditManager.js');
     const totalCost = calculateCreditsToDeduct('deepseek/deepseek-chat', combinedUsage, userPlan);
-    const remainingToDeduct = Math.max(0, totalCost - 1);
+    const remainingToDeduct = totalCost;
 
     if (remainingToDeduct > 0) {
-      await db.collection('users').updateOne(
+      const updateResult = await db.collection('users').updateOne(
         { _id: userObjectId, credits: { $gte: remainingToDeduct } },
         { $inc: { credits: -remainingToDeduct }, $set: { updatedAt: new Date() } }
       );
+      if (updateResult.modifiedCount === 0) {
+        await db.collection('users').updateOne(
+          { _id: userObjectId },
+          { $set: { credits: 0, updatedAt: new Date() } }
+        );
+      }
     }
 
     const updatedUser = await db.collection('users').findOne({ _id: userObjectId });
