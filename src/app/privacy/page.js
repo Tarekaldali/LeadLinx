@@ -26,42 +26,35 @@ export default function PrivacyPolicyPage() {
             <section className="space-y-4">
               <h2 className="text-2xl font-bold text-on-surface">1. Information We Collect</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                When you use LeadLinx, we collect information that you provide directly to us, such as your name, email address, and payment information when you subscribe to our plans. We also collect usage data to improve our services.
+                When you use LeadLinx, we collect Personally Identifiable Information (PII) that you provide directly to us, such as your name and email address. We also collect aggregated usage data to improve our services and debug issues.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">2. How We Use Your Information</h2>
+              <h2 className="text-2xl font-bold text-on-surface">2. Payment Processing & PCI-DSS Compliance</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                We use the information we collect to provide, maintain, and improve our services, process transactions, send notifications, and communicate with you about your account and our services.
+                We do not store, process, or transmit your raw credit card information on our servers. All transactions are securely processed by Tap Payments. Tap Payments acts as our secure processor and complies with strict PCI-DSS standards. We only store anonymized transaction references and payment tokens necessary to manage your subscription.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">3. Data Security</h2>
+              <h2 className="text-2xl font-bold text-on-surface">3. Data Security & Retention</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                We implement robust security measures to protect your personal information. Your data is encrypted in transit and at rest. We do not store your raw payment details; all transactions are processed securely by Stripe.
+                We implement robust security measures to protect your personal information. Your data is encrypted in transit and at rest. We retain your data only for as long as your account is active or as needed to provide you services, comply with our legal obligations, resolve disputes, and enforce our agreements.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">4. Data Sharing</h2>
+              <h2 className="text-2xl font-bold text-on-surface">4. Third-Party Data Processors</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                We do not sell your personal data. We only share information with trusted third-party services necessary to operate our platform (such as payment processors and email service providers), and only under strict confidentiality agreements.
+                We do not sell your personal data. We only share information with trusted third-party data processors (such as Tap Payments for billing, and secure cloud providers for hosting) under strict confidentiality agreements necessary to operate our platform.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">5. Cookies and Tracking</h2>
+              <h2 className="text-2xl font-bold text-on-surface">5. User Data Rights (GDPR / CCPA)</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                We use cookies and similar tracking technologies to enhance your browsing experience, analyze site traffic, and understand user behavior to optimize our platform.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">6. Your Rights</h2>
-              <p className="text-on-surface-variant leading-relaxed">
-                You have the right to access, update, or delete your personal information. You can manage your account data from your dashboard or contact us directly to request data deletion.
+                We respect your data privacy rights, offering baseline protections aligned with GDPR and CCPA standards. You have the right to access, correct, update, or request deletion of your personal information. You can manage your account data from your dashboard or contact our support team directly to request complete data erasure.
               </p>
             </section>
           </div>

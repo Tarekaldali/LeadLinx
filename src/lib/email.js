@@ -85,7 +85,7 @@ export async function sendVerificationCode(email, code) {
   }
 }
 
-export async function sendSearchCompletionEmail(email, leadCount, query) {
+export async function sendSearchCompletionEmail(email, leadCount, query, creditsUsed = 0) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
   const mailOptions = {
@@ -95,8 +95,8 @@ export async function sendSearchCompletionEmail(email, leadCount, query) {
     html: `
       <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #dc2626;">Great news!</h2>
-        <p>LeadLinx has finished scanning Reddit for: <strong>"${query}"</strong>.</p>
-        <p>We found <strong>${leadCount}</strong> high-intent leads that match your criteria.</p>
+        <p>Your Lead Extraction is Complete. <strong>${leadCount}</strong> leads were successfully extracted, and <strong>${creditsUsed}</strong> credits were used.</p>
+        <p>Search Query: <strong>"${query}"</strong></p>
         <div style="margin: 30px 0;">
           <a href="${process.env.NEXTAUTH_URL}/dashboard" style="background-color: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">
             View Leads in Dashboard

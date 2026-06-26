@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { sendSupportTicketAlert } from '@/lib/email';
+import { requireAuth } from '@/lib/auth';
 
 export async function POST(request) {
   try {
@@ -11,11 +12,23 @@ export async function POST(request) {
       return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
     }
 
+    // Attempt to get authenticated user, but don't fail if not logged in
+    let registered_email = null;
+    try {
+      const authResult = await requireAuth(request);
+      if (authResult.isAuthenticated && authResult.user) {
+        registered_email = authResult.user.email;
+      }
+    } catch (e) {
+      // Ignore auth error for public contact form
+    }
+
     const db = await getDb();
     
     const ticket = {
       name: name.trim(),
-      email: email.trim().toLowerCase(),
+      contact_email: email.trim().toLowerCase(),
+      registered_email: registered_email,
       subject: subject.trim(),
       message: message.trim(),
       status: 'Open',

@@ -38,38 +38,43 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">3. User Accounts</h2>
+              <h2 className="text-2xl font-bold text-on-surface">3. User Accounts & Account Suspension</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                To access certain features, you must create an account. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.
+                To access certain features, you must create an account. You are responsible for maintaining the confidentiality of your account credentials. We reserve the right to suspend or terminate accounts that violate our terms, engage in abusive usage of our APIs, or perform fraudulent activity. Account suspension may occur without prior notice and will result in the forfeiture of any remaining credits.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-primary">4. Refund & Cancellation Policy</h2>
+              <h2 className="text-2xl font-bold text-primary">4. Billing, Payments & Subscription Lifecycle</h2>
               <div className="bg-surface-dim/50 p-6 rounded-xl border border-border-glass mt-4">
-                <h3 className="text-lg font-bold mb-2">Cancellations</h3>
+                <h3 className="text-lg font-bold mb-2">Recurring Billing via Tap Payments</h3>
                 <p className="text-on-surface-variant leading-relaxed mb-4">
-                  You may cancel your subscription at any time through your dashboard settings. Cancellations take effect at the end of the current billing cycle, allowing you to use your remaining credits until then.
+                  All subscription plans are billed on a recurring basis. By providing your payment method, you authorize us to charge your subscription fees through our official payment gateway, Tap Payments. We do not store your credit card details on our servers; all sensitive payment data is securely handled by Tap Payments.
                 </p>
-                
-                <h3 className="text-lg font-bold mb-2">Refunds</h3>
+
+                <h3 className="text-lg font-bold mb-2">Non-Refundable Digital Goods (Credits)</h3>
+                <p className="text-on-surface-variant leading-relaxed mb-4">
+                  Due to the nature of digital goods and AI processing costs, allocated credits are strictly non-refundable once consumed. If you cancel your subscription, you will retain access to your remaining credits until the end of your current billing cycle. Subscription renewals are also non-refundable.
+                </p>
+
+                <h3 className="text-lg font-bold mb-2">Chargeback & Dispute Policy</h3>
                 <p className="text-on-surface-variant leading-relaxed">
-                  We offer a 7-day money-back guarantee for initial purchases if you are unsatisfied with the service and have used less than 10% of your allocated credits. Subscription renewals are non-refundable. To request a refund, please use our Contact Us page.
+                  In the event of an unjustified chargeback or payment dispute, your account will be immediately suspended pending investigation. We request that you contact our support team to resolve billing issues before initiating disputes with your financial institution.
                 </p>
               </div>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">5. Intellectual Property</h2>
+              <h2 className="text-2xl font-bold text-on-surface">5. Limitation of Liability</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                The content, layout, design, data, databases, and graphics on this website are protected by intellectual property laws and are owned by LeadLinx. You may not reproduce, download, or otherwise use any of our intellectual property without express written consent.
+                LeadLinx provides AI-generated leads based on automated extraction and classification. We do not guarantee the absolute accuracy, completeness, or conversion rates of the leads provided. You acknowledge that AI systems may occasionally produce inaccurate results, and LeadLinx shall not be held liable for any direct or indirect business losses arising from the use of or reliance on our lead generation data.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">6. Limitation of Liability</h2>
+              <h2 className="text-2xl font-bold text-on-surface">6. Intellectual Property</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                LeadLinx shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of the service.
+                The content, layout, design, data, databases, and graphics on this website are protected by intellectual property laws and are owned by LeadLinx. You may not reproduce, download, or otherwise use any of our intellectual property without express written consent.
               </p>
             </section>
 

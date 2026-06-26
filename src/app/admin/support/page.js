@@ -10,6 +10,10 @@ export default function AdminSupportPage() {
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // Search and Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('All');
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -28,6 +32,46 @@ export default function AdminSupportPage() {
   };
 
   useEffect(() => { fetchTickets(); }, []);
+
+  const handleStatusChange = async (ticketId, newStatus) => {
+    try {
+      const res = await fetch('/api/admin/support', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId, status: newStatus }),
+      });
+      if (res.ok) {
+        showToast('Status updated');
+        fetchTickets();
+      } else {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to update status');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const handleDelete = async (ticketId) => {
+    if (!window.confirm('Are you sure you want to delete this ticket? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const res = await fetch(`/api/admin/support?id=${ticketId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        showToast('Ticket deleted');
+        fetchTickets();
+      } else {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to delete ticket');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
 
   const handleReply = async () => {
     if (!replyMessage.trim()) return;
@@ -54,6 +98,21 @@ export default function AdminSupportPage() {
     }
   };
 
+  const filteredTickets = tickets.filter(ticket => {
+    const matchesStatus = filterStatus === 'All' || ticket.status === filterStatus || (!ticket.status && filterStatus === 'Open');
+    
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = !searchQuery || 
+      (ticket.name?.toLowerCase().includes(searchLower)) ||
+      (ticket.email?.toLowerCase().includes(searchLower)) ||
+      (ticket.contact_email?.toLowerCase().includes(searchLower)) ||
+      (ticket.registered_email?.toLowerCase().includes(searchLower)) ||
+      (ticket.subject?.toLowerCase().includes(searchLower)) ||
+      (ticket.message?.toLowerCase().includes(searchLower));
+
+    return matchesStatus && matchesSearch;
+  });
+
   if (loading) return <div className="space-y-4">{[1,2,3].map(i => <div key={i} className="skeleton h-16 w-full"></div>)}</div>;
 
   return (
@@ -69,12 +128,43 @@ export default function AdminSupportPage() {
         </button>
       </header>
 
+      {/* Filters and Search */}
+      <div className="flex flex-col md:flex-row gap-4 items-center bg-surface-dim border border-border-glass p-4 rounded-xl">
+        <div className="relative w-full md:w-96">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+          <input
+            type="text"
+            placeholder="Search by name, email, subject, message..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-background border border-border-glass rounded-lg pl-9 pr-4 py-2 text-sm text-on-surface focus:border-primary outline-none"
+          />
+        </div>
+        
+        <div className="w-full md:w-auto flex items-center gap-2">
+          <span className="text-sm font-bold text-on-surface-variant whitespace-nowrap">Status:</span>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="w-full md:w-auto bg-background border border-border-glass rounded-lg px-3 py-2 text-sm text-on-surface focus:border-primary outline-none"
+          >
+            <option value="All">All Statuses</option>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Solved">Solved</option>
+            <option value="Not Solved">Not Solved</option>
+            <option value="Spam">Spam</option>
+          </select>
+        </div>
+      </div>
+
       <div className="bento-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="data-table">
             <thead>
               <tr>
                 <th>User</th>
+                <th>Registered Email</th>
                 <th>Subject</th>
                 <th>Message</th>
                 <th>Status</th>
@@ -83,11 +173,21 @@ export default function AdminSupportPage() {
               </tr>
             </thead>
             <tbody>
-              {tickets.map(ticket => (
+              {filteredTickets.map(ticket => (
                 <tr key={ticket._id}>
                   <td>
                     <div className="font-medium text-on-surface text-sm">{ticket.name}</div>
-                    <div className="text-xs text-on-surface-variant">{ticket.email}</div>
+                    <div className="text-xs text-on-surface-variant">{ticket.contact_email || ticket.email}</div>
+                  </td>
+                  <td>
+                    {ticket.registered_email ? (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs text-on-surface font-medium">{ticket.registered_email}</span>
+                        <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded inline-block w-fit">Verified Account</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-on-surface-variant italic">—</span>
+                    )}
                   </td>
                   <td className="font-medium text-sm text-on-surface max-w-[200px] truncate" title={ticket.subject}>
                     {ticket.subject}
@@ -96,31 +196,44 @@ export default function AdminSupportPage() {
                     {ticket.message}
                   </td>
                   <td>
-                    {ticket.status === 'Responded/Resolved' ? (
-                      <span className="badge badge-growth">Resolved</span>
-                    ) : (
-                      <span className="badge badge-error">Open</span>
-                    )}
+                    <select 
+                      value={ticket.status || 'Open'} 
+                      onChange={(e) => handleStatusChange(ticket._id, e.target.value)}
+                      className="bg-surface-dim border border-border-glass rounded text-xs px-2 py-1 outline-none focus:border-primary text-on-surface"
+                    >
+                      <option value="Open">Open</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Solved">Solved</option>
+                      <option value="Not Solved">Not Solved</option>
+                      <option value="Spam">Spam</option>
+                    </select>
                   </td>
                   <td className="text-sm text-on-surface-variant">
                     {new Date(ticket.createdAt).toLocaleDateString()}
                   </td>
                   <td>
-                    {ticket.status !== 'Responded/Resolved' && (
+                    <div className="flex items-center gap-2">
                       <button 
                         onClick={() => setReplyingTo(ticket)} 
                         className="btn-ghost text-xs py-1 px-3 text-primary border border-primary/20 hover:bg-primary hover:text-white"
                       >
                         Reply
                       </button>
-                    )}
+                      <button 
+                        onClick={() => handleDelete(ticket._id)}
+                        className="btn-ghost text-xs py-1 px-2 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white"
+                        title="Delete ticket"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
-              {tickets.length === 0 && (
+              {filteredTickets.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="py-20 text-center text-on-surface-variant">
-                    No support tickets found.
+                  <td colSpan="7" className="py-20 text-center text-on-surface-variant">
+                    {tickets.length > 0 ? "No tickets match your search filters." : "No support tickets found."}
                   </td>
                 </tr>
               )}

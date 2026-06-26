@@ -318,7 +318,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
 
     // 6. Notification
     if (user?.email) {
-      await sendSearchCompletionEmail(user.email, foundLeads.length, userQuery);
+      await sendSearchCompletionEmail(user.email, foundLeads.length, userQuery, creditsToDeduct);
     }
 
   } catch (error) {
