@@ -56,7 +56,7 @@ export default function AdminLayout({ children }) {
     {
       label: 'Content',
       items: [
-        { href: '/admin/blog', icon: 'edit_note', label: 'Blog Manager' },
+        { href: '/admin/blog', icon: 'edit_note', label: 'About LeadLinx Manager' },
         { href: '/admin/pricing', icon: 'sell', label: 'Pricing Plans' },
         { href: '/admin/insights', icon: 'lightbulb', label: 'Opportunity Insights' },
       ],

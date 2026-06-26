@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
               Privacy <span className="text-primary">Policy</span>
             </h1>
             <p className="text-on-surface-variant max-w-2xl mx-auto font-body animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              Last updated: October 2024
+              Last updated: June 2026
             </p>
           </div>
 
