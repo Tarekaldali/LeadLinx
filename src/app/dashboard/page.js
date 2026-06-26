@@ -29,7 +29,7 @@ export default function DashboardPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  const [minScore, setMinScore] = useState(6);
+  const [minScore, setMinScore] = useState(8);
   
   // Monitor States
   const [monitors, setMonitors] = useState([]);
@@ -678,7 +678,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
                 <span className="text-[10px] text-on-surface-variant ml-1">
-                  Showing leads scored <span className="font-bold text-[#ff3b30]">{minScore}/10</span> and above
+                  Showing leads scored <span className="font-bold text-[#ff3b30]">{minScore}/10</span> and ABOVE
                 </span>
               </div>
 

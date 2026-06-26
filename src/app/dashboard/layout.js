@@ -236,7 +236,7 @@ export default function DashboardLayout({ children }) {
                       className={`flex items-center gap-3 px-4 py-2.5 flex-1 min-w-0 ${activeSidebarChatId === chat._id ? 'text-on-surface' : 'text-on-surface-variant hover:text-on-surface'}`}
                     >
                       <span className={`material-symbols-outlined text-[18px] shrink-0 ${activeSidebarChatId === chat._id ? 'text-[#ff3b30] opacity-100' : 'opacity-40'}`}>chat_bubble</span>
-                      <span className="truncate text-xs font-medium flex-1">{chat.title || 'Untitled'}</span>
+                      <span className="truncate text-xs font-medium flex-1">{chat.title || 'New Chat'}</span>
                       {activeSidebarChatId === chat._id && (
                         <span className="w-1.5 h-1.5 bg-[#ff3b30] rounded-full shrink-0" />
                       )}

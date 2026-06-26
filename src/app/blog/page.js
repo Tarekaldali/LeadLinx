@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import { getDb } from '@/lib/mongodb';
 
 export const metadata = {
-  title: 'Blog — Reddit Lead Generation Insights',
+  title: 'About LeadLinx — Reddit Lead Generation Insights',
   description: 'Expert guides on finding customers on Reddit and AI-powered prospecting strategies.',
 };
 
@@ -38,7 +38,7 @@ export default async function BlogPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-16 space-y-12">
         <header>
-          <h1 className="font-display text-4xl mb-4 text-on-surface">LeadLinx Blog</h1>
+          <h1 className="font-display text-4xl mb-4 text-on-surface">About LeadLinx</h1>
           <p className="text-on-surface-variant text-lg">Expert guides on Reddit lead generation and AI-powered prospecting.</p>
         </header>
 

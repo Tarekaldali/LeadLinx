@@ -12,13 +12,15 @@ function stripHtml(str) {
   if (!str || typeof str !== 'string') return str;
   return str
     .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<[^>]+>/g, '')
+    .replace(/<[a-zA-Z\/][^>]*(?:>|$)/g, '')
+    .replace(/&#[0-9]+;/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
