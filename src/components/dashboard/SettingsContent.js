@@ -265,16 +265,12 @@ export default function SettingsContent() {
                   </div>
                   
                   <div className="flex flex-col gap-3 w-full md:w-auto">
-                    <button
-                      onClick={async () => {
-                        const res = await fetch('/api/stripe/portal', { method: 'POST' });
-                        const data = await res.json();
-                        if (data.url) window.location.href = data.url;
-                      }}
+                    <a
+                      href="/pricing"
                       className="px-6 py-2.5 bg-[#1d1d1f] text-white rounded-xl text-sm font-bold hover:bg-black transition-all shadow-lg shadow-black/10 text-center"
                     >
-                      Portal Management
-                    </button>
+                      Manage Plan
+                    </a>
                   </div>
                 </div>
               </div>

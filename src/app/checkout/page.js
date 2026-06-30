@@ -34,16 +34,6 @@ function CheckoutContent() {
           <h2 className="text-2xl font-bold text-on-surface dark:text-on-surface mb-2">You&apos;re already subscribed!</h2>
           <p className="text-on-surface-variant dark:text-on-surface-variant mb-8">You are currently on the <span className="capitalize font-semibold">{user.plan}</span> plan. Manage your billing in settings.</p>
           <div className="flex flex-col gap-3">
-            <button
-              onClick={async () => {
-                const res = await fetch('/api/stripe/portal', { method: 'POST' });
-                const data = await res.json();
-                if (data.url) window.location.href = data.url;
-              }}
-              className="w-full py-3 bg-primary text-white rounded-xl font-medium hover:bg-red-700 transition-colors"
-            >
-              Manage Subscription
-            </button>
             <Link href="/dashboard" className="w-full py-3 bg-surface border border-border-glass text-on-surface-variant rounded-xl font-medium hover:hover:bg-surface-container transition-colors text-center">
               Return to Dashboard
             </Link>
@@ -59,7 +49,7 @@ function CheckoutContent() {
     setError('');
 
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch('/api/tap/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ planKey }),
@@ -97,7 +87,7 @@ function CheckoutContent() {
         <div className="w-full lg:w-1/2">
           <div className="mb-10">
             <h1 className="text-3xl font-bold text-on-surface dark:text-on-surface mb-3 tracking-tight">Complete your upgrade</h1>
-            <p className="text-on-surface-variant dark:text-on-surface-variant text-lg">You&apos;ll be securely redirected to Stripe to complete your payment.</p>
+            <p className="text-on-surface-variant dark:text-on-surface-variant text-lg">You&apos;ll be securely redirected to Tap Payments to complete your payment.</p>
           </div>
 
           {error && (
