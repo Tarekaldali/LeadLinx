@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-config';
 import { getDb } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { createTapCharge, PLAN_PRICES } from '@/lib/tap';
