@@ -8,6 +8,11 @@ export default function AdminSupportPage() {
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [refundingTo, setRefundingTo] = useState(null);
+  const [refundChargeId, setRefundChargeId] = useState('');
+  const [refundAmount, setRefundAmount] = useState('');
+  const [refundCurrency, setRefundCurrency] = useState('USD');
+  const [processingRefund, setProcessingRefund] = useState(false);
   const [toast, setToast] = useState(null);
 
   // Search and Filter State
@@ -95,6 +100,38 @@ export default function AdminSupportPage() {
       showToast(err.message, 'error');
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleRefund = async () => {
+    if (!refundChargeId || !refundAmount || !refundCurrency) return;
+    setProcessingRefund(true);
+    try {
+      const res = await fetch('/api/admin/tap-refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          chargeId: refundChargeId, 
+          amount: parseFloat(refundAmount), 
+          currency: refundCurrency,
+          userId: refundingTo.userId, // Will update user sub if exists
+          reason: 'Requested by user via support ticket'
+        }),
+      });
+      if (res.ok) {
+        showToast('Refund processed successfully');
+        setRefundingTo(null);
+        setRefundChargeId('');
+        setRefundAmount('');
+        // Optional: you could update the ticket status to Solved here
+      } else {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to process refund');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setProcessingRefund(false);
     }
   };
 
@@ -220,6 +257,12 @@ export default function AdminSupportPage() {
                         Reply
                       </button>
                       <button 
+                        onClick={() => setRefundingTo(ticket)} 
+                        className="btn-ghost text-xs py-1 px-3 text-orange-500 border border-orange-500/20 hover:bg-orange-500 hover:text-white"
+                      >
+                        Refund
+                      </button>
+                      <button 
                         onClick={() => handleDelete(ticket._id)}
                         className="btn-ghost text-xs py-1 px-2 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white"
                         title="Delete ticket"
@@ -272,6 +315,66 @@ export default function AdminSupportPage() {
               className="btn-primary"
             >
               {sending ? 'Sending...' : 'Send Reply'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal 
+        isOpen={!!refundingTo} 
+        onClose={() => setRefundingTo(null)} 
+        title={`Process Refund for ${refundingTo?.name}`}
+      >
+        <div className="space-y-6">
+          <div className="bg-orange-500/10 p-4 rounded-xl text-sm text-orange-600 border border-orange-500/20">
+            <strong>Warning:</strong> Processing a refund will automatically cancel the user's subscription and reset their credits to 10 if they have a registered account.
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-data-label text-on-surface-variant">TAP CHARGE ID</label>
+              <input
+                type="text"
+                value={refundChargeId}
+                onChange={(e) => setRefundChargeId(e.target.value)}
+                placeholder="e.g. chg_TS01A4920261913De5k3006813"
+                className="input-field w-full"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-data-label text-on-surface-variant">AMOUNT</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={refundAmount}
+                  onChange={(e) => setRefundAmount(e.target.value)}
+                  placeholder="e.g. 19.99"
+                  className="input-field w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-data-label text-on-surface-variant">CURRENCY</label>
+                <input
+                  type="text"
+                  value={refundCurrency}
+                  onChange={(e) => setRefundCurrency(e.target.value)}
+                  placeholder="USD"
+                  className="input-field w-full"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 justify-end pt-4">
+            <button onClick={() => setRefundingTo(null)} className="btn-ghost">Cancel</button>
+            <button
+              onClick={handleRefund}
+              disabled={processingRefund || !refundChargeId || !refundAmount || !refundCurrency}
+              className="px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+            >
+              {processingRefund ? 'Processing...' : 'Process Refund'}
             </button>
           </div>
         </div>

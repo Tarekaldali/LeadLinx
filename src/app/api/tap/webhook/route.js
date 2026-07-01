@@ -14,17 +14,69 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Webhook parse failed' }, { status: 400 });
     }
 
+    if (!event.id) {
+      console.error('❌ [WEBHOOK] No event ID found in payload');
+      return NextResponse.json({ error: 'Missing event ID' }, { status: 400 });
+    }
+
     const db = await getDb();
-    console.log(`🔔 [WEBHOOK] Received event from Tap Payments: charge ${event.id}, status: ${event.status}`);
+    console.log(`🔔 [WEBHOOK] Received event from Tap Payments: charge ${event.id}`);
 
-    // Tap charge status can be CAPTURED, AUTHORIZED, INITIATED, etc.
-    // We only care about successful payments (CAPTURED)
-    if (event.status === 'CAPTURED' || event.status === 'AUTHORIZED') {
-      const metadata = event.metadata || {};
-      const userId = metadata.userId;
-      const planKey = metadata.planKey;
-      const credits = parseInt(metadata.credits || '1000');
+    // Verify payload authenticity directly with Tap Payments
+    const verifyResponse = await fetch(`https://api.tap.company/v2/charges/${event.id}`, {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${process.env.TAP_SECRET_KEY}`
+      }
+    });
 
+    if (!verifyResponse.ok) {
+      console.error(`❌ [WEBHOOK] Failed to verify charge ${event.id} with Tap API`);
+      return NextResponse.json({ error: 'Charge verification failed' }, { status: 401 });
+    }
+
+    const verifiedCharge = await verifyResponse.json();
+    console.log(`✅ [WEBHOOK] Charge verified. Status: ${verifiedCharge.status}`);
+
+    const metadata = verifiedCharge.metadata || {};
+    const userId = metadata.userId;
+    const planKey = metadata.planKey || 'plus';
+    const credits = parseInt(metadata.credits || '1000');
+    const amount = verifiedCharge.amount;
+    const currency = verifiedCharge.currency;
+
+    // Log the transaction in the database
+    await db.collection('transactions').insertOne({
+      tapChargeId: verifiedCharge.id,
+      tapCustomerId: verifiedCharge.customer?.id || null,
+      userId: userId ? new ObjectId(userId) : null,
+      amount: amount,
+      currency: currency,
+      status: verifiedCharge.status,
+      planKey: planKey,
+      metadata: metadata,
+      createdAt: new Date(),
+    });
+
+    if (verifiedCharge.status === 'DECLINED' || verifiedCharge.status === 'FAILED') {
+      console.warn(`⚠️ [WEBHOOK] Payment failed or declined: ${verifiedCharge.status}`);
+      // Send payment failed email if user is known
+      if (userId) {
+        try {
+          const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+          if (user?.email) {
+            const { sendPaymentFailedEmail } = await import('@/lib/email');
+            await sendPaymentFailedEmail(user.email);
+          }
+        } catch (e) {
+          console.error('Failed to send payment failed email:', e);
+        }
+      }
+      return NextResponse.json({ received: true, status: verifiedCharge.status });
+    }
+
+    if (verifiedCharge.status === 'CAPTURED' || verifiedCharge.status === 'AUTHORIZED') {
       if (!userId) {
         console.error('❌ [WEBHOOK] No userId found in charge metadata');
         return NextResponse.json({ error: 'Missing userId in metadata' }, { status: 400 });
@@ -32,15 +84,19 @@ export async function POST(request) {
 
       console.log(`📦 [WEBHOOK] Charge successful for user: ${userId}, plan: ${planKey}`);
 
+      // Calculate Period End (30 days from now)
+      const currentPeriodEnd = new Date();
+      currentPeriodEnd.setDate(currentPeriodEnd.getDate() + 30);
+
       // Update User
       const userUpdateResult = await db.collection('users').updateOne(
         { _id: new ObjectId(userId) },
         {
           $set: {
-            plan: planKey || 'plus',
+            plan: planKey,
             credits: credits,
-            tapChargeId: event.id,
-            tapCustomerId: event.customer?.id || null,
+            tapChargeId: verifiedCharge.id,
+            tapCustomerId: verifiedCharge.customer?.id || null,
             subscriptionStatus: 'active',
             updatedAt: new Date(),
           },
@@ -57,8 +113,16 @@ export async function POST(request) {
           const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
           if (user?.email) {
             const { sendThankYouEmail } = await import('@/lib/email');
-            const amount = event.amount;
-            await sendThankYouEmail(user.email, planKey.charAt(0).toUpperCase() + planKey.slice(1), amount);
+            await sendThankYouEmail({
+              email: user.email,
+              name: user.name || 'Customer',
+              planName: planKey.charAt(0).toUpperCase() + planKey.slice(1),
+              amount: amount,
+              currency: currency,
+              chargeId: verifiedCharge.id,
+              status: verifiedCharge.status,
+              date: new Date()
+            });
           }
         } catch (e) {
           console.error('Failed to send thank you email in webhook:', e);
@@ -71,11 +135,13 @@ export async function POST(request) {
         {
           $set: {
             userId: new ObjectId(userId),
-            tapChargeId: event.id,
-            tapCustomerId: event.customer?.id || null,
-            planKey: planKey || 'plus',
+            tapChargeId: verifiedCharge.id,
+            tapCustomerId: verifiedCharge.customer?.id || null,
+            planKey: planKey,
             credits,
             status: 'active',
+            cancel_at_period_end: false,
+            currentPeriodEnd: currentPeriodEnd,
             activatedAt: new Date(),
             updatedAt: new Date(),
           },
@@ -85,7 +151,7 @@ export async function POST(request) {
 
       console.log(`✅ [WEBHOOK] Subscription record saved for user: ${userId}`);
     } else {
-      console.log(`⚠️ [WEBHOOK] Ignored event status: ${event.status}`);
+      console.log(`⚠️ [WEBHOOK] Ignored verified event status: ${verifiedCharge.status}`);
     }
 
     return NextResponse.json({ received: true });

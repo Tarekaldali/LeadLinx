@@ -211,11 +211,18 @@ export default function AdminPricingPage() {
 
             <div className="space-y-1.5 col-span-2 md:col-span-1">
               <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">Billing Period</label>
-              <input 
-                type="text" className="w-full px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface placeholder:text-on-surface-variant opacity-60" 
-                placeholder="/month"
-                value={formData.period} onChange={e => setFormData({...formData, period: e.target.value})}
-              />
+              <select 
+                className="w-full px-3.5 py-2.5 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all text-on-surface bg-background opacity-80" 
+                value={formData.period} 
+                onChange={e => setFormData({...formData, period: e.target.value})}
+              >
+                <option value="/day">1 Day</option>
+                <option value="/7days">7 Days</option>
+                <option value="/month">1 Month</option>
+                <option value="/3months">3 Months</option>
+                <option value="/6months">6 Months</option>
+                <option value="/year">1 Year</option>
+              </select>
             </div>
             <div className="space-y-1.5 col-span-2 md:col-span-1">
               <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider ml-0.5">Badge (Optional)</label>

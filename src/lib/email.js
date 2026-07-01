@@ -175,51 +175,64 @@ export async function sendPaymentFailedEmail(email) {
   }
 }
 
-export async function sendThankYouEmail(email, planName, amount) {
+export async function sendThankYouEmail({ email, name, planName, amount, currency, chargeId, status, date }) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
   const mailOptions = {
-    from: `"LeadLinx AI" <${process.env.EMAIL_USER}>`,
+    from: `"LeadLinx Billing" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: `🚀 Welcome to LeadLinx ${planName}!`,
+    subject: `Receipt for your LeadLinx ${planName} Plan`,
     html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
-        <div style="text-align: center; margin-bottom: 24px;">
-          <h1 style="color: #dc2626; margin-bottom: 8px;">Thank You for Your Purchase!</h1>
-          <p style="color: #4b5563; font-size: 18px;">Your LeadLinx <strong>${planName}</strong> plan is now active.</p>
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 20px; background-color: #ffffff;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="color: #111827; margin-bottom: 8px; font-size: 24px; font-weight: 700;">Payment Receipt</h1>
+          <p style="color: #6b7280; font-size: 16px; margin: 0;">Hi ${name}, thank you for your purchase.</p>
         </div>
 
-        <div style="background-color: #f9fafb; padding: 24px; border-radius: 8px; margin-bottom: 24px;">
-          <h3 style="margin-top: 0; color: #111827;">Order Summary</h3>
+        <div style="background-color: #f9fafb; padding: 24px; border-radius: 12px; margin-bottom: 32px; border: 1px solid #e5e7eb;">
+          <div style="margin-bottom: 24px;">
+            <p style="color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 4px 0; font-weight: 600;">Amount Paid</p>
+            <p style="color: #111827; font-size: 32px; font-weight: 700; margin: 0;">${amount.toFixed(2)} <span style="font-size: 16px; color: #6b7280;">${currency}</span></p>
+          </div>
+
           <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="padding: 8px 0; color: #6b7280;">Plan</td>
-              <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #111827;">${planName}</td>
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+              <td style="padding: 12px 0; color: #6b7280; font-size: 14px;">Plan</td>
+              <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #111827; font-size: 14px;">LeadLinx ${planName}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+              <td style="padding: 12px 0; color: #6b7280; font-size: 14px;">Transaction ID</td>
+              <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #111827; font-size: 14px; font-family: monospace;">${chargeId}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+              <td style="padding: 12px 0; color: #6b7280; font-size: 14px;">Date</td>
+              <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #111827; font-size: 14px;">${new Date(date).toLocaleString()}</td>
             </tr>
             <tr>
-              <td style="padding: 8px 0; color: #6b7280;">Amount Paid</td>
-              <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #111827;">$${amount.toFixed(2)}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #6b7280;">Status</td>
-              <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #10b981;">Active</td>
+              <td style="padding: 12px 0; color: #6b7280; font-size: 14px;">Status</td>
+              <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #10b981; font-size: 14px;">${status}</td>
             </tr>
           </table>
         </div>
 
-        <p style="color: #4b5563; line-height: 1.6;">
-          We're excited to have you on board! You can now start generating high-intent leads with your new credits. 
-          If you have any questions or need help getting started, just reply to this email.
+        <p style="color: #4b5563; line-height: 1.6; font-size: 15px; margin-bottom: 32px;">
+          Your account has been successfully upgraded and your new credits are ready to use. You can now continue generating high-intent leads from your dashboard.
         </p>
 
-        <div style="text-align: center; margin-top: 32px;">
-          <a href="${process.env.NEXTAUTH_URL}/dashboard" style="background-color: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-            Go to Dashboard
+        <div style="text-align: center; margin-bottom: 40px;">
+          <a href="${process.env.NEXTAUTH_URL}/dashboard" style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 15px;">
+            Access Dashboard
           </a>
         </div>
 
-        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
-        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+        <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 32px;">
+          <p style="color: #4b5563; font-size: 14px; margin: 0;">
+            <strong>Need help?</strong> Contact us at <a href="mailto:support@leadlinx.com" style="color: #dc2626; text-decoration: none;">support@leadlinx.com</a> or open a ticket in your dashboard.
+          </p>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 0 0 24px 0;" />
+        <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0; line-height: 1.5;">
           © 2024 LeadLinx. All rights reserved.<br/>
           Secured by Tap Payments
         </p>

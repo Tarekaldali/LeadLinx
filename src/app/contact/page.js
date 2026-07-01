@@ -43,8 +43,8 @@ export default function ContactPage() {
                   <p className="text-on-surface-variant text-sm">We use Tap Payments as our official and highly secure payment gateway. We do not store your credit card information on our servers.</p>
                 </div>
                 <div className="bento-card p-6">
-                  <h3 className="font-bold text-lg mb-2">Are my credits refundable?</h3>
-                  <p className="text-on-surface-variant text-sm">Due to the computational costs of AI processing, used credits are strictly non-refundable. However, if you cancel your subscription, you can use your remaining credits until the billing cycle ends.</p>
+                  <h3 className="font-bold text-lg mb-2">What is your refund policy?</h3>
+                  <p className="text-on-surface-variant text-sm">We offer a 7-day refund policy for unused subscription credits. If you are not satisfied, please open a support ticket from your dashboard within 7 days of purchase to request a full refund.</p>
                 </div>
                 <div className="bento-card p-6">
                   <h3 className="font-bold text-lg mb-2">How do subscription renewals work?</h3>

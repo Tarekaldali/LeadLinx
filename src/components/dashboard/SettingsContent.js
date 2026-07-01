@@ -19,6 +19,7 @@ export default function SettingsContent() {
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [cancelingRenewal, setCancelingRenewal] = useState(false);
   const [toast, setToast] = useState(null);
 
   // Profile Form
@@ -87,6 +88,26 @@ export default function SettingsContent() {
       showToast('Network error', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCancelRenewal = async () => {
+    setCancelingRenewal(true);
+    try {
+      const res = await fetch('/api/user/subscription', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cancelAutoRenewal: true })
+      });
+      if (res.ok) {
+        showToast('Auto-renewal has been cancelled');
+      } else {
+        showToast('Failed to update subscription', 'error');
+      }
+    } catch {
+      showToast('Network error', 'error');
+    } finally {
+      setCancelingRenewal(false);
     }
   };
 
@@ -264,14 +285,21 @@ export default function SettingsContent() {
                     </div>
                   </div>
                   
-                  <div className="flex flex-col gap-3 w-full md:w-auto">
-                    <a
-                      href="/pricing"
-                      className="px-6 py-2.5 bg-[#1d1d1f] text-white rounded-xl text-sm font-bold hover:bg-black transition-all shadow-lg shadow-black/10 text-center"
-                    >
-                      Manage Plan
-                    </a>
-                  </div>
+                    <div className="flex flex-col gap-3 w-full md:w-auto">
+                      <a
+                        href="/pricing"
+                        className="px-6 py-2.5 bg-[#1d1d1f] text-white rounded-xl text-sm font-bold hover:bg-black transition-all shadow-lg shadow-black/10 text-center"
+                      >
+                        Manage Plan
+                      </a>
+                      <button
+                        onClick={handleCancelRenewal}
+                        disabled={cancelingRenewal}
+                        className="px-6 py-2.5 bg-transparent border border-[#ff3b30] text-[#ff3b30] rounded-xl text-sm font-bold hover:bg-[#ff3b30]/10 transition-all text-center disabled:opacity-50"
+                      >
+                        {cancelingRenewal ? 'Updating...' : 'Cancel Auto-Renewal'}
+                      </button>
+                    </div>
                 </div>
               </div>
             </div>
