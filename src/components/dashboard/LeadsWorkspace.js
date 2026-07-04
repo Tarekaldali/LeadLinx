@@ -604,12 +604,12 @@ export default function LeadsWorkspace() {
                             <div 
                               className={cn(
                                 "h-full rounded-full transition-all duration-1000",
-                                lead.score >= 80 ? "bg-lime-green" : lead.score >= 50 ? "bg-tertiary" : "bg-primary"
+                                lead.score >= 8 ? "bg-lime-green" : lead.score >= 5 ? "bg-tertiary" : "bg-primary"
                               )}
-                              style={{ width: `${lead.score}%` }}
+                              style={{ width: `${(lead.score || 0) * 10}%` }}
                             />
                           </div>
-                          <span className="font-data-value text-[11px]">{lead.score}%</span>
+                          <span className="font-data-value text-[11px]">{lead.score}/10</span>
                         </div>
                       </td>
                       <td>
@@ -778,14 +778,14 @@ export default function LeadsWorkspace() {
                 <div className="bg-surface-container-low border border-border-glass rounded-2xl p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="text-4xl font-bold text-on-surface">{selectedLead.score}%</div>
+                      <div className="text-4xl font-bold text-on-surface">{selectedLead.score}/10</div>
                       <div className="flex flex-col">
                         <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Match Strength</span>
                         <span className={cn(
                           "text-xs font-bold",
-                          selectedLead.score >= 80 ? "text-lime-green" : "text-tertiary"
+                          selectedLead.score >= 8 ? "text-lime-green" : "text-tertiary"
                         )}>
-                          {selectedLead.score >= 80 ? "Highly Likely Buyer" : "Warm Lead"}
+                          {selectedLead.score >= 8 ? "Highly Likely Buyer" : "Warm Lead"}
                         </span>
                       </div>
                     </div>

@@ -9,6 +9,17 @@ export default async function LandingPage() {
   const session = await getServerSession(authOptions);
   const isLoggedIn = !!session;
 
+  // Fetch live global platform stats from the dedicated platform_stats collection
+  let totalLeads = 0;
+  try {
+    const { getDb } = await import('@/lib/mongodb');
+    const db = await getDb();
+    const statsDoc = await db.collection('platform_stats').findOne({ _id: 'global' });
+    totalLeads = statsDoc?.totalLeadsExtracted ?? 0;
+  } catch (e) {
+    console.error('Failed to fetch platform stats:', e);
+  }
+
   return (
     <div className="bg-background text-on-surface">
       <Navbar activePage="platform" />
@@ -55,19 +66,17 @@ export default async function LandingPage() {
             </div>
 
 
-            {/* Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 w-full border-t border-border-glass pt-8">
+            {/* Stats Row — 3 columns: Leads Extracted, Qualification Rate, 24/7 */}
+            <div className="grid grid-cols-3 gap-8 w-full border-t border-border-glass pt-8">
               <div>
-                <div className="font-display text-2xl md:text-3xl font-bold text-on-surface">617+</div>
+                <div className="font-display text-2xl md:text-3xl font-bold text-on-surface">
+                  {totalLeads > 0 ? `${totalLeads.toLocaleString()}+` : '—'}
+                </div>
                 <div className="text-xs text-on-surface-variant font-data-label mt-1">Leads Analyzed</div>
               </div>
               <div>
                 <div className="font-display text-2xl md:text-3xl font-bold text-on-surface">31%</div>
                 <div className="text-xs text-on-surface-variant font-data-label mt-1">Qualification Rate</div>
-              </div>
-              <div>
-                <div className="font-display text-2xl md:text-3xl font-bold text-on-surface">8.1/10</div>
-                <div className="text-xs text-on-surface-variant font-data-label mt-1">Avg Engagement</div>
               </div>
               <div>
                 <div className="font-display text-2xl md:text-3xl font-bold text-on-surface">24/7</div>
@@ -83,9 +92,9 @@ export default async function LandingPage() {
               <div className="absolute top-0 right-12 w-full max-w-sm bento-card p-6 rounded-2xl shadow-xl transform rotate-12 opacity-40 blur-[2px] transition-transform duration-700 hover:rotate-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center">
-                    <span className="material-symbols-outlined text-sm text-on-surface-variant">forum</span>
+                    <span className="material-symbols-outlined text-sm text-on-surface-variant">credit_score</span>
                   </div>
-                  <div className="font-headline text-on-surface-variant">Lead Management</div>
+                  <div className="font-headline text-on-surface-variant">Tap Payments Secured</div>
                 </div>
                 <div className="space-y-3">
                   <div className="h-2 w-full bg-surface-container rounded-full"></div>
@@ -99,7 +108,7 @@ export default async function LandingPage() {
                   <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center">
                     <span className="material-symbols-outlined text-sm text-on-surface-variant">psychology</span>
                   </div>
-                  <div className="font-headline text-on-surface-variant">AI Analysis</div>
+                  <div className="font-headline text-on-surface-variant">AI Analysis & Scoring</div>
                 </div>
                 <div className="space-y-3">
                   <div className="h-2 w-full bg-surface-container rounded-full"></div>
@@ -114,13 +123,13 @@ export default async function LandingPage() {
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                     <span className="material-symbols-outlined text-sm text-primary">radar</span>
                   </div>
-                  <div className="font-headline text-primary font-bold">Reddit Monitoring</div>
+                  <div className="font-headline text-primary font-bold">Omni-Channel Discovery</div>
                 </div>
-                <p className="text-sm font-body text-on-surface-variant mb-6">Automated Reddit lead discovery for your niche.</p>
+                <p className="text-sm font-body text-on-surface-variant mb-6">Automated lead discovery across Reddit.</p>
                 <div className="flex justify-between items-center text-xs font-data-label">
                   <span className="text-lime-green flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-lime-green animate-pulse"></span>
-                    24/7 Active
+                    Global Reach
                   </span>
                 </div>
               </div>

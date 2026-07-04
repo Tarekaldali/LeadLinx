@@ -6,6 +6,7 @@ import Link from 'next/link';
 import ChatMessage from '@/components/ChatMessage';
 import SettingsContent from '@/components/dashboard/SettingsContent';
 import LeadsWorkspace from '@/components/dashboard/LeadsWorkspace';
+import OutreachWorkspace from '@/components/dashboard/OutreachWorkspace';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { exportToXLSX } from '@/lib/exportUtils';
 import { useDashboard } from './layout';
@@ -23,7 +24,7 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
-  const { updateCredits, refreshUser, addChat, activeTab, setActiveTab } = useDashboard() || {};
+  const { updateCredits, refreshUser, addChat, updateChatTitle, activeTab, setActiveTab } = useDashboard() || {};
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -121,7 +122,7 @@ export default function DashboardPage() {
 
   // Handle hash-based tab navigation when coming from another page
   useEffect(() => {
-    const availableTabs = ['discovery', 'leads'];
+    const availableTabs = ['discovery', 'leads', 'outreach'];
     if (SHOW_MONITORS) availableTabs.push('monitors');
 
     const hash = window.location.hash?.replace('#', '');
@@ -163,27 +164,42 @@ export default function DashboardPage() {
       timestamp: new Date(),
     };
 
+    let isNewChat = false;
     let chatId = activeChatId;
     if (!chatId) {
+      isNewChat = true;
       try {
         const res = await fetch('/api/chats', { method: 'POST' });
         const data = await res.json();
         chatId = data.chatId;
         setActiveChatId(chatId);
         localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, chatId);
-        addChat?.({ _id: chatId, title: query.substring(0, 45), updatedAt: new Date() });
+        addChat?.({ _id: chatId, title: 'New Chat', updatedAt: new Date() });
       } catch { /* fail silent */ }
     }
 
     const nextMessages = [...messagesRef.current, userMsg, assistantMsg];
     setMessages(nextMessages);
-    await persistChatMessages(chatId, nextMessages, query.substring(0, 50));
+    await persistChatMessages(chatId, nextMessages);
+
+    if (isNewChat) {
+      fetch(`/api/chats/${chatId}/title`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.title) updateChatTitle?.(chatId, d.title);
+      })
+      .catch(() => {});
+    }
 
     try {
       const res = await fetch('/api/leads/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, chatId, assistantMessageId: assistantMsg.id }),
+        body: JSON.stringify({ query, chatId, assistantMessageId: assistantMsg.id, minScore }),
       });
       
       let data;
@@ -211,7 +227,7 @@ export default function DashboardPage() {
       const finalMessages = nextMessages.map(m => m.id === assistantMsg.id ? updatedAssistantMsg : m);
       setMessages(finalMessages);
 
-      await persistChatMessages(chatId, finalMessages, query.substring(0, 50));
+      await persistChatMessages(chatId, finalMessages);
     } catch (err) {
       const failedMessages = nextMessages.map(m => m.id === assistantMsg.id ? {
         ...assistantMsg,
@@ -219,7 +235,7 @@ export default function DashboardPage() {
         error: err.message,
       } : m);
       setMessages(failedMessages);
-      await persistChatMessages(chatId, failedMessages, query.substring(0, 50));
+      await persistChatMessages(chatId, failedMessages);
     } finally {
       setLoading(false);
     }
@@ -482,6 +498,7 @@ export default function DashboardPage() {
   }, [activeTab, fetchMonitors]);
 
   const renderLeads = () => <LeadsWorkspace />;
+  const renderOutreach = () => <OutreachWorkspace />;
 
   const renderMonitors = () => (
     <div className="p-8 max-w-7xl mx-auto animate-in">
@@ -637,6 +654,10 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined text-[20px]">group</span>
             Leads
           </div>
+          <div onClick={() => setActiveTab('outreach')} className={`tab-item ${activeTab === 'outreach' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined text-[20px]">mark_email_read</span>
+            AI Outreach
+          </div>
           {SHOW_MONITORS && (
             <div onClick={() => setActiveTab('monitors')} className={`tab-item ${activeTab === 'monitors' ? 'active' : ''}`}>
               <span className="material-symbols-outlined text-[20px]">sensors</span>
@@ -650,6 +671,7 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           {activeTab === 'discovery' && renderDiscovery()}
           {activeTab === 'leads' && renderLeads()}
+          {activeTab === 'outreach' && renderOutreach()}
           {SHOW_MONITORS && activeTab === 'monitors' && renderMonitors()}
         </div>
 

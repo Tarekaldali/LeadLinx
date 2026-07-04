@@ -30,7 +30,7 @@ export function SummaryCards({ stats, loading }) {
     },
     {
       label: 'Avg. Intent',
-      value: `${stats?.avgScore ?? 0}%`,
+      value: `${stats?.avgScore ?? 0}/10`,
       sub: 'Target accuracy',
       icon: Target,
       color: 'text-tertiary',

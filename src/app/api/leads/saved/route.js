@@ -74,6 +74,13 @@ export async function POST(request) {
       savedAt: new Date(),
     });
 
+    // Increment global platform counter for landing page stats
+    await db.collection('platform_stats').updateOne(
+      { _id: 'global' },
+      { $inc: { totalLeadsExtracted: 1 } },
+      { upsert: true }
+    );
+
     return NextResponse.json({ message: 'Lead saved successfully' }, { status: 201 });
   } catch (error) {
     console.error('Save lead error:', error);

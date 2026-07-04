@@ -85,6 +85,10 @@ export default function DashboardLayout({ children }) {
     setChats(prev => [chat, ...prev.filter(c => c._id !== chat._id)]);
   }, []);
 
+  const updateChatTitle = useCallback((chatId, title) => {
+    setChats(prev => prev.map(c => c._id === chatId ? { ...c, title } : c));
+  }, []);
+
   const [showConfirmDelete, setShowConfirmDelete] = useState(null);
 
   const handleDeleteChat = async (chatId) => {
@@ -180,7 +184,22 @@ export default function DashboardLayout({ children }) {
             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname.startsWith('/dashboard/saved') || (pathname === '/dashboard' && activeTab === 'leads') ? 'text-on-surface bg-surface shadow-sm border border-outline-variant' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/50'}`}
           >
             <span className="material-symbols-outlined text-[20px]">group</span>
-            <span className="text-sm font-medium">Leads</span>
+            <span className="text-sm font-medium">Leads (CRM)</span>
+          </button>
+
+          <button
+            onClick={() => { 
+              setSidebarOpen(false); 
+              if (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/')) {
+                window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'outreach' } }));
+              } else {
+                router.push('/dashboard#outreach');
+              }
+            }}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left transition-all mt-1 ${pathname === '/dashboard' && activeTab === 'outreach' ? 'text-on-surface bg-surface shadow-sm border border-outline-variant' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/50'}`}
+          >
+            <span className="material-symbols-outlined text-[20px]">mark_email_read</span>
+            <span className="text-sm font-medium">AI Outreach</span>
           </button>
 
           {SHOW_MONITORS && (
@@ -311,7 +330,7 @@ export default function DashboardLayout({ children }) {
   );
 
   return (
-    <DashboardContext.Provider value={{ user, refreshUser, updateCredits, addChat, activeTab, setActiveTab }}>
+    <DashboardContext.Provider value={{ user, refreshUser, updateCredits, addChat, updateChatTitle, activeTab, setActiveTab }}>
       <div className="flex h-screen overflow-hidden bg-background text-on-surface selection:bg-[#ff3b30]/10 selection:text-[#ff3b30]">
         
         {loading && (

@@ -9,8 +9,8 @@ const PATTERNS = {
   // Matches normal and obfuscated: test@gmail.com, test [at] gmail [dot] com, test(at)gmail.com
   email: /([a-zA-Z0-9._-]+)\s*(?:@|\[at\]|\(at\)|\[@\])\s*([a-zA-Z0-9.-]+)\s*(?:\.|\[dot\]|\(dot\)|\[\.\])\s*([a-zA-Z]{2,6})/gi,
   
-  // Aggressive phone matching
-  phone: /(?:(?:\+?1\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?/gi,
+  // Aggressive phone matching including international country codes
+  phone: /(?:(?:\+|00)\d{1,4}[\s.-]?)?(?:\(?\d{1,5}\)?[\s.-]?)?(?:\d{2,4}[\s.-]?){2,4}(?:\s*(?:#|x\.?|ext\.?|extension)\s*\d+)?/gi,
 
   // Social handles
   instagram: /(?:instagram\.com\/|ig:\s*@|insta:\s*@|@)([a-zA-Z0-9_.]+)/gi,

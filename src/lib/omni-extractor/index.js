@@ -118,7 +118,17 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
   console.log(`🔎 [Omni-Extractor] Found ${rawLeads.length} raw potential leads across sources.`);
   
   const MAX_TO_VALIDATE = options.maxToValidate || 400;
-  const leadsToProcess = [...rawLeads]
+  
+  let filteredRawLeads = rawLeads;
+  if (options.negativeKeywords && options.negativeKeywords.length > 0) {
+    const negKeys = options.negativeKeywords.map(k => k.toLowerCase().trim()).filter(Boolean);
+    filteredRawLeads = rawLeads.filter(lead => {
+      const text = (lead.context || '').toLowerCase();
+      return !negKeys.some(keyword => text.includes(keyword));
+    });
+  }
+
+  const leadsToProcess = [...filteredRawLeads]
     .sort((a, b) => getHeuristicScore(b) - getHeuristicScore(a))
     .slice(0, MAX_TO_VALIDATE);
 
@@ -155,10 +165,15 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
         const validation = valResult.data;
         
         if (validation.is_valid_lead) {
+          const calculatedScore = Math.max(1, Math.min(10, Math.round((validation.confidence_score || 0) * 10)));
+          if (options.minScore && calculatedScore < options.minScore) {
+            return { lead: null, usage: valResult.usage };
+          }
+
           return {
             lead: {
               id: Math.random().toString(36).substring(2, 15),
-              score: Math.max(1, Math.min(10, Math.round((validation.confidence_score || 0) * 10))),
+              score: calculatedScore,
               author: validation.lead_name || rawLead.name || 'Unknown',
               company: rawLead.source === 'local_maps' ? rawLead.name : null,
               title: rawLead.title || enrichedRouteData.searchIntent,
@@ -180,8 +195,12 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
       } catch (err) {
         console.error('[Omni-Extractor] Validation error:', err.message);
         if (getHeuristicScore(rawLead) >= 18) {
+          const heuristicLead = buildHeuristicLead(rawLead, enrichedRouteData.searchIntent);
+          if (options.minScore && heuristicLead.score < options.minScore) {
+            return { lead: null, usage: { prompt_tokens: 0, completion_tokens: 0 } };
+          }
           return {
-            lead: buildHeuristicLead(rawLead, enrichedRouteData.searchIntent),
+            lead: heuristicLead,
             usage: { prompt_tokens: 0, completion_tokens: 0 }
           };
         }

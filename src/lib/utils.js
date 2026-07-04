@@ -6,6 +6,7 @@ export function cn(...inputs) {
 }
 
 export function formatNumber(num) {
+  if (typeof num === 'string' && isNaN(Number(num))) return num;
   return new Intl.NumberFormat().format(num);
 }
 

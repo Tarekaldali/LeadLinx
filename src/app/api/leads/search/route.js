@@ -24,6 +24,7 @@ export async function POST(request) {
     const body = await request.json();
     const query = body.query?.trim();
     const chatId = body.chatId;
+    const minScore = body.minScore || 8;
     const assistantMessageId = body.assistantMessageId;
 
     if (!query) {
@@ -136,6 +137,7 @@ export async function POST(request) {
         assistantMessageId,
         classificationUsage: classificationResult.usage || { prompt_tokens: 0, completion_tokens: 0 },
         isPremium,
+        minScore,
       });
     });
 
@@ -157,10 +159,12 @@ export async function POST(request) {
   }
 }
 
-async function runSearchJob({ query, userId, userEmail, userPlan, searchId, chatId, assistantMessageId, classificationUsage, isPremium }) {
+async function runSearchJob({ query, userId, userEmail, userPlan, searchId, chatId, assistantMessageId, classificationUsage, isPremium, minScore }) {
   const db = await getDb();
   const userObjectId = new ObjectId(userId);
   const searchObjectId = new ObjectId(searchId);
+  const userDoc = await db.collection('users').findOne({ _id: userObjectId });
+  const negativeKeywords = userDoc?.negativeKeywords || [];
 
   try {
     await db.collection('searches').updateOne(
@@ -185,6 +189,8 @@ async function runSearchJob({ query, userId, userEmail, userPlan, searchId, chat
       maxToValidate: isPremium ? 500 : 400,
       extractionMs: 90000,
       validationMs: 180000,
+      minScore,
+      negativeKeywords,
     });
 
     const combinedUsage = {
