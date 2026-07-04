@@ -1,5 +1,6 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = 'deepseek/deepseek-chat';
+// DeepSeek V4 Flash — supports Cache Hit discount; system prompt is always front-loaded
+const MODEL = 'deepseek/deepseek-v4-flash';
 
 async function callGeminiJSON(systemPrompt, userPrompt) {
   const body = {

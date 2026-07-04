@@ -48,7 +48,7 @@ Rules:
 ${senderName ? `- The sender's name is "${senderName}". Sign off the message using this name. Do NOT generate a fake or random name.` : '- Do not include placeholders like [Your Name] unless absolutely necessary; write it ready to send.'}
 - Do not sound like a robot or use generic AI phrases.
 - For email, include a compelling subject line at the top starting with "Subject: ".
-- For LinkedIn DMs, keep it friendly and under 200 words without a subject line.
+- For Reddit DMs, keep it friendly, respect subreddit norms, and keep it under 200 words without a subject line.
 - For Twitter/X DMs, keep it under 300 characters, very punchy and direct.
 - End with a clear, soft call-to-action (not a hard sell).`;
 
@@ -61,7 +61,8 @@ ${senderName ? `- The sender's name is "${senderName}". Sign off the message usi
         'X-Title': 'LeadLinx',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5-nano',
+        // CACHE-HIT OPTIMIZED: system prompt is static; variable context goes in user message.
+        model: 'deepseek/deepseek-v4-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Context about the lead:\n${context}` }
@@ -80,6 +81,27 @@ ${senderName ? `- The sender's name is "${senderName}". Sign off the message usi
     if (!generatedText) {
       throw new Error('Failed to generate content from AI.');
     }
+
+    const { getRawCost } = await import('@/lib/creditManager.js');
+    const usage = aiData.usage || { prompt_tokens: 0, completion_tokens: 0 };
+    // We use default pricing since it's a generic model for this example, or deepseek's
+    const rawCostUsd = getRawCost('default', usage); 
+
+    await db.collection('ai_usage').insertOne({
+      userId: userId,
+      chatId: null,
+      type: 'reply_generation',
+      query: `Outreach Message via ${platform}`,
+      totalUsage: usage,
+      rawCostUsd: rawCostUsd,
+      totalCostUsd: rawCostUsd * 10,
+      profitUsd: rawCostUsd * 9,
+      creditsCharged: OUTREACH_CREDIT_COST,
+      leadsReturned: 0,
+      postsAnalyzed: 0,
+      plan: user?.plan || 'free',
+      timestamp: new Date()
+    });
 
     // Deduct credits
     const updateResult = await db.collection('users').findOneAndUpdate(

@@ -7,7 +7,7 @@ const OUTREACH_COST = 10; // credits per generation — keep in sync with API
 
 const PLATFORM_OPTIONS = [
   { value: 'email', label: 'Email', icon: 'email' },
-  { value: 'linkedin', label: 'LinkedIn DM', icon: 'person_add' },
+  { value: 'reddit', label: 'Reddit DM', icon: 'forum' },
   { value: 'twitter', label: 'Twitter / X DM', icon: 'chat' },
 ];
 

@@ -132,7 +132,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
     if (searchPlan.usage) {
       totalUsage.prompt_tokens += searchPlan.usage.prompt_tokens || 0;
       totalUsage.completion_tokens += searchPlan.usage.completion_tokens || 0;
-      totalRawCost += getRawCost("deepseek/deepseek-chat", searchPlan.usage);
+      totalRawCost += getRawCost("deepseek/deepseek-v4-flash", searchPlan.usage);
     }
     // 4. The 6x6 Micro-Batching Loop (Pass 1)
     async function processPool(pool) {
@@ -243,10 +243,11 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "deepseek/deepseek-chat",
+            model: "deepseek/deepseek-v4-flash",
             messages: [
-              { role: "system", content: "You are a market researcher. Synthesize Reddit data into insights. Return JSON ONLY." },
-              { role: "user", content: `Leads: ${JSON.stringify(foundLeads.slice(0, 10))}\n\nReturn JSON: {"topPainPoints": ["..."], "trendingComplaints": ["..."], "saasIdeas": ["..."]}` }
+              // CACHE-HIT OPTIMIZED: static system prompt first, variable lead data in user role.
+              { role: "system", content: "You are a market researcher. Synthesize Reddit data into insights. Return JSON ONLY. Format: {\"topPainPoints\": [\"...\"], \"trendingComplaints\": [\"...\"], \"saasIdeas\": [\"...\"]}" },
+              { role: "user", content: `Leads: ${JSON.stringify(foundLeads.slice(0, 10))}` }
             ],
             response_format: { type: "json_object" }
           })
@@ -258,7 +259,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
         if (insightData.usage) {
           totalUsage.prompt_tokens += insightData.usage.prompt_tokens || 0;
           totalUsage.completion_tokens += insightData.usage.completion_tokens || 0;
-          totalRawCost += getRawCost("deepseek/deepseek-chat", insightData.usage);
+          totalRawCost += getRawCost("deepseek/deepseek-v4-flash", insightData.usage);
         }
       } catch (err) {
         console.error("Insights generation failed:", err);
@@ -266,7 +267,7 @@ export async function runBackgroundSearch(userId, userQuery, searchPlan, chatId 
     }
 
     // 7. Storage & Credits
-    const creditsToDeduct = calculateCreditsToDeduct("deepseek/deepseek-chat", totalUsage, user?.plan || 'free');
+    const creditsToDeduct = calculateCreditsToDeduct("deepseek/deepseek-v4-flash", totalUsage, user?.plan || 'free');
 
     // Deduct Credits
     await db.collection('users').updateOne(

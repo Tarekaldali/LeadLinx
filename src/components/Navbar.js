@@ -13,7 +13,10 @@ export default async function Navbar({ activePage = 'platform' }) {
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
             {/* <img src="/logo-new.png" alt="LeadLinx Logo" className="w-14 h-14 object-contain" /> */}
-            <span className="text-lg font-bold tracking-tight text-on-surface">LeadLinx</span>
+            <span className="font-extrabold text-2xl tracking-tight flex items-center">
+              <span className="text-[#ff3b30]">Lead</span>
+              <span className="text-on-surface">Linx</span>
+            </span>
           </Link>
           <div className="hidden md:flex items-center gap-6">
             <Link

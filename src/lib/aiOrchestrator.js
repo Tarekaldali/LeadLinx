@@ -70,9 +70,11 @@ export async function classifyIntent(query) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-chat",
+        model: "deepseek/deepseek-v4-flash",
         messages: [
           {
+            // CACHE-HIT OPTIMIZED: System prompt is 100% static — never changes.
+            // Variable user input is only in the user role below.
             role: "system",
             content: `You are the LeadLinx Intent Classifier. Determine if the user wants to perform a lead search or just talk.
             
@@ -112,9 +114,11 @@ export async function generateSearchPlan(query) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-chat",
+        model: "deepseek/deepseek-v4-flash",
         messages: [
           { 
+            // CACHE-HIT OPTIMIZED: System prompt is 100% static.
+            // The variable product query goes only in the user role.
             role: "system",
             content: `You are the "LeadLinx Search Architect," an elite growth hacker and social listening expert.
             Your sole purpose is to reverse-engineer a user's product/service into high-converting Reddit search queries.
@@ -130,7 +134,8 @@ export async function generateSearchPlan(query) {
             - Return ONLY JSON.
             - Return 6 to 8 search_queries mixing exact buyer phrases, problem phrases, and recommendation phrases.
             - Include plain-language phrases Reddit users actually type; avoid overly narrow jargon.
-            - Up to 30 high-intent subreddits.`
+            - Up to 30 high-intent subreddits.
+            - JSON format: {"subreddits": [...], "search_queries": [...]}`
           },
           { role: "user", content: `Product/Leads Wanted: "${query}"` }
         ],
@@ -158,11 +163,10 @@ export async function generateSearchPlan(query) {
  */
 export async function analyzeLeadsBatch(batch, userQuery) {
   try {
-    return await callOpenRouterAnalysis("deepseek/deepseek-chat", batch, userQuery);
+    return await callOpenRouterAnalysis("deepseek/deepseek-v4-flash", batch, userQuery);
   } catch (error) {
     console.warn(`⚠️ Primary Model Failed: ${error.message}. Trying Fallback...`);
     try {
-      // Fallback: Mistral 7B Free via OpenRouter
       return await callOpenRouterAnalysis("mistralai/mistral-7b-instruct:free", batch, userQuery);
     } catch (fallbackError) {
       console.error("❌ All AI Providers Failed:", fallbackError.message);
@@ -187,9 +191,11 @@ async function callOpenRouterAnalysis(model, batch, userQuery, retries = 2) {
           model: model,
           messages: [
             {
+              // CACHE-HIT OPTIMIZED: System prompt is fully static — only the post data changes.
+              // userQuery was moved OUT of the system prompt and into the user message.
               role: "system",
               content: `You are the "LeadLinx Ruthless Scorer," a strict qualification engine.
-              Analyze Reddit posts for "Buyer Intent" based on the user's goal: "${userQuery}".
+              Analyze Reddit posts for "Buyer Intent" based on the user's stated goal.
               
               CONTEXT:
               The user's goal is to find high-intent prospects. If the goal is a service (e.g. "Find real estate agents"), then a HOT LEAD is someone EXPLICITLY looking for that service.
@@ -208,7 +214,7 @@ async function callOpenRouterAnalysis(model, batch, userQuery, retries = 2) {
             },
             {
               role: "user",
-              content: `Analyze these posts:\n${JSON.stringify(batch.map(p => ({ id: p.postId, title: p.title, text: p.text.substring(0, 600) })))}`
+              content: `User Goal: "${userQuery}"\n\nAnalyze these posts:\n${JSON.stringify(batch.map(p => ({ id: p.postId, title: p.title, text: p.text.substring(0, 600) })))}`
             }
           ],
           response_format: { type: "json_object" }

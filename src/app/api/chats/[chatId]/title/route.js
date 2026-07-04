@@ -20,7 +20,8 @@ export async function POST(request, { params }) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "openai/gpt-5-nano",
+        // CACHE-HIT OPTIMIZED: static system prompt front-loaded, variable query in user role.
+        model: "deepseek/deepseek-v4-flash",
         messages: [
           {
             role: "system",

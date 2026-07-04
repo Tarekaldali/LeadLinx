@@ -1,11 +1,12 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const DEFAULT_MODEL = 'deepseek/deepseek-chat';
+// DeepSeek V4 Flash — best model, supports prompt caching (Cache Hit discount)
+const DEFAULT_MODEL = 'deepseek/deepseek-v4-flash';
 
 // ─── Pricing Logic (Mapped to Credits) ──────────────────────────────────────
-const PROFIT_MARGIN = 3.5; 
-export function calcCost(inputTokens, outputTokens, model = 'deepseek/deepseek-chat') {
-  // DeepSeek pricing per million tokens
-  const p = { input: 0.14, output: 0.28 };
+const PROFIT_MARGIN = 3.5;
+export function calcCost(inputTokens, outputTokens, model = 'deepseek/deepseek-v4-flash') {
+  // DeepSeek V4 Flash pricing per million tokens
+  const p = { input: 0.07, output: 0.28 };
   const inputCost  = (inputTokens  / 1_000_000) * p.input;
   const outputCost = (outputTokens / 1_000_000) * p.output;
   const rawCost    = inputCost + outputCost;

@@ -11,7 +11,13 @@ const PLAN_RATES = {
 };
 
 const MODEL_PRICES = {
-  // Prices per 1M tokens (OpenRouter: deepseek/deepseek-chat)
+  // Prices per 1M tokens
+  // DeepSeek V4 Flash (primary model) — Cache Hit input price is $0.014/M
+  'deepseek/deepseek-v4-flash': {
+    input: 0.07,   // $0.07/M input (cache miss); cache hit is $0.014/M
+    output: 0.28   // $0.28/M output
+  },
+  // Legacy: still used for legacy log lookups
   'deepseek/deepseek-chat': {
     input: 0.10,
     output: 0.40
