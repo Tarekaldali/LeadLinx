@@ -10,9 +10,9 @@ export default function PricingClient({ plans }) {
   // Monthly cycle matches anything except '/year' (like '/month', '/day', etc.)
   const displayedPlans = plans.filter(plan => {
     if (billingCycle === 'yearly') {
-      return plan.period === '/year';
+      return plan.period === 'Yearly' || plan.period === '/year';
     } else {
-      return plan.period !== '/year';
+      return plan.period !== 'Yearly' && plan.period !== '/year';
     }
   });
 

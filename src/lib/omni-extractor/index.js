@@ -174,7 +174,9 @@ export async function extractOmniLeads(query, options = { isPremium: false }) {
             lead: {
               id: Math.random().toString(36).substring(2, 15),
               score: calculatedScore,
-              author: validation.lead_name || rawLead.name || 'Unknown',
+              // Always prefer the direct Reddit username (rawLead.name) over the AI-inferred lead_name
+              // because the AI often returns 'Unknown' when it can't determine a name from text.
+              author: rawLead.name || validation.lead_name || 'Unknown',
               company: rawLead.source === 'local_maps' ? rawLead.name : null,
               title: rawLead.title || enrichedRouteData.searchIntent,
               body: rawLead.context?.substring(0, 500) || '',
@@ -282,7 +284,7 @@ function buildHeuristicLead(rawLead, searchIntent) {
   return {
     id: Math.random().toString(36).substring(2, 15),
     score: Math.max(6, Math.min(8, Math.round(heuristicScore / 4))),
-    author: rawLead.name || 'Unknown',
+    author: rawLead.name || 'Unknown', // Always use direct Reddit username
     company: null,
     title: rawLead.title || searchIntent,
     body: rawLead.context?.substring(0, 500) || '',

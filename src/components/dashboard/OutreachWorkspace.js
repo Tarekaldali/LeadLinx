@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useDashboard } from '@/app/dashboard/layout';
 
-const OUTREACH_COST = 10; // credits per generation — same cost logic as extraction
+const OUTREACH_COST = 10; // credits per generation — keep in sync with API
 
 const PLATFORM_OPTIONS = [
   { value: 'email', label: 'Email', icon: 'email' },
@@ -17,6 +18,12 @@ const TONE_OPTIONS = [
   { value: 'persuasive', label: 'Persuasive' },
 ];
 
+const LENGTH_OPTIONS = [
+  { value: 'short', label: 'Short & Concise' },
+  { value: 'medium', label: 'Standard Length' },
+  { value: 'long', label: 'Long & Detailed' },
+];
+
 function timeAgo(date) {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
   if (seconds < 60) return 'just now';
@@ -27,23 +34,36 @@ function timeAgo(date) {
   return new Date(date).toLocaleDateString();
 }
 
+function buildLeadContext(params) {
+  if (!params) return '';
+  const parts = [
+    params.get('author') && `Reddit User: u/${params.get('author')}`,
+    params.get('subreddit') && `Community: r/${params.get('subreddit')}`,
+    params.get('intentScore') && `Intent Score: ${params.get('intentScore')}/10`,
+    params.get('intentReason') && `Intent Signal: ${params.get('intentReason')}`,
+    params.get('title') && `Post Title: "${params.get('title')}"`,
+    params.get('text') && `Post Content: "${params.get('text')}"`,
+    params.get('emails') && `Email(s): ${params.get('emails')}`,
+  ].filter(Boolean);
+  return parts.join('\n');
+}
+
 export default function OutreachWorkspace() {
+  const searchParams = useSearchParams();
   const { user, updateCredits } = useDashboard() || {};
 
   // View: 'generate' | 'history'
   const [activeView, setActiveView] = useState('generate');
 
-  // Lead selector
-  const [leads, setLeads] = useState([]);
-  const [leadsLoading, setLeadsLoading] = useState(true);
-  const [selectedLead, setSelectedLead] = useState(null);
-  const [leadSearch, setLeadSearch] = useState('');
-  const [leadDropdownOpen, setLeadDropdownOpen] = useState(false);
+  // Injected lead (from CRM click)
+  const [injectedLead, setInjectedLead] = useState(null);
 
   // Generator state
-  const [manualContext, setManualContext] = useState('');
+  const [context, setContext] = useState('');
   const [tone, setTone] = useState('professional');
+  const [length, setLength] = useState('medium');
   const [platform, setPlatform] = useState('email');
+  const [senderName, setSenderName] = useState(user?.name || '');
   const [generatedText, setGeneratedText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -54,16 +74,30 @@ export default function OutreachWorkspace() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(null);
 
-  // Load saved leads for the selector
+  // Read lead data from URL params (set by CRM "AI Outreach" button)
   useEffect(() => {
-    fetch('/api/leads/saved')
-      .then(r => r.json())
-      .then(d => setLeads(d.leads || []))
-      .catch(() => setLeads([]))
-      .finally(() => setLeadsLoading(false));
-  }, []);
+    const author = searchParams?.get('author');
+    const tab = searchParams?.get('tab');
+    if (tab === 'outreach' && author) {
+      const leadData = {
+        leadId: searchParams.get('leadId') || null,
+        author: searchParams.get('author') || '',
+        subreddit: searchParams.get('subreddit') || '',
+        title: searchParams.get('title') || '',
+        intentScore: searchParams.get('intentScore') || '',
+        intentReason: searchParams.get('intentReason') || '',
+        emails: searchParams.get('emails') || '',
+        text: searchParams.get('text') || '',
+      };
+      setInjectedLead(leadData);
+      // Pre-fill context from the lead
+      const ctx = buildLeadContext(searchParams);
+      if (ctx) setContext(ctx);
+      setActiveView('generate');
+    }
+  }, [searchParams]);
 
-  // Load history when switching to history tab
+  // Load history
   const loadHistory = useCallback(async () => {
     setHistoryLoading(true);
     try {
@@ -81,35 +115,9 @@ export default function OutreachWorkspace() {
     if (activeView === 'history') loadHistory();
   }, [activeView, loadHistory]);
 
-  // Build the context string that will be sent to the AI
-  const buildContext = () => {
-    if (selectedLead) {
-      const parts = [
-        selectedLead.title && `Post title: "${selectedLead.title}"`,
-        selectedLead.text && `Post content: "${selectedLead.text?.substring(0, 400)}"`,
-        selectedLead.author && `Author: ${selectedLead.author}`,
-        selectedLead.subreddit && `Community: r/${selectedLead.subreddit}`,
-        selectedLead.emails?.length && `Emails found: ${selectedLead.emails.join(', ')}`,
-        selectedLead.intentReason && `Intent reason: ${selectedLead.intentReason}`,
-      ].filter(Boolean).join('\n');
-      return parts + (manualContext ? `\n\nAdditional context: ${manualContext}` : '');
-    }
-    return manualContext;
-  };
-
-  const filteredLeads = leads.filter(l => {
-    const q = leadSearch.toLowerCase();
-    return (
-      l.title?.toLowerCase().includes(q) ||
-      l.author?.toLowerCase().includes(q) ||
-      l.subreddit?.toLowerCase().includes(q)
-    );
-  });
-
   const handleGenerate = async () => {
-    const context = buildContext();
     if (!context.trim()) {
-      setError('Please select a lead or enter context before generating.');
+      setError('Please enter some context about the lead before generating.');
       return;
     }
 
@@ -121,7 +129,7 @@ export default function OutreachWorkspace() {
       const res = await fetch('/api/outreach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ context, tone, platform }),
+        body: JSON.stringify({ context, tone, length, platform, senderName }),
       });
 
       const data = await res.json();
@@ -129,7 +137,7 @@ export default function OutreachWorkspace() {
 
       setGeneratedText(data.text);
 
-      // Update credits using the server-authoritative remaining count
+      // Update sidebar credit counter with server-authoritative value
       if (data.creditsRemaining !== undefined) {
         updateCredits(data.creditsRemaining);
       } else if (user) {
@@ -145,9 +153,9 @@ export default function OutreachWorkspace() {
           platform,
           tone,
           context: context.substring(0, 500),
-          leadId: selectedLead?._id?.toString() ?? null,
-          leadName: selectedLead?.author ?? 'Manual Context',
-          leadTitle: selectedLead?.title ?? null,
+          leadId: injectedLead?.leadId ?? null,
+          leadName: injectedLead?.author ?? 'Manual Context',
+          leadTitle: injectedLead?.title ?? null,
         }),
       });
     } catch (err) {
@@ -157,8 +165,8 @@ export default function OutreachWorkspace() {
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(generatedText);
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text ?? generatedText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -170,7 +178,6 @@ export default function OutreachWorkspace() {
 
   const currentCredits = user?.credits ?? 0;
   const canGenerate = currentCredits >= OUTREACH_COST;
-
   const platformIcon = PLATFORM_OPTIONS.find(p => p.value === platform)?.icon ?? 'email';
 
   return (
@@ -180,7 +187,7 @@ export default function OutreachWorkspace() {
         <div>
           <h2 className="text-xl font-bold text-on-surface">AI Outreach</h2>
           <p className="text-xs text-on-surface-variant mt-0.5">
-            Generate personalized messages for your CRM leads
+            Generate personalized outreach messages for your CRM leads
           </p>
         </div>
         <div className="flex items-center gap-1 p-1 bg-surface-container-low border border-outline-variant rounded-xl">
@@ -218,167 +225,67 @@ export default function OutreachWorkspace() {
         {/* ─── GENERATE VIEW ─── */}
         {activeView === 'generate' && (
           <div className="p-6 md:p-8 max-w-6xl mx-auto">
+
+            {/* Injected Lead Banner */}
+            {injectedLead?.author && (
+              <div className="mb-6 flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-2xl">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 font-bold text-primary text-sm">
+                  {(injectedLead.author || 'U')[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-on-surface text-sm">
+                    Writing for: <span className="text-primary">u/{injectedLead.author}</span>
+                    {injectedLead.subreddit && <span className="text-on-surface-variant font-normal ml-2">· r/{injectedLead.subreddit}</span>}
+                    {injectedLead.intentScore && <span className="ml-2 text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{injectedLead.intentScore}/10 Intent</span>}
+                  </div>
+                  {injectedLead.title && (
+                    <div className="text-xs text-on-surface-variant truncate mt-0.5">"{injectedLead.title}"</div>
+                  )}
+                </div>
+                <button
+                  onClick={() => { setInjectedLead(null); setContext(''); }}
+                  className="text-on-surface-variant hover:text-primary transition-colors"
+                  title="Clear selected lead"
+                >
+                  <span className="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6">
               {/* LEFT: Inputs */}
               <div className="space-y-5">
 
-                {/* STEP 1: Select Lead */}
+                {/* Context Input */}
                 <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-6 h-6 rounded-full bg-primary text-white text-[11px] font-black flex items-center justify-center shrink-0">1</div>
-                    <h3 className="text-sm font-bold text-on-surface uppercase tracking-widest">Select Lead from CRM</h3>
-                  </div>
-
-                  {/* Lead Picker */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setLeadDropdownOpen(o => !o)}
-                      className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
-                        selectedLead
-                          ? 'bg-primary/5 border-primary/30 text-on-surface'
-                          : 'bg-surface-container-low border-outline-variant text-on-surface-variant hover:border-primary/30'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className="material-symbols-outlined text-[18px] text-primary shrink-0">person</span>
-                        <div className="min-w-0">
-                          {selectedLead ? (
-                            <>
-                              <div className="font-semibold text-on-surface truncate">{selectedLead.author || 'Unknown'}</div>
-                              <div className="text-[11px] text-on-surface-variant truncate">{selectedLead.title?.substring(0, 50) || 'No title'}</div>
-                            </>
-                          ) : (
-                            <span className="text-on-surface-variant">Pick a lead from your CRM…</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {selectedLead && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setSelectedLead(null); }}
-                            className="w-5 h-5 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">close</span>
-                          </button>
-                        )}
-                        <span className={`material-symbols-outlined text-[18px] text-on-surface-variant transition-transform ${leadDropdownOpen ? 'rotate-180' : ''}`}>
-                          expand_more
-                        </span>
-                      </div>
-                    </button>
-
-                    {leadDropdownOpen && (
-                      <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-surface rounded-2xl border border-outline-variant shadow-2xl overflow-hidden">
-                        <div className="p-3 border-b border-outline-variant">
-                          <div className="flex items-center gap-2 px-3 py-2 bg-surface-container-low rounded-xl">
-                            <span className="material-symbols-outlined text-[16px] text-on-surface-variant">search</span>
-                            <input
-                              type="text"
-                              placeholder="Search leads…"
-                              value={leadSearch}
-                              onChange={e => setLeadSearch(e.target.value)}
-                              className="flex-1 bg-transparent text-sm outline-none text-on-surface placeholder:text-on-surface-variant"
-                              autoFocus
-                            />
-                          </div>
-                        </div>
-                        <div className="max-h-56 overflow-y-auto custom-scrollbar">
-                          {leadsLoading ? (
-                            <div className="py-8 text-center text-sm text-on-surface-variant">Loading leads…</div>
-                          ) : filteredLeads.length === 0 ? (
-                            <div className="py-8 text-center text-sm text-on-surface-variant">
-                              {leads.length === 0 ? 'No leads saved yet. Save some leads from Find Leads first.' : 'No leads match your search.'}
-                            </div>
-                          ) : (
-                            filteredLeads.map(lead => (
-                              <button
-                                key={lead._id}
-                                onClick={() => { setSelectedLead(lead); setLeadDropdownOpen(false); setLeadSearch(''); }}
-                                className={`w-full text-left px-4 py-3 hover:bg-surface-container-low transition-colors flex items-start gap-3 border-b border-outline-variant/40 last:border-0 ${
-                                  selectedLead?._id === lead._id ? 'bg-primary/5' : ''
-                                }`}
-                              >
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                                  <span className="text-[11px] font-bold text-primary uppercase">
-                                    {(lead.author || '?')[0]}
-                                  </span>
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-sm text-on-surface">{lead.author || 'Unknown'}</span>
-                                    {lead.subreddit && (
-                                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">r/{lead.subreddit}</span>
-                                    )}
-                                  </div>
-                                  <div className="text-[12px] text-on-surface-variant truncate mt-0.5">{lead.title || 'No title'}</div>
-                                  {lead.intentScore && (
-                                    <div className="text-[10px] text-primary font-bold mt-0.5">{lead.intentScore}/10 Intent Score</div>
-                                  )}
-                                </div>
-                                {selectedLead?._id === lead._id && (
-                                  <span className="material-symbols-outlined text-[18px] text-primary shrink-0">check_circle</span>
-                                )}
-                              </button>
-                            ))
-                          )}
-                        </div>
-                      </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-on-surface uppercase tracking-widest">
+                      {injectedLead?.author ? 'Lead Context (Auto-Filled)' : 'Lead Context'}
+                    </h3>
+                    {!injectedLead?.author && (
+                      <span className="text-[10px] text-on-surface-variant">
+                        Or click "AI Outreach" on any lead in your CRM
+                      </span>
                     )}
                   </div>
-
-                  {/* Selected lead preview */}
-                  {selectedLead && (
-                    <div className="mt-3 p-3 bg-surface-container-low rounded-xl border border-outline-variant/50 text-[12px] text-on-surface-variant space-y-1">
-                      {selectedLead.emails?.length > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[14px] text-primary">email</span>
-                          <span>{selectedLead.emails.join(', ')}</span>
-                        </div>
-                      )}
-                      {selectedLead.phones?.length > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[14px] text-primary">phone</span>
-                          <span>{selectedLead.phones.join(', ')}</span>
-                        </div>
-                      )}
-                      {selectedLead.intentReason && (
-                        <div className="flex items-start gap-1.5">
-                          <span className="material-symbols-outlined text-[14px] text-primary mt-0.5">psychology</span>
-                          <span className="line-clamp-2">{selectedLead.intentReason}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* STEP 2: Additional Context */}
-                <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-6 h-6 rounded-full bg-primary text-white text-[11px] font-black flex items-center justify-center shrink-0">2</div>
-                    <h3 className="text-sm font-bold text-on-surface uppercase tracking-widest">
-                      {selectedLead ? 'Additional Context (Optional)' : 'Lead Context'}
-                    </h3>
-                  </div>
                   <textarea
-                    value={manualContext}
-                    onChange={e => setManualContext(e.target.value)}
+                    value={context}
+                    onChange={e => setContext(e.target.value)}
                     placeholder={
-                      selectedLead
-                        ? 'Add any extra details about this lead or your offer…'
-                        : "Describe the lead. E.g., 'Looking for a CRM for a real estate agency in Texas, struggling with manual follow-ups...'"
+                      injectedLead?.author
+                        ? 'Context auto-filled from CRM. Edit or add more details...'
+                        : "Describe the lead. E.g., 'u/john_smith on r/smallbusiness: Looking for a CRM for real estate, struggling with manual follow-ups. Score: 9/10.'\n\nTip: Use the 'AI Outreach' button on any saved lead in your CRM to auto-fill this."
                     }
-                    className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-4 text-sm min-h-[100px] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                    rows={injectedLead?.author ? 6 : 8}
+                    className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
                   />
                 </div>
 
-                {/* STEP 3: Options */}
+                {/* Platform & Tone */}
                 <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-6 h-6 rounded-full bg-primary text-white text-[11px] font-black flex items-center justify-center shrink-0">3</div>
-                    <h3 className="text-sm font-bold text-on-surface uppercase tracking-widest">Platform & Tone</h3>
-                  </div>
+                  <h3 className="text-sm font-bold text-on-surface uppercase tracking-widest mb-4">Platform & Tone</h3>
 
-                  {/* Platform toggle */}
+                  {/* Platform toggle buttons */}
                   <div className="mb-4">
                     <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 block">Platform</label>
                     <div className="flex gap-2">
@@ -399,18 +306,44 @@ export default function OutreachWorkspace() {
                     </div>
                   </div>
 
-                  {/* Tone select */}
-                  <div>
-                    <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 block">Tone</label>
-                    <select
-                      value={tone}
-                      onChange={e => setTone(e.target.value)}
+                  {/* Tone & Length selects */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 block">Tone</label>
+                      <select
+                        value={tone}
+                        onChange={e => setTone(e.target.value)}
+                        className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-3 text-sm focus:outline-none focus:border-primary transition-colors"
+                      >
+                        {TONE_OPTIONS.map(t => (
+                          <option key={t.value} value={t.value}>{t.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 block">Length</label>
+                      <select
+                        value={length}
+                        onChange={e => setLength(e.target.value)}
+                        className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-3 text-sm focus:outline-none focus:border-primary transition-colors"
+                      >
+                        {LENGTH_OPTIONS.map(l => (
+                          <option key={l.value} value={l.value}>{l.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Sender Name */}
+                  <div className="mt-4">
+                    <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 block">Your Name (Sender)</label>
+                    <input
+                      type="text"
+                      value={senderName}
+                      onChange={e => setSenderName(e.target.value)}
+                      placeholder="e.g. John Doe"
                       className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-3 text-sm focus:outline-none focus:border-primary transition-colors"
-                    >
-                      {TONE_OPTIONS.map(t => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
-                      ))}
-                    </select>
+                    />
                   </div>
                 </div>
 
@@ -424,7 +357,7 @@ export default function OutreachWorkspace() {
                   )}
                   <button
                     onClick={handleGenerate}
-                    disabled={loading || !canGenerate || (!selectedLead && !manualContext.trim())}
+                    disabled={loading || !canGenerate || !context.trim()}
                     className="w-full flex items-center justify-center gap-2.5 px-6 py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base"
                   >
                     {loading ? (
@@ -435,7 +368,7 @@ export default function OutreachWorkspace() {
                     ) : (
                       <>
                         <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
-                        Generate
+                        Generate Message
                         <span className="flex items-center gap-1 ml-1 px-2.5 py-1 bg-white/20 rounded-lg text-sm font-black">
                           <span className="material-symbols-outlined text-[14px]">bolt</span>
                           {OUTREACH_COST} Credits
@@ -461,7 +394,7 @@ export default function OutreachWorkspace() {
                     </div>
                     {generatedText && (
                       <button
-                        onClick={handleCopy}
+                        onClick={() => handleCopy()}
                         className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 px-3 py-1.5 rounded-lg border transition-all ${
                           copied
                             ? 'bg-green-50 border-green-200 text-green-600'
@@ -493,8 +426,13 @@ export default function OutreachWorkspace() {
                     ) : (
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 text-on-surface-variant/50">
                         <span className="material-symbols-outlined text-5xl mb-3">mark_email_unread</span>
-                        <p className="text-sm font-medium">Your AI-generated outreach message will appear here.</p>
-                        <p className="text-xs mt-1">Select a lead and click Generate to start.</p>
+                        <p className="text-sm font-medium">Your AI-generated message will appear here.</p>
+                        <p className="text-xs mt-1">
+                          {injectedLead?.author
+                            ? `Ready to write for u/${injectedLead.author}. Click Generate!`
+                            : 'Select a lead from your CRM or enter context, then click Generate.'
+                          }
+                        </p>
                       </div>
                     )}
                   </div>
@@ -548,7 +486,7 @@ export default function OutreachWorkspace() {
                   return (
                     <div
                       key={item._id}
-                      className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden transition-all"
+                      className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden"
                     >
                       <button
                         onClick={() => setExpandedHistory(isExpanded ? null : item._id)}
@@ -594,7 +532,7 @@ export default function OutreachWorkspace() {
                             <span className="text-[11px] text-on-surface-variant">{new Date(item.createdAt).toLocaleString()}</span>
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => navigator.clipboard.writeText(item.generatedText)}
+                                onClick={() => handleCopy(item.generatedText)}
                                 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:text-primary hover:border-primary/30 transition-all"
                               >
                                 <span className="material-symbols-outlined text-[14px]">content_copy</span>

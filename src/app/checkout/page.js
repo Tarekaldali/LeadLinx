@@ -48,11 +48,15 @@ function CheckoutContent() {
     setLoading(true);
     setError('');
 
+    // Extract period from query params (defaults to Monthly if missing or old link)
+    const periodParam = searchParams.get('period');
+    const period = periodParam ? periodParam.charAt(0).toUpperCase() + periodParam.slice(1) : 'Monthly';
+
     try {
       const res = await fetch('/api/tap/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planKey }),
+        body: JSON.stringify({ planKey, period }),
       });
       const data = await res.json();
 

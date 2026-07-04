@@ -12,7 +12,7 @@ export default function AdminPricingPage() {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
-    period: '/month',
+    period: 'Monthly',
     description: '',
     features: '',
     cta: 'Get Started',
@@ -49,7 +49,7 @@ export default function AdminPricingPage() {
     setFormData({
       name: plan.name,
       price: plan.price,
-      period: plan.period || '/month',
+      period: plan.period || 'Monthly',
       description: plan.description || '',
       features: Array.isArray(plan.features) ? plan.features.join('\n') : plan.features,
       cta: plan.cta || 'Get Started',
@@ -106,7 +106,7 @@ export default function AdminPricingPage() {
     setFormData({
       name: '',
       price: '',
-      period: '/month',
+      period: 'Monthly',
       description: '',
       features: '',
       cta: 'Get Started',
@@ -216,12 +216,10 @@ export default function AdminPricingPage() {
                 value={formData.period} 
                 onChange={e => setFormData({...formData, period: e.target.value})}
               >
-                <option value="/day">1 Day</option>
-                <option value="/7days">7 Days</option>
-                <option value="/month">1 Month</option>
-                <option value="/3months">3 Months</option>
-                <option value="/6months">6 Months</option>
-                <option value="/year">1 Year</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Monthly">Monthly</option>
+                <option value="Quarterly">Quarterly</option>
+                <option value="Yearly">Yearly</option>
               </select>
             </div>
             <div className="space-y-1.5 col-span-2 md:col-span-1">

@@ -23,11 +23,16 @@ export async function PATCH(request, { params }) {
   if (authResult.error) return NextResponse.json({ error: authResult.error }, { status: authResult.status });
   try {
     const { chatId } = await params;
-    const { messages, title } = await request.json();
+    const body = await request.json();
     const db = await getDb();
+    
+    const updateFields = { updatedAt: new Date() };
+    if (body.messages !== undefined) updateFields.messages = body.messages;
+    if (body.title !== undefined) updateFields.title = body.title;
+
     await db.collection('chats').updateOne(
       { _id: new ObjectId(chatId), userId: new ObjectId(authResult.user.id) },
-      { $set: { messages, title, updatedAt: new Date() } }
+      { $set: updateFields }
     );
     return NextResponse.json({ ok: true });
   } catch (e) { return NextResponse.json({ error: 'Failed' }, { status: 500 }); }

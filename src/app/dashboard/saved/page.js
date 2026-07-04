@@ -1,9 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import ConfirmationModal from '@/components/ConfirmationModal';
 
 export default function SavedLeadsPage() {
+  const router = useRouter();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showConfirmDelete, setShowConfirmDelete] = useState(null);
@@ -33,13 +34,37 @@ export default function SavedLeadsPage() {
       if (res.ok) {
         setLeads(prev => prev.filter(l => l.postId !== postId));
         showToast('Lead removed from saved list');
+        setShowConfirmDelete(null);
       } else {
         throw new Error('Failed to remove lead');
       }
     } catch (err) {
       showToast(err.message, 'error');
+      setShowConfirmDelete(null);
     }
   };
+
+  // Navigate to AI Outreach tab with this lead's data as URL params
+  const handleOutreach = useCallback((lead) => {
+    // Encode the lead's key context fields into URL search params
+    const params = new URLSearchParams({
+      tab: 'outreach',
+      leadId: lead._id?.toString() || '',
+      author: lead.author || '',
+      subreddit: lead.subreddit || '',
+      title: (lead.title || '').substring(0, 200),
+      intentScore: String(lead.intentScore || ''),
+      intentReason: (lead.intentReason || '').substring(0, 300),
+    });
+    // Also add emails if present
+    if (lead.emails?.length) params.set('emails', lead.emails.join(','));
+    if (lead.text) params.set('text', lead.text.substring(0, 400));
+
+    // Fire a switchTab event so the dashboard layout switches the active tab,
+    // then navigate to /dashboard with the params
+    window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'outreach', leadParams: params.toString() } }));
+    router.push(`/dashboard?${params.toString()}`);
+  }, [router]);
 
   if (loading) {
     return (
@@ -57,20 +82,20 @@ export default function SavedLeadsPage() {
       <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <h1 className="text-4xl font-black text-on-surface tracking-tight">Saved Leads</h1>
+            <h1 className="text-4xl font-black text-on-surface tracking-tight">Leads (CRM)</h1>
           </div>
           <p className="text-on-surface-variant font-medium flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            Your high-intent bookmarked prospects. 
+            Your high-intent bookmarked prospects.
             <span className="font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 ml-1">{leads.length} leads</span>
           </p>
         </div>
-        
+
         {leads.length > 0 && (
-          <Link href="/dashboard" className="btn-ghost flex items-center gap-2 px-6">
+          <a href="/dashboard" className="btn-ghost flex items-center gap-2 px-6">
             <span className="material-symbols-outlined text-sm">search</span>
             Find More Leads
-          </Link>
+          </a>
         )}
       </header>
 
@@ -83,10 +108,10 @@ export default function SavedLeadsPage() {
           <p className="text-on-surface-variant text-base mb-10 max-w-sm mx-auto">
             Find potential customers by searching relevant subreddits. Save the best ones to follow up later.
           </p>
-          <Link href="/dashboard" className="btn-primary flex items-center gap-2">
+          <a href="/dashboard" className="btn-primary flex items-center gap-2">
             <span className="material-symbols-outlined">explore</span>
             Start Prospecting
-          </Link>
+          </a>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -96,14 +121,15 @@ export default function SavedLeadsPage() {
               <div className="p-6 flex-1 space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 font-bold text-primary text-sm">
+                      {(lead.author || 'U')[0].toUpperCase()}
                     </div>
                     <div className="min-w-0">
                       <div className="text-xs font-data-label text-secondary truncate">r/{lead.subreddit}</div>
-                      <div className="text-xs text-on-surface-variant truncate">u/{lead.author}</div>
+                      <div className="text-xs font-semibold text-on-surface-variant truncate">u/{lead.author || 'Unknown'}</div>
                     </div>
                   </div>
-                  
+
                   {lead.intentScore && (
                     <div className={`flex flex-col items-end shrink-0`}>
                       <span className={`px-2.5 py-1 rounded-full font-data-value text-xs ${lead.intentScore >= 8 ? 'intent-hot' : 'intent-warm'}`}>
@@ -117,10 +143,10 @@ export default function SavedLeadsPage() {
                 <h3 className="font-bold text-lg text-on-surface leading-tight group-hover:text-primary transition-colors">
                   {lead.title}
                 </h3>
-                
+
                 {lead.text && (
                   <div className="relative">
-                    <div className="absolute -left-2 top-0 text-primary/20 text-4xl font-serif">“</div>
+                    <div className="absolute -left-2 top-0 text-primary/20 text-4xl font-serif">"</div>
                     <p className="text-sm text-on-surface-variant italic leading-relaxed pl-3 line-clamp-3">
                       {lead.text.length > 250 ? lead.text.substring(0, 250) + '...' : lead.text}
                     </p>
@@ -133,14 +159,10 @@ export default function SavedLeadsPage() {
                       {lead.intentReason}
                     </span>
                   )}
-                  {lead.urgency && (
-                    <span className="px-2 py-1 rounded-md bg-tertiary/10 text-[10px] font-semibold text-tertiary uppercase tracking-wider border border-tertiary/10">
-                      Urgency: {lead.urgency}
-                    </span>
-                  )}
-                  {lead.userType && (
-                    <span className="px-2 py-1 rounded-md bg-secondary/10 text-[10px] font-semibold text-secondary uppercase tracking-wider border border-secondary/10">
-                      Type: {lead.userType}
+                  {lead.emails?.length > 0 && (
+                    <span className="px-2 py-1 rounded-md bg-green-50 text-[10px] font-semibold text-green-700 uppercase tracking-wider border border-green-100 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">email</span>
+                      {lead.emails.length} email{lead.emails.length > 1 ? 's' : ''}
                     </span>
                   )}
                 </div>
@@ -151,23 +173,32 @@ export default function SavedLeadsPage() {
                 <span className="text-[10px] font-data-label text-on-surface-variant uppercase">
                   Saved {new Date(lead.savedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                 </span>
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => setShowConfirmDelete(lead.postId)} 
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowConfirmDelete(lead.postId)}
                     className="p-2 text-on-surface-variant hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                     title="Remove"
                   >
                     <span className="material-symbols-outlined text-lg">delete</span>
                   </button>
-                  <a 
-                    href={lead.link} 
-                    target="_blank" 
-                    rel="noreferrer" 
-                    className="flex items-center gap-2 px-4 py-2 bg-surface border border-border-glass hover:border-primary hover:text-primary rounded-lg text-xs font-bold transition-all shadow-sm"
+                  <a
+                    href={lead.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-surface border border-border-glass hover:border-primary hover:text-primary rounded-lg text-xs font-bold transition-all shadow-sm"
                   >
-                    View Post
                     <span className="material-symbols-outlined text-sm">open_in_new</span>
+                    Post
                   </a>
+                  {/* ─── AI OUTREACH BUTTON ─── */}
+                  <button
+                    onClick={() => handleOutreach(lead)}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white rounded-lg text-xs font-bold transition-all shadow-sm hover:bg-primary/90 active:scale-95"
+                    title="Generate AI outreach message for this lead"
+                  >
+                    <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                    AI Outreach
+                  </button>
                 </div>
               </div>
             </div>
@@ -175,7 +206,7 @@ export default function SavedLeadsPage() {
         </div>
       )}
 
-      <ConfirmationModal 
+      <ConfirmationModal
         isOpen={!!showConfirmDelete}
         onClose={() => setShowConfirmDelete(null)}
         onConfirm={confirmRemove}

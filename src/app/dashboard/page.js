@@ -652,7 +652,7 @@ export default function DashboardPage() {
           </div>
           <div onClick={() => setActiveTab('leads')} className={`tab-item ${activeTab === 'leads' ? 'active' : ''}`}>
             <span className="material-symbols-outlined text-[20px]">group</span>
-            Leads
+            Leads CRM
           </div>
           <div onClick={() => setActiveTab('outreach')} className={`tab-item ${activeTab === 'outreach' ? 'active' : ''}`}>
             <span className="material-symbols-outlined text-[20px]">mark_email_read</span>

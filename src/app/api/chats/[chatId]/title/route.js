@@ -20,7 +20,7 @@ export async function POST(request, { params }) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-chat",
+        model: "openai/gpt-5-nano",
         messages: [
           {
             role: "system",

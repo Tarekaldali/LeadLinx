@@ -12,14 +12,22 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { planKey } = await request.json();
-    const plan = PLAN_PRICES[planKey];
+    const { planKey, period } = await request.json();
+    
+    const db = await getDb();
+    
+    // Fetch the dynamic plan from the database
+    // The frontend sends planKey which is usually the lowercase plan name
+    // We do a case-insensitive match for the name
+    const plan = await db.collection('plans').findOne({
+      name: { $regex: new RegExp(`^${planKey}$`, 'i') },
+      period: { $regex: new RegExp(`^${period}$`, 'i') } // Ensure we match the selected period case-insensitively
+    });
 
     if (!plan) {
       return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
     }
 
-    const db = await getDb();
     const user = await db.collection('users').findOne({ _id: new ObjectId(session.user.id) });
 
     if (!user) {
@@ -37,17 +45,21 @@ export async function POST(request) {
     const protocol = request.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
     const baseUrl = `${protocol}://${host}`;
 
+    // The DB stores price as a string (e.g. "$7.99"). Parse it to a number.
+    const amountStr = plan.price.replace(/[^0-9.]/g, '');
+    const amount = parseFloat(amountStr) || 0;
+
     const chargePayload = {
-      amount: plan.amount,
+      amount: amount,
       currency: 'USD',
       customer_initiated: true,
       threeDSecure: true,
       save_card: false,
-      description: `LeadLinx ${plan.name} Plan`,
+      description: `LeadLinx ${plan.name} Plan (${plan.period})`,
       metadata: { 
         userId: user._id.toString(),
         planKey: planKey,
-        credits: plan.credits.toString()
+        credits: plan.features?.[0]?.replace(/[^0-9]/g, '') || '0' // Try to extract credits from first feature string if possible
       },
       receipt: { email: true, sms: false },
       reference: { transaction: `txn_${new ObjectId().toString()}` },

@@ -14,7 +14,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { context, tone = 'professional', platform = 'email' } = await request.json();
+    const { context, tone = 'professional', length = 'medium', platform = 'email', senderName = '' } = await request.json();
 
     if (!context || context.trim().length === 0) {
       return NextResponse.json({ error: 'Context is required.' }, { status: 400 });
@@ -40,12 +40,13 @@ export async function POST(request) {
 
     const systemPrompt = `You are an expert sales copywriter. Your goal is to write a highly converting, personalized outreach message based on the provided context.
 Tone: ${tone}
+Length: ${length}
 Platform: ${platform}
 
 Rules:
-- Keep it concise and natural.
+- Keep it concise and natural, adhering to the requested Length (${length === 'short' ? 'very brief, 2-3 sentences max' : length === 'long' ? 'detailed, comprehensive paragraphs' : 'standard length, 3-4 sentences'}).
+${senderName ? `- The sender's name is "${senderName}". Sign off the message using this name. Do NOT generate a fake or random name.` : '- Do not include placeholders like [Your Name] unless absolutely necessary; write it ready to send.'}
 - Do not sound like a robot or use generic AI phrases.
-- Do not include placeholders like [Your Name] unless absolutely necessary; write it ready to send.
 - For email, include a compelling subject line at the top starting with "Subject: ".
 - For LinkedIn DMs, keep it friendly and under 200 words without a subject line.
 - For Twitter/X DMs, keep it under 300 characters, very punchy and direct.
@@ -56,11 +57,11 @@ Rules:
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://leadlinx.vercel.app',
         'X-Title': 'LeadLinx',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3-haiku-20240307',
+        model: 'openai/gpt-5-nano',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Context about the lead:\n${context}` }
@@ -97,7 +98,10 @@ Rules:
       creditsRemaining: updateResult.credits,
     });
   } catch (error) {
-    console.error('Outreach generation error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Outreach generation error:', error?.message || error);
+    return NextResponse.json(
+      { error: error?.message || 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

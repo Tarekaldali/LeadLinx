@@ -166,7 +166,25 @@ function parseRSSFeed(xmlText) {
       const categoryMatch = entry.match(/<category[^>]*term="([^"]*)"[^>]*\/>/);
       
       const title = (titleMatch?.[1] || '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
-      const content = (contentMatch?.[1] || '').replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
+      
+      let content = (contentMatch?.[1] || '')
+        // Decode common HTML entities
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&#32;/g, ' ')
+        // Remove common Reddit RSS footer text
+        .replace(/submitted by\s*<a[^>]*>.*?<\/a>/gi, '')
+        .replace(/\[link\]/gi, '')
+        .replace(/\[comments\]/gi, '')
+        // Remove all remaining HTML tags
+        .replace(/<[^>]+>/g, ' ')
+        // Clean up multiple spaces
+        .replace(/\s+/g, ' ')
+        .trim();
+        
       const link = linkMatch?.[1] || '';
       const author = (authorMatch?.[1] || '').replace('/u/', '').trim();
       const subreddit = categoryMatch?.[1] || '';

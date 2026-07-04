@@ -9,13 +9,24 @@ export default async function LandingPage() {
   const session = await getServerSession(authOptions);
   const isLoggedIn = !!session;
 
-  // Fetch live global platform stats from the dedicated platform_stats collection
+  // Fetch live global platform stats — seeds from saved_leads on first access
   let totalLeads = 0;
   try {
     const { getDb } = await import('@/lib/mongodb');
     const db = await getDb();
-    const statsDoc = await db.collection('platform_stats').findOne({ _id: 'global' });
-    totalLeads = statsDoc?.totalLeadsExtracted ?? 0;
+    let statsDoc = await db.collection('platform_stats').findOne({ _id: 'global' });
+    if (!statsDoc || !statsDoc.totalLeadsExtracted) {
+      // Seed once from actual data
+      const realCount = await db.collection('saved_leads').countDocuments();
+      await db.collection('platform_stats').updateOne(
+        { _id: 'global' },
+        { $set: { totalLeadsExtracted: realCount } },
+        { upsert: true }
+      );
+      totalLeads = realCount;
+    } else {
+      totalLeads = statsDoc.totalLeadsExtracted;
+    }
   } catch (e) {
     console.error('Failed to fetch platform stats:', e);
   }

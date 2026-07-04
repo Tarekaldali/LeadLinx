@@ -13,6 +13,7 @@ import { cn, formatDate, formatNumber } from '@/lib/utils';
 import { SummaryCards } from './SummaryCards';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
@@ -24,6 +25,7 @@ const STATUS_CONFIG = {
 };
 
 export default function LeadsWorkspace() {
+  const router = useRouter();
   const [view, setView] = useState('groups'); // groups | leads
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [activeTab, setActiveTab] = useState('generated'); // generated | saved
@@ -262,6 +264,24 @@ export default function LeadsWorkspace() {
     } catch (err) {
       console.error('Export error:', err);
     }
+  };
+
+  const handleOutreach = (lead) => {
+    const params = new URLSearchParams({
+      tab: 'outreach',
+      leadId: lead._id?.toString() || '',
+      author: lead.author || '',
+      subreddit: lead.subreddit || lead.source || '',
+      title: (lead.title || '').substring(0, 200),
+      intentScore: String(lead.score || ''),
+      intentReason: (lead.intentReason || lead.body || '').substring(0, 300),
+    });
+    if (lead.emails?.length) params.set('emails', lead.emails.join(','));
+    if (lead.body) params.set('text', lead.body.substring(0, 400));
+    else if (lead.text) params.set('text', lead.text.substring(0, 400));
+
+    window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab: 'outreach', leadParams: params.toString() } }));
+    router.push(`/dashboard?${params.toString()}`);
   };
 
   return (
@@ -618,21 +638,31 @@ export default function LeadsWorkspace() {
                         </span>
                       </td>
                       <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {activeTab !== 'saved' && (
-                            <>
-                              <button 
-                                onClick={() => handleSaveLead(lead)}
+                        <div className="flex justify-end gap-1 items-center">
+                          <button
+                            onClick={() => handleOutreach(lead)}
+                            className="px-2 py-1 text-[10px] font-bold bg-primary text-white rounded-lg shadow-sm hover:bg-primary/90 hover:shadow-md transition-all flex items-center gap-1 whitespace-nowrap"
+                            title="Generate AI Message"
+                          >
+                            <Zap size={10} fill="currentColor" /> AI Outreach
+                          </button>
+                          
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {activeTab !== 'saved' && (
+                              <>
+                                <button 
+                                  onClick={() => handleSaveLead(lead)}
                                 className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
                                 title={lead.isSaved ? "Already Saved" : "Save to Pipeline"}
                               >
                                 {lead.isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
                               </button>
                               <button className="p-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest rounded-lg transition-all">
-                                <MoreHorizontal size={16} />
-                              </button>
-                            </>
-                          )}
+                                  <MoreHorizontal size={16} />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>
