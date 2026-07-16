@@ -6,6 +6,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
 import PricingClient from '@/components/pricing/PricingClient';
 
+export const metadata = {
+  title: 'Pricing Plans & Credits | LeadLinx',
+  description: 'Choose the perfect LeadLinx plan to automate your Reddit lead generation. Flexible credit pricing for startups, agencies, and enterprise sales teams.',
+};
 export default async function PricingPage() {
   const session = await getServerSession(authOptions);
   const isLoggedIn = !!session;
@@ -20,6 +24,48 @@ export default async function PricingPage() {
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: 'LeadLinx Credits',
+            description: 'AI-powered lead generation credits for Reddit prospecting.',
+            brand: {
+              '@type': 'Brand',
+              name: 'LeadLinx'
+            },
+            offers: {
+              '@type': 'AggregateOffer',
+              lowPrice: '0',
+              highPrice: '49',
+              priceCurrency: 'USD',
+              offerCount: '3',
+              offers: [
+                {
+                  '@type': 'Offer',
+                  name: 'Starter Plan',
+                  price: '0',
+                  priceCurrency: 'USD'
+                },
+                {
+                  '@type': 'Offer',
+                  name: 'Growth Plan',
+                  price: '19',
+                  priceCurrency: 'USD'
+                },
+                {
+                  '@type': 'Offer',
+                  name: 'Pro Plan',
+                  price: '49',
+                  priceCurrency: 'USD'
+                }
+              ]
+            }
+          })
+        }}
+      />
       <Navbar activePage="pricing" />
       
       <main className="flex-1 pb-24">

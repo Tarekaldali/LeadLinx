@@ -331,6 +331,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <DashboardContext.Provider value={{ user, refreshUser, updateCredits, addChat, updateChatTitle, activeTab, setActiveTab }}>
+      <meta name="robots" content="noindex,nofollow" />
       <div className="flex h-screen overflow-hidden bg-background text-on-surface selection:bg-[#ff3b30]/10 selection:text-[#ff3b30]">
         
         {loading && (

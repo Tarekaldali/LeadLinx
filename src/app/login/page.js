@@ -61,8 +61,8 @@ export default function LoginPage() {
           <Link href="/" className="inline-flex items-center gap-2 group">
             <img src="/logo-new.png" alt="LeadLinx Logo" className="w-68 h-48 object-contain group-hover:scale-105 transition-transform drop-shadow-xl" />
           </Link>
-          <h1 className="text-3xl font-bold text-on-surface mt-6 tracking-tight">Welcome back</h1>
-          <p className="text-on-surface-variant">Choose your preferred login method</p>
+          <h1 className="text-3xl font-bold text-on-surface mt-6 tracking-tight">Log in / Create Account</h1>
+          <p className="text-on-surface-variant">Choose your preferred sign-in method</p>
         </div>
 
         <div className="bg-surface/90 backdrop-blur-xl border border-border-glass rounded-[2.5rem] p-8 shadow-2xl space-y-6 relative z-10">

@@ -18,7 +18,7 @@ export async function GET() {
           'CSV Export',
         ],
         cta: 'Get Started Free',
-        ctaHref: '/signup',
+        ctaHref: '/login',
         highlight: false,
         badge: null,
       },

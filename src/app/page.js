@@ -5,6 +5,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
 import AnimatedSearchBar from '@/components/AnimatedSearchBar';
 
+export const metadata = {
+  title: 'AI Reddit Lead Generation Tool for B2B | LeadLinx',
+  description: 'Turn Reddit conversations into qualified B2B leads. Our AI monitors subreddits in real-time to find users with high buying intent. Start free.',
+};
+
 export default async function LandingPage() {
   const session = await getServerSession(authOptions);
   const isLoggedIn = !!session;
@@ -44,35 +49,38 @@ export default async function LandingPage() {
           <div className="w-full md:w-[55%] flex flex-col items-start text-left z-10">
             {/* Headline */}
             <h1 className="font-display text-5xl md:text-7xl font-bold leading-[1.1] mb-6 text-on-surface">
-              AI-Powered <br/>
-              <span className="text-[#FF4500]">Reddit</span> Lead <br/>
-              Generation
+              Turn Reddit <br/>
+              Conversations into <br/>
+              <span className="text-[#FF4500]">Qualified Leads</span>
             </h1>
             
             {/* Subtitle */}
             <p className="font-body text-on-surface-variant text-lg md:text-xl max-w-lg mb-8 leading-relaxed">
-              Automatically discovers, analyzes, and qualifies potential prospects based on your ideal customer profile by monitoring relevant Reddit communities with advanced AI intelligence.
+              Stop scrolling. Our AI monitors thousands of subreddits in real-time, identifies users with buying intent, and delivers high-converting prospects straight to your CRM.
             </p>
 
-            <AnimatedSearchBar />
-
             {/* Buttons */}
-            <div className="flex flex-wrap items-center gap-4 mb-16">
-              {isLoggedIn ? (
-                <Link href="/dashboard" className="btn-ghost flex items-center gap-2 px-6 py-3 text-sm rounded-xl border border-border-glass hover:bg-surface">
-                  Go to Dashboard
-                  <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                </Link>
-              ) : (
-                <>
-                  <Link href="/signup" className="btn-ghost flex items-center gap-2 px-6 py-3 text-sm rounded-xl border border-border-glass hover:bg-surface">
-                    Create free account
-                    <span className="material-symbols-outlined text-lg">bolt</span>
+            <div className="flex flex-col gap-3 mb-16">
+              <div className="flex flex-wrap items-center gap-4">
+                {isLoggedIn ? (
+                  <Link href="/dashboard" className="btn-solid flex items-center gap-2 px-8 py-4 font-semibold text-[15px] rounded-xl bg-on-surface text-surface hover:bg-on-surface/90 shadow-md">
+                    Generate Free Leads
+                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
                   </Link>
-                  <Link href="/login" className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors px-4">
-                    Sign in to existing
-                  </Link>
-                </>
+                ) : (
+                  <>
+                    <Link href="/login" className="btn-solid flex items-center gap-2 px-8 py-4 font-semibold text-[15px] rounded-xl bg-[#FF4500] text-white hover:bg-[#FF4500]/90 shadow-md transition-all">
+                      Start Your Free Trial
+                      <span className="material-symbols-outlined text-lg">bolt</span>
+                    </Link>
+                    <Link href="/login" className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors px-4">
+                      Sign in to existing
+                    </Link>
+                  </>
+                )}
+              </div>
+              {!isLoggedIn && (
+                <p className="text-xs text-on-surface-variant/70 font-medium px-2">No credit card required. Setup in 60 seconds.</p>
               )}
             </div>
 

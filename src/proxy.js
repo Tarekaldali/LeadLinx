@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export default withAuth(
   function proxy(req) {
     const { token } = req.nextauth;
-    const isAuthPage = req.nextUrl.pathname.startsWith("/login") || req.nextUrl.pathname.startsWith("/signup");
+    const isAuthPage = req.nextUrl.pathname.startsWith("/login") || req.nextUrl.pathname.startsWith("/login");
 
     if (isAuthPage && token) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
@@ -13,7 +13,7 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        const isAuthPage = req.nextUrl.pathname.startsWith("/login") || req.nextUrl.pathname.startsWith("/signup");
+        const isAuthPage = req.nextUrl.pathname.startsWith("/login") || req.nextUrl.pathname.startsWith("/login");
         if (isAuthPage) return true;
         return !!token;
       },
@@ -29,6 +29,6 @@ export const config = {
     "/api/admin/:path*",
     "/api/harvester/:path*",
     "/login",
-    "/signup"
+    "/login"
   ],
 };

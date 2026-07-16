@@ -169,12 +169,16 @@ export default function DashboardPage() {
     if (!chatId) {
       isNewChat = true;
       try {
-        const res = await fetch('/api/chats', { method: 'POST' });
+        const res = await fetch('/api/chats', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initialQuery: query })
+        });
         const data = await res.json();
         chatId = data.chatId;
         setActiveChatId(chatId);
         localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, chatId);
-        addChat?.({ _id: chatId, title: 'New Chat', updatedAt: new Date() });
+        addChat?.({ _id: chatId, title: data.chat.title, updatedAt: new Date() });
       } catch { /* fail silent */ }
     }
 
@@ -182,18 +186,7 @@ export default function DashboardPage() {
     setMessages(nextMessages);
     await persistChatMessages(chatId, nextMessages);
 
-    if (isNewChat) {
-      fetch(`/api/chats/${chatId}/title`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
-      })
-      .then(r => r.json())
-      .then(d => {
-        if (d.title) updateChatTitle?.(chatId, d.title);
-      })
-      .catch(() => {});
-    }
+    // Removed AI title fetch block, title is now dynamically generated immediately in POST /api/chats
 
     try {
       const res = await fetch('/api/leads/search', {

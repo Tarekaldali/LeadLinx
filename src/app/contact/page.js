@@ -2,16 +2,41 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ContactForm from '@/components/ContactForm';
 
+export const metadata = {
+  title: 'Contact Support & Sales | LeadLinx',
+  description: 'Have questions about AI lead generation? Contact the LeadLinx support and sales team for help with your account, custom plans, and API access.',
+};
+
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ContactPage',
+            name: 'Contact LeadLinx',
+            description: 'Get in touch with the LeadLinx support and sales team.',
+            mainEntity: {
+              '@type': 'Organization',
+              name: 'LeadLinx Intelligence',
+              contactPoint: {
+                '@type': 'ContactPoint',
+                email: 'support@leadlinx.app',
+                contactType: 'customer support'
+              }
+            }
+          })
+        }}
+      />
       <Navbar activePage="contact" />
       
       <main className="flex-1 pb-24">
         <div className="max-w-3xl mx-auto px-6 mt-24">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 tracking-tight animate-fade-in">
-              Need <span className="text-primary">Help?</span>
+              Contact <span className="text-primary">Us</span>
             </h1>
             <p className="text-on-surface-variant max-w-2xl mx-auto font-body animate-fade-in" style={{ animationDelay: '0.1s' }}>
               Have questions or need support? Fill out the form below and our team will get back to you within 24 hours.

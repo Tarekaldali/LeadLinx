@@ -16,7 +16,7 @@ export default function AdminPricingPage() {
     description: '',
     features: '',
     cta: 'Get Started',
-    ctaHref: '/signup',
+    ctaHref: '/login',
     highlight: false,
     badge: ''
   });
@@ -53,7 +53,7 @@ export default function AdminPricingPage() {
       description: plan.description || '',
       features: Array.isArray(plan.features) ? plan.features.join('\n') : plan.features,
       cta: plan.cta || 'Get Started',
-      ctaHref: plan.ctaHref || '/signup',
+      ctaHref: plan.ctaHref || '/login',
       highlight: plan.highlight || false,
       badge: plan.badge || ''
     });
@@ -110,7 +110,7 @@ export default function AdminPricingPage() {
       description: '',
       features: '',
       cta: 'Get Started',
-      ctaHref: '/signup',
+      ctaHref: '/login',
       highlight: false,
       badge: ''
     });

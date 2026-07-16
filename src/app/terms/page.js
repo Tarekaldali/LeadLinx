@@ -3,7 +3,7 @@ import Footer from '@/components/Footer';
 
 export const metadata = {
   title: 'Terms and Conditions | LeadLinx',
-  description: 'Read the Terms and Conditions and Refund & Cancellation Policy for LeadLinx.',
+  description: 'Read the comprehensive Terms and Conditions, Refund Policy, and Acceptable Use Policy for LeadLinx platform and services.',
 };
 
 export default function TermsPage() {
@@ -79,9 +79,30 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">7. Changes to Terms</h2>
+              <h2 className="text-2xl font-bold text-on-surface">7. Service Availability & Maintenance</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                We reserve the right to modify these terms at any time. We will notify users of any significant changes. Your continued use of the service after such modifications constitutes acceptance of the updated terms.
+                While we strive to provide uninterrupted service, LeadLinx does not guarantee that the platform will be available 100% of the time. We may occasionally need to take the service offline for maintenance, upgrades, or due to unforeseen technical difficulties. We will make reasonable efforts to notify users in advance of any scheduled downtime, but we are not liable for any disruptions in your ability to access the service.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-on-surface">8. Acceptable Use & API Limits</h2>
+              <p className="text-on-surface-variant leading-relaxed">
+                You agree not to use the platform in any way that causes, or may cause, damage to the website or impairment of the availability or accessibility of the service. You must not use the platform to scrape, mine, or automatically extract data in volumes that violate our fair use policies or exceed your plan's API limits. Violation of acceptable use may result in immediate rate-limiting or account suspension.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-on-surface">9. Governing Law & Jurisdiction</h2>
+              <p className="text-on-surface-variant leading-relaxed">
+                These terms shall be governed by and construed in accordance with the laws of the jurisdiction in which LeadLinx operates, without regard to its conflict of law provisions. Any legal action or proceeding arising under these terms will be brought exclusively in the federal or state courts located in our primary operating jurisdiction, and the parties hereby consent to the personal jurisdiction and venue therein.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-on-surface">10. Changes to Terms</h2>
+              <p className="text-on-surface-variant leading-relaxed">
+                We reserve the right to modify these terms at any time. We will notify users of any significant changes via email or through an announcement on the platform dashboard. Your continued use of the service after such modifications constitutes acceptance of the updated terms. If you disagree with the changes, you must cancel your subscription and stop using the service.
               </p>
             </section>
           </div>

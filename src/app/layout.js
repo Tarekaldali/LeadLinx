@@ -4,7 +4,7 @@ export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: {
     default: 'LeadLinx — AI-Powered Reddit Lead Generation Platform',
-    template: '%s | LeadLinx',
+    template: '%s',
   },
   description: 'Transform Reddit conversations into high-converting leads. Our AI scans millions of posts in real-time to find users with buying intent.',
   keywords: ['reddit lead generation', 'AI lead scoring', 'social selling', 'reddit prospecting', 'B2B leads', 'buying intent'],
@@ -42,22 +42,48 @@ export default function RootLayout({ children }) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'SoftwareApplication',
-              name: 'LeadLinx',
-              applicationCategory: 'BusinessApplication',
-              operatingSystem: 'Web',
-              description: 'AI-powered Reddit lead generation platform that detects buying intent in real-time.',
-              offers: {
-                '@type': 'AggregateOffer',
-                lowPrice: '0',
-                highPrice: '7.99',
-                priceCurrency: 'USD',
+            __html: JSON.stringify([
+              {
+                '@context': 'https://schema.org',
+                '@type': 'SoftwareApplication',
+                name: 'LeadLinx',
+                applicationCategory: 'BusinessApplication',
+                operatingSystem: 'Web',
+                description: 'AI-powered Reddit lead generation platform that detects buying intent in real-time.',
+                url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+                offers: {
+                  '@type': 'AggregateOffer',
+                  lowPrice: '0',
+                  highPrice: '49',
+                  priceCurrency: 'USD',
+                },
               },
-            }),
+              {
+                '@context': 'https://schema.org',
+                '@type': 'Organization',
+                name: 'LeadLinx Intelligence',
+                url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+                logo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/logo-new.png`,
+                sameAs: [
+                  'https://twitter.com/leadlinx',
+                  'https://linkedin.com/company/leadlinx'
+                ]
+              },
+              {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: 'LeadLinx',
+                url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/find-leads/{search_term_string}`,
+                  'query-input': 'required name=search_term_string'
+                }
+              }
+            ]),
           }}
         />
+        <script src="https://analytics.ahrefs.com/analytics.js" data-key="OaaaQsUz5I6zk4nE8r472g" async></script>
       </head>
       <body className="antialiased">
         <ThemeProvider>

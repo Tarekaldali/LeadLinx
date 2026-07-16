@@ -47,6 +47,7 @@ Rules:
 - Keep it concise and natural, adhering to the requested Length (${length === 'short' ? 'very brief, 2-3 sentences max' : length === 'long' ? 'detailed, comprehensive paragraphs' : 'standard length, 3-4 sentences'}).
 ${senderName ? `- The sender's name is "${senderName}". Sign off the message using this name. Do NOT generate a fake or random name.` : '- Do not include placeholders like [Your Name] unless absolutely necessary; write it ready to send.'}
 - Do not sound like a robot or use generic AI phrases.
+- CRITICAL: The lead was found on REDDIT, not LinkedIn. NEVER mention LinkedIn. Always mention their Reddit post, comment, or the subreddit they posted in.
 - For email, include a compelling subject line at the top starting with "Subject: ".
 - For Reddit DMs, keep it friendly, respect subreddit norms, and keep it under 200 words without a subject line.
 - For Twitter/X DMs, keep it under 300 characters, very punchy and direct.

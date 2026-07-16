@@ -53,7 +53,7 @@ export default async function ProgrammaticSEOPage({ params }) {
             {data.description || `Stop manually searching Reddit for ${keyword} leads. LeadLinx uses AI to scan thousands of relevant subreddits in real-time, detecting buying intent automatically.`}
           </p>
           <div className="pt-4">
-            <Link href="/signup" className="btn-primary px-8 py-4 text-lg inline-flex items-center gap-2">
+            <Link href="/login" className="btn-primary px-8 py-4 text-lg inline-flex items-center gap-2">
               Start Finding {capitalizedKeyword} Leads
               <span className="material-symbols-outlined">arrow_forward</span>
             </Link>
@@ -92,13 +92,32 @@ export default async function ProgrammaticSEOPage({ params }) {
           </p>
         </section>
 
+        {/* FAQ */}
+        <section className="bento-card p-6 md:p-8 rounded-2xl space-y-6">
+          <h2 className="font-headline text-2xl text-on-surface">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-bold text-on-surface text-lg">How does LeadLinx find {keyword} leads?</h3>
+              <p className="text-on-surface-variant text-sm mt-1">LeadLinx uses advanced AI to continuously monitor Reddit for conversations related to {keyword}. We filter out noise and only present you with high-intent users actively discussing or seeking solutions in your niche.</p>
+            </div>
+            <div>
+              <h3 className="font-bold text-on-surface text-lg">Why is Reddit good for {keyword} prospecting?</h3>
+              <p className="text-on-surface-variant text-sm mt-1">Reddit is where authentic, unfiltered conversations happen. People turn to Reddit when they are frustrated with current tools or seeking genuine recommendations, making it a goldmine for {keyword} lead generation if you can find the signals among the noise.</p>
+            </div>
+            <div>
+              <h3 className="font-bold text-on-surface text-lg">Can I automate outreach?</h3>
+              <p className="text-on-surface-variant text-sm mt-1">While LeadLinx automatically generates personalized, context-aware reply drafts using AI, we encourage you to review and post them manually to maintain the authentic, non-spammy engagement that Reddit users value.</p>
+            </div>
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="bento-card p-8 md:p-12 text-center space-y-6 bg-primary-container/20 border-primary/10">
           <h2 className="font-headline text-2xl text-on-surface">Ready to find {capitalizedKeyword} leads automatically?</h2>
           <p className="text-on-surface-variant max-w-xl mx-auto">
             Join 500+ sales teams using LeadLinx to convert Reddit conversations into pipeline. Start with 50 free credits.
           </p>
-          <Link href="/signup" className="btn-primary inline-block px-8 py-4 text-lg">
+          <Link href="/login" className="btn-primary inline-block px-8 py-4 text-lg">
             Create Free Account
           </Link>
         </section>

@@ -15,7 +15,7 @@ export default async function Navbar({ activePage = 'platform' }) {
             {/* <img src="/logo-new.png" alt="LeadLinx Logo" className="w-14 h-14 object-contain" /> */}
             <span className="font-extrabold text-2xl tracking-tight flex items-center">
               <span className="text-[#ff3b30]">Lead</span>
-              <span className="text-on-surface">Linx</span>
+              <span className="text-black dark:text-white">Linx</span>
             </span>
           </Link>
           <div className="hidden md:flex items-center gap-6">
@@ -58,7 +58,7 @@ export default async function Navbar({ activePage = 'platform' }) {
               <Link href="/login" className="text-on-surface-variant hover:text-on-surface text-sm font-medium transition-colors">
                 Log in
               </Link>
-              <Link href="/signup" className="btn-primary text-sm py-2 px-6">
+              <Link href="/login" className="btn-primary text-sm py-2 px-6">
                 Get Started
               </Link>
             </>

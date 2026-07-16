@@ -3,7 +3,7 @@ import Footer from '@/components/Footer';
 
 export const metadata = {
   title: 'Privacy Policy | LeadLinx',
-  description: 'Read the Privacy Policy for LeadLinx.',
+  description: 'Read the comprehensive Privacy Policy for LeadLinx. Learn how we collect, use, and protect your personal data, payment information, and platform usage metrics.',
 };
 
 export default function PrivacyPolicyPage() {
@@ -26,35 +26,56 @@ export default function PrivacyPolicyPage() {
             <section className="space-y-4">
               <h2 className="text-2xl font-bold text-on-surface">1. Information We Collect</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                When you use LeadLinx, we collect Personally Identifiable Information (PII) that you provide directly to us, such as your name and email address. We also collect aggregated usage data to improve our services and debug issues.
+                When you use LeadLinx, we collect Personally Identifiable Information (PII) that you provide directly to us, such as your name, email address, and company details when registering for an account. We also collect aggregated usage data, including log files, device information, IP addresses, and interaction metrics to improve our services, analyze trends, and debug platform issues. We use cookies and similar tracking technologies to track activity on our service and hold certain information, ensuring a seamless user experience.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">2. Payment Processing & PCI-DSS Compliance</h2>
+              <h2 className="text-2xl font-bold text-on-surface">2. How We Use Your Data</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                We do not store, process, or transmit your raw credit card information on our servers. All transactions are securely processed by Tap Payments. Tap Payments acts as our secure processor and complies with strict PCI-DSS standards. We only store anonymized transaction references and payment tokens necessary to manage your subscription.
+                We use the collected data for various purposes, including but not limited to: providing and maintaining our service, notifying you about changes to our platform, providing customer support, gathering analysis or valuable information so that we can improve the platform, and monitoring the usage of our AI extraction tools. We may also use your information to contact you with newsletters, marketing or promotional materials, and other information that may be of interest to you.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">3. Data Security & Retention</h2>
+              <h2 className="text-2xl font-bold text-on-surface">3. Payment Processing & PCI-DSS Compliance</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                We implement robust security measures to protect your personal information. Your data is encrypted in transit and at rest. We retain your data only for as long as your account is active or as needed to provide you services, comply with our legal obligations, resolve disputes, and enforce our agreements.
+                We do not store, process, or transmit your raw credit card information on our servers. All transactions are securely processed by Tap Payments, a certified Level 1 PCI-DSS compliant payment gateway. Tap Payments acts as our secure processor, handling the entire transaction flow. We only store anonymized transaction references and payment tokens necessary to manage your subscription, issue refunds, and track account billing status.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">4. Third-Party Data Processors</h2>
+              <h2 className="text-2xl font-bold text-on-surface">4. Data Security & Retention</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                We do not sell your personal data. We only share information with trusted third-party data processors (such as Tap Payments for billing, and secure cloud providers for hosting) under strict confidentiality agreements necessary to operate our platform.
+                We implement robust, industry-standard security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. Your data is encrypted in transit using TLS/SSL protocols and encrypted at rest in our secured databases. We retain your data only for as long as your account is active or as needed to provide you services, comply with our legal obligations, resolve disputes, and enforce our agreements. If you request account deletion, we will purge your personal data within 30 days.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">5. User Data Rights (GDPR / CCPA)</h2>
+              <h2 className="text-2xl font-bold text-on-surface">5. Third-Party Data Processors</h2>
               <p className="text-on-surface-variant leading-relaxed">
-                We respect your data privacy rights, offering baseline protections aligned with GDPR and CCPA standards. You have the right to access, correct, update, or request deletion of your personal information. You can manage your account data from your dashboard or contact our support team directly to request complete data erasure.
+                We do not sell your personal data to advertisers. We only share information with trusted third-party data processors under strict confidentiality agreements. These processors include cloud hosting providers, analytics platforms (such as Ahrefs and Google Analytics), customer support software, and email delivery services. All our third-party vendors are vetted for security compliance to ensure your data remains protected.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-on-surface">6. AI Processing & Content Extraction</h2>
+              <p className="text-on-surface-variant leading-relaxed">
+                LeadLinx uses artificial intelligence, specifically advanced Large Language Models, to analyze public Reddit content. While we analyze public posts and comments to score leads, we do not feed your proprietary search queries or account data into public model training sets. The analysis is performed securely via API, and the resulting insights are generated exclusively for your account's use.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-on-surface">7. User Data Rights (GDPR / CCPA)</h2>
+              <p className="text-on-surface-variant leading-relaxed">
+                We respect your data privacy rights globally, offering baseline protections aligned with GDPR (Europe) and CCPA (California) standards. You have the right to access the personal data we hold about you, request corrections to inaccurate data, object to our processing of your data, or request complete deletion of your personal information. You can manage your account data from your dashboard or contact our privacy team directly at privacy@leadlinx.app to exercise any of these rights.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-on-surface">8. Changes to This Privacy Policy</h2>
+              <p className="text-on-surface-variant leading-relaxed">
+                We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date at the top. You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.
               </p>
             </section>
           </div>

@@ -71,6 +71,8 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="flex bg-sidebar min-h-screen">
+      {/* Ensure admin is never indexed */}
+      <meta name="robots" content="noindex,nofollow" />
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setMobileOpen(false)} />

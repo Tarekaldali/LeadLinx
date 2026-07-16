@@ -4,8 +4,8 @@ import Footer from '@/components/Footer';
 import { getDb } from '@/lib/mongodb';
 
 export const metadata = {
-  title: 'About LeadLinx — Reddit Lead Generation Insights',
-  description: 'Expert guides on finding customers on Reddit and AI-powered prospecting strategies.',
+  title: 'Reddit Lead Generation Strategies & AI Growth | LeadLinx',
+  description: 'Learn how to leverage AI to extract high-converting B2B leads from Reddit. Expert guides, case studies, and social selling strategies.',
 };
 
 export const dynamic = 'force-dynamic';
@@ -76,7 +76,7 @@ export default async function BlogPage() {
         <section className="bento-card p-8 text-center space-y-4">
           <h3 className="font-headline text-xl text-on-surface">Ready to put these strategies to work?</h3>
           <p className="text-on-surface-variant text-sm">LeadLinx automates everything you just read about.</p>
-          <Link href="/signup" className="btn-primary inline-block">Start Free Trial</Link>
+          <Link href="/login" className="btn-primary inline-block">Start Free Trial</Link>
         </section>
       </main>
 

@@ -53,7 +53,7 @@ export async function GET(request) {
       { $match: matchQuery },
       {
         $group: {
-          _id: '$chatId',
+          _id: { $ifNull: ['$chatId', '$_id'] },
           userId: { $first: '$userId' },
           searches: { $sum: 1 },
           totalRawCost: { $sum: '$rawCostUsd' },
@@ -93,7 +93,7 @@ export async function GET(request) {
     // Get total count for pagination
     const countPipeline = [
       { $match: matchQuery },
-      { $group: { _id: '$chatId', userId: { $first: '$userId' } } },
+      { $group: { _id: { $ifNull: ['$chatId', '$_id'] }, userId: { $first: '$userId' } } },
       {
         $lookup: {
           from: 'users',

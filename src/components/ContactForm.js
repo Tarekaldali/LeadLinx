@@ -93,7 +93,7 @@ export default function ContactForm() {
             Sign In
           </Link>
           <Link
-            href="/signup"
+            href="/login"
             className="btn-ghost px-8 py-3 rounded-xl font-bold transition-all active:scale-95"
           >
             Create Account
