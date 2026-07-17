@@ -134,7 +134,7 @@ export default async function BlogPostPage({ params }) {
         <div className="mt-16 bento-card p-8 text-center space-y-4">
           <h3 className="font-headline text-xl text-on-surface">Automate your Reddit lead generation</h3>
           <p className="text-on-surface-variant text-sm">LeadLinx uses AI to find the leads described in this article. Try it free.</p>
-          <Link href="/signup" className="btn-primary inline-block">Start Free Trial</Link>
+          <Link href="/login" className="btn-primary inline-block">Start Free Trial</Link>
         </div>
 
         {/* Article Schema */}

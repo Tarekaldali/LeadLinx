@@ -6,7 +6,7 @@ export const metadata = {
     default: 'LeadLinx — AI-Powered Reddit Lead Generation Platform',
     template: '%s',
   },
-  description: 'Transform Reddit conversations into high-converting leads. Our AI scans millions of posts in real-time to find users with buying intent.',
+  description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
   keywords: ['reddit lead generation', 'AI lead scoring', 'social selling', 'reddit prospecting', 'B2B leads', 'buying intent'],
   authors: [{ name: 'LeadLinx Intelligence' }],
   openGraph: {
@@ -14,12 +14,12 @@ export const metadata = {
     locale: 'en_US',
     siteName: 'LeadLinx',
     title: 'LeadLinx — AI-Powered Reddit Lead Generation',
-    description: 'Transform Reddit conversations into high-converting leads with AI-powered intent detection.',
+    description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'LeadLinx — AI-Powered Reddit Lead Generation',
-    description: 'Transform Reddit conversations into high-converting leads with AI-powered intent detection.',
+    description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
   },
   robots: {
     index: true,
@@ -49,7 +49,7 @@ export default function RootLayout({ children }) {
                 name: 'LeadLinx',
                 applicationCategory: 'BusinessApplication',
                 operatingSystem: 'Web',
-                description: 'AI-powered Reddit lead generation platform that detects buying intent in real-time.',
+                description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
                 url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
                 offers: {
                   '@type': 'AggregateOffer',

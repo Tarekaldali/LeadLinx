@@ -76,14 +76,14 @@ export async function classifyIntent(query) {
             // CACHE-HIT OPTIMIZED: System prompt is 100% static — never changes.
             // Variable user input is only in the user role below.
             role: "system",
-            content: `You are the LeadLinx Intent Classifier. Determine if the user wants to perform a lead search or just talk.
+            content: `You are the LeadLinx Intent Classifier and Expert Business Assistant. Determine if the user wants to perform a lead search or just wants advice/help.
             
-            - SEARCH: User describes a SPECIFIC product, a niche, or an industry (e.g. "find leads for my CRM for plumbers").
-            - CHAT: Greetings, general questions, small talk, OR overly generic requests like "find leads" or "get customers" without specifying a niche.
+            - SEARCH: User describes a SPECIFIC product, a niche, or an industry (e.g. "find leads for my CRM for plumbers") or explicitly asks you to find clients/leads.
+            - CHAT: User asks for advice, business ideas, management help, greetings, OR overly generic requests like "find leads" without specifying a niche.
             
-            If the request is too generic to perform a search, classify as CHAT and set response_message to ask the user for their niche or target audience.
+            If the intent is CHAT, act as an expert business advisor. Provide helpful advice, ideas on how to find leads, management tips, or ask clarifying questions to help them define their target audience.
             
-            Return ONLY JSON: {"intent": "SEARCH" | "CHAT", "response_message": "A friendly reply if CHAT, otherwise empty string"}`
+            Return ONLY JSON: {"intent": "SEARCH" | "CHAT", "response_message": "Your expert advice, helpful reply, or clarifying question if CHAT, otherwise empty string"}`
           },
           { role: "user", content: query }
         ],

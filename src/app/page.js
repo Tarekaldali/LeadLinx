@@ -7,7 +7,7 @@ import AnimatedSearchBar from '@/components/AnimatedSearchBar';
 
 export const metadata = {
   title: 'AI Reddit Lead Generation Tool for B2B | LeadLinx',
-  description: 'Turn Reddit conversations into qualified B2B leads. Our AI monitors subreddits in real-time to find users with high buying intent. Start free.',
+  description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
 };
 
 export default async function LandingPage() {
@@ -55,9 +55,9 @@ export default async function LandingPage() {
             </h1>
             
             {/* Subtitle */}
-            <p className="font-body text-on-surface-variant text-lg md:text-xl max-w-lg mb-8 leading-relaxed">
+            <h2 className="font-body text-on-surface-variant text-lg md:text-xl max-w-lg mb-8 leading-relaxed font-normal">
               Stop scrolling. Our AI monitors thousands of subreddits in real-time, identifies users with buying intent, and delivers high-converting prospects straight to your CRM.
-            </p>
+            </h2>
 
             {/* Buttons */}
             <div className="flex flex-col gap-3 mb-16">

@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 
 export default function ChatSidebar({ chats, activeChatId, onNewChat, onLoadChat, onDeleteChat, credits, isOpen, onClose }) {
   return (
@@ -12,7 +13,7 @@ export default function ChatSidebar({ chats, activeChatId, onNewChat, onLoadChat
       {/* Header */}
       <div className="p-4 flex items-center justify-between border-b border-border-glass">
         <div className="flex items-center gap-2">
-          <img src="/logo-new.png" alt="LeadLinx" className="w-8 h-8 object-contain" />
+          <Image src="/logo-new.png" alt="LeadLinx" width={32} height={32} className="object-contain" />
           <span className="font-bold text-on-surface text-sm">LeadLinx AI</span>
         </div>
         <button onClick={onClose} className="md:hidden text-on-surface-variant">
