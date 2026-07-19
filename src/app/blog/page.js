@@ -2,13 +2,14 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getDb } from '@/lib/mongodb';
+import Image from 'next/image';
 
 export const metadata = {
   title: 'Reddit Lead Generation Strategies & AI Growth | LeadLinx',
   description: 'Learn how to leverage AI to extract high-converting B2B leads from Reddit. Expert guides, case studies, and social selling strategies.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export default async function BlogPage() {
   let posts = [];
@@ -38,7 +39,7 @@ export default async function BlogPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-16 space-y-12">
         <header>
-          <h1 className="font-display text-4xl mb-4 text-on-surface">About LeadLinx</h1>
+          <h1 className="font-display text-4xl mb-4 text-on-surface">Reddit Lead Generation Strategies</h1>
           <p className="text-on-surface-variant text-lg">Expert guides on Reddit lead generation and AI-powered prospecting.</p>
         </header>
 
@@ -54,8 +55,8 @@ export default async function BlogPage() {
               <Link key={post.slug} href={`/blog/${post.slug}`} className="block bento-card p-6 rounded-2xl hover:border-primary/20 transition-all group">
                 <div className="flex gap-6">
                   {post.image && (
-                    <div className="hidden md:block w-48 h-32 rounded-xl overflow-hidden bg-surface-container-low shrink-0">
-                      <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                    <div className="hidden md:block w-48 h-32 rounded-xl overflow-hidden bg-surface-container-low shrink-0 relative">
+                      <Image src={post.image} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 0vw, 192px" />
                     </div>
                   )}
                   <div className="flex-1">

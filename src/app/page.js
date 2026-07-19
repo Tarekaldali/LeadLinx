@@ -10,6 +10,8 @@ export const metadata = {
   description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
 };
 
+export const revalidate = 3600;
+
 export default async function LandingPage() {
   const session = await getServerSession(authOptions);
   const isLoggedIn = !!session;

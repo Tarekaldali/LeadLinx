@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Suspense } from 'react';
 
 export default function LoginPage() {
@@ -59,7 +60,7 @@ export default function LoginPage() {
         {/* Logo & Header */}
         <div className="text-center space-y-2 relative z-10">
           <Link href="/" className="inline-flex items-center gap-2 group">
-            <img src="/logo-new.png" alt="LeadLinx Logo" className="w-68 h-48 object-contain group-hover:scale-105 transition-transform drop-shadow-xl" />
+            <Image src="/logo-new.png" alt="LeadLinx Logo" width={272} height={192} className="object-contain group-hover:scale-105 transition-transform drop-shadow-xl" priority />
           </Link>
           <h1 className="text-3xl font-bold text-on-surface mt-6 tracking-tight">Log in / Create Account</h1>
           <p className="text-on-surface-variant">Choose your preferred sign-in method</p>
@@ -78,7 +79,7 @@ export default function LoginPage() {
             onClick={handleGoogleLogin}
             className="w-full h-14 bg-surface-container-low hover:bg-surface-container text-on-surface border border-outline-variant rounded-2xl font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm"
           >
-            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+            <Image src="https://www.google.com/favicon.ico" alt="Google" width={20} height={20} />
             Continue with Google
           </button>
 

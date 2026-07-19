@@ -29,9 +29,10 @@ function SuccessContent() {
         <div className="flex flex-col gap-3">
           <Link 
             href="/dashboard" 
-            className="w-full flex items-center justify-center py-4 bg-primary hover:bg-red-700 text-white rounded-xl font-semibold text-lg transition-all shadow-md shadow-primary/20"
+            className="w-full py-4 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2"
           >
-            Go to Dashboard
+            Generate Free Leads
+            <span className="material-symbols-outlined">arrow_forward</span>
           </Link>
         </div>
       </div>

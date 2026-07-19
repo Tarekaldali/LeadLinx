@@ -4,12 +4,15 @@ import Footer from '@/components/Footer';
 import { getDb } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
+import Image from 'next/image';
 import PricingClient from '@/components/pricing/PricingClient';
 
 export const metadata = {
   title: 'Pricing Plans & Credits | LeadLinx',
   description: 'Choose the perfect LeadLinx plan to automate your Reddit lead generation. Flexible credit pricing for startups, agencies, and enterprise sales teams.',
 };
+export const revalidate = 3600;
+
 export default async function PricingPage() {
   const session = await getServerSession(authOptions);
   const isLoggedIn = !!session;
@@ -46,19 +49,19 @@ export default async function PricingPage() {
                 {
                   '@type': 'Offer',
                   name: 'Starter Plan',
-                  price: '0',
+                  price: '3.99',
                   priceCurrency: 'USD'
                 },
                 {
                   '@type': 'Offer',
                   name: 'Growth Plan',
-                  price: '19',
+                  price: '7.99',
                   priceCurrency: 'USD'
                 },
                 {
                   '@type': 'Offer',
                   name: 'Pro Plan',
-                  price: '49',
+                  price: '19.99',
                   priceCurrency: 'USD'
                 }
               ]
@@ -102,11 +105,11 @@ export default async function PricingPage() {
             
             <div className="flex justify-center items-center gap-3 pt-6 opacity-80 group">
               <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Secured by</span>
-              <img src="https://www.vectorlogo.zone/logos/stripe/stripe-ar21.svg" alt="Stripe Logo" className="w-34 h-14" />
+              <Image src="https://www.vectorlogo.zone/logos/stripe/stripe-ar21.svg" alt="Stripe Logo" width={136} height={56} className="object-contain" />
             </div>
 
             <div className="space-y-4 pt-4 border-t border-border-glass">
-              <h3 className="text-2xl font-headline text-on-surface">Need a custom solution?</h3>
+              <h2 className="text-2xl font-headline text-on-surface">Need a custom solution?</h2>
               <p className="text-on-surface-variant max-w-xl mx-auto">
                 If you have specific requirements or want to discuss enterprise licensing for your entire team, we&apos;re here to help.
               </p>

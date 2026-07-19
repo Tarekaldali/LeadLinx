@@ -8,7 +8,7 @@ export default async function Navbar({ activePage = 'platform' }) {
   const isLoggedIn = !!session;
 
   return (
-    <nav className="bg-surface/80 backdrop-blur-xl border-b border-border-glass w-full top-0 sticky z-50 transition-colors">
+    <nav aria-label="Main navigation" role="navigation" className="bg-surface/80 backdrop-blur-xl border-b border-border-glass w-full top-0 sticky z-50 transition-colors">
       <div className="flex justify-between items-center w-full px-6 py-3 max-w-[1920px] mx-auto">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
@@ -49,7 +49,7 @@ export default async function Navbar({ activePage = 'platform' }) {
           {isLoggedIn ? (
             <>
               <Link href="/dashboard" className="text-on-surface-variant hover:text-on-surface text-sm font-medium transition-colors">
-                Dashboard
+                Generate Free Leads
               </Link>
               <LogoutButton />
             </>

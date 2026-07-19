@@ -21,6 +21,9 @@ export async function generateMetadata({ params }) {
     title: `Find ${capitalizedKeyword} Leads on Reddit — AI-Powered Lead Generation`,
     description: data?.description || `Stop manually searching Reddit for ${keyword} leads. LeadLinx uses AI to scan thousands of relevant subreddits in real-time, detecting buying intent automatically.`,
     keywords: [`${keyword} leads`, `reddit ${keyword}`, `find ${keyword} customers`, 'reddit lead generation', 'AI lead scoring'],
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_APP_URL || 'https://leadlinx.vercel.app'}/find-leads/${p.keyword}`,
+    },
   };
 }
 
@@ -35,8 +38,40 @@ export default async function ProgrammaticSEOPage({ params }) {
   const data = keywordData[p.keyword] || {};
   const subreddits = data.subreddits || ['SaaS', 'entrepreneur', 'marketing'];
   
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `How does LeadLinx find ${keyword} leads?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `LeadLinx uses advanced AI to continuously monitor Reddit for conversations related to ${keyword}. We filter out noise and only present you with high-intent users actively discussing or seeking solutions in your niche.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Why is Reddit good for ${keyword} prospecting?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Reddit is where authentic, unfiltered conversations happen. People turn to Reddit when they are frustrated with current tools or seeking genuine recommendations, making it a goldmine for ${keyword} lead generation if you can find the signals among the noise.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Can I automate outreach?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `While LeadLinx automatically generates personalized, context-aware reply drafts using AI, we encourage you to review and post them manually to maintain the authentic, non-spammy engagement that Reddit users value.`,
+        },
+      },
+    ],
+  };
+
   return (
     <div className="bg-background text-on-surface min-h-screen">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-6 py-16 space-y-12">

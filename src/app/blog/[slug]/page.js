@@ -2,8 +2,9 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getDb } from '@/lib/mongodb';
+import Image from 'next/image';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }) {
   const p = await params;
@@ -17,6 +18,12 @@ export async function generateMetadata({ params }) {
   return {
     title: article.title,
     description: article.excerpt || article.content?.substring(0, 160),
+    openGraph: {
+      type: 'article',
+      title: article.title,
+      description: article.excerpt || article.content?.substring(0, 160),
+      images: article.image ? [{ url: article.image }] : undefined,
+    },
     other: {
       'article:published_time': article.date ? new Date(article.date).toISOString() : undefined,
     },
@@ -94,8 +101,8 @@ export default async function BlogPostPage({ params }) {
           </div>
 
           {article.image && (
-            <div className="w-full h-64 rounded-2xl overflow-hidden mb-8 bg-surface-container-low">
-              <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
+            <div className="w-full h-64 rounded-2xl overflow-hidden mb-8 bg-surface-container-low relative">
+              <Image src={article.image} alt={article.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 768px" priority />
             </div>
           )}
 

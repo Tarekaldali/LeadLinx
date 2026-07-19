@@ -1,11 +1,11 @@
 export const metadata = {
-  title: 'Checkout | LeadLinx',
+  title: 'Verify Account | LeadLinx',
   robots: {
     index: false,
     follow: false,
   },
 };
 
-export default function CheckoutLayout({ children }) {
+export default function VerifyLayout({ children }) {
   return <>{children}</>;
 }

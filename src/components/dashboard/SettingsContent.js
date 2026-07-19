@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useTheme } from 'next-themes';
+import Image from 'next/image';
 
 
 const TABS = [
@@ -242,7 +243,7 @@ export default function SettingsContent() {
                     <div className="flex items-center justify-between p-5 bg-surface-dim border border-outline-variant rounded-2xl max-w-lg shadow-sm">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-surface border border-outline-variant flex items-center justify-center shadow-sm">
-                          <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
+                          <Image src="https://www.svgrepo.com/show/475656/google-color.svg" width={20} height={20} alt="Google" />
                         </div>
                         <div>
                           <p className="text-sm font-bold text-on-surface">Google Cloud Auth</p>
