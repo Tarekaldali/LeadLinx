@@ -9,9 +9,6 @@ export const metadata = {
   description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
   keywords: ['reddit lead generation', 'b2b leads', 'social selling', 'intent scoring', 'sales automation'],
   authors: [{ name: 'LeadLinx Intelligence' }],
-  alternates: {
-    canonical: process.env.NEXT_PUBLIC_APP_URL || 'https://leadlinx.vercel.app',
-  },
   openGraph: {
     type: 'website',
     locale: 'en_US',

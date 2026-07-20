@@ -2,8 +2,9 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export const metadata = {
-  title: 'Privacy Policy | LeadLinx',
-  description: 'Read the comprehensive Privacy Policy for LeadLinx. Learn how we collect, use, and protect your personal data, payment information, and platform usage metrics.',
+  title: 'Privacy Policy',
+  description: 'Read the Privacy Policy for LeadLinx. Learn how we collect, use, and protect your personal data and platform usage metrics.',
+  alternates: { canonical: '/privacy' }
 };
 
 export default function PrivacyPolicyPage() {
@@ -73,7 +74,14 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">8. Changes to This Privacy Policy</h2>
+              <h2 className="text-2xl font-bold text-on-surface">8. Children's Privacy</h2>
+              <p className="text-on-surface-variant leading-relaxed">
+                Our Service does not address anyone under the age of 18 ("Children"). We do not knowingly collect personally identifiable information from anyone under the age of 18. If you are a parent or guardian and you are aware that your child has provided us with Personal Data, please contact us. If we become aware that we have collected Personal Data from children without verification of parental consent, we take steps to remove that information from our servers.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-on-surface">9. Changes to This Privacy Policy</h2>
               <p className="text-on-surface-variant leading-relaxed">
                 We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date at the top. You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.
               </p>

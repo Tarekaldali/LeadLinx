@@ -6,8 +6,9 @@ import { authOptions } from '@/lib/auth-config';
 import AnimatedSearchBar from '@/components/AnimatedSearchBar';
 
 export const metadata = {
-  title: 'AI Reddit Lead Generation Tool for B2B | LeadLinx',
+  title: 'AI Reddit Lead Generation Tool for B2B',
   description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
+  alternates: { canonical: '/' }
 };
 
 export const revalidate = 3600;

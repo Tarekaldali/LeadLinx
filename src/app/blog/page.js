@@ -5,8 +5,9 @@ import { getDb } from '@/lib/mongodb';
 import Image from 'next/image';
 
 export const metadata = {
-  title: 'Reddit Lead Generation Strategies & AI Growth | LeadLinx',
+  title: 'Reddit Lead Generation Strategies & AI Growth',
   description: 'Learn how to leverage AI to extract high-converting B2B leads from Reddit. Expert guides, case studies, and social selling strategies.',
+  alternates: { canonical: '/blog' }
 };
 
 export const revalidate = 3600;

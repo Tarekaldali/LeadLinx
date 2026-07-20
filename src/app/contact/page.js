@@ -3,8 +3,9 @@ import Footer from '@/components/Footer';
 import ContactForm from '@/components/ContactForm';
 
 export const metadata = {
-  title: 'Contact Support & Sales | LeadLinx',
+  title: 'Contact Support & Sales',
   description: 'Have questions about AI lead generation? Contact the LeadLinx support and sales team for help with your account, custom plans, and API access.',
+  alternates: { canonical: '/contact' }
 };
 
 export default function ContactPage() {

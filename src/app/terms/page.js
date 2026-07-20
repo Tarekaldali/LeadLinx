@@ -2,8 +2,9 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export const metadata = {
-  title: 'Terms and Conditions | LeadLinx',
+  title: 'Terms and Conditions',
   description: 'Read the comprehensive Terms and Conditions, Refund Policy, and Acceptable Use Policy for LeadLinx platform and services.',
+  alternates: { canonical: '/terms' }
 };
 
 export default function TermsPage() {
@@ -100,7 +101,14 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-on-surface">10. Changes to Terms</h2>
+              <h2 className="text-2xl font-bold text-on-surface">10. Termination</h2>
+              <p className="text-on-surface-variant leading-relaxed">
+                We may terminate or suspend your account and bar access to the service immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms. If you wish to terminate your account, you may simply discontinue using the service or request account deletion from your dashboard.
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-on-surface">11. Changes to Terms</h2>
               <p className="text-on-surface-variant leading-relaxed">
                 We reserve the right to modify these terms at any time. We will notify users of any significant changes via email or through an announcement on the platform dashboard. Your continued use of the service after such modifications constitutes acceptance of the updated terms. If you disagree with the changes, you must cancel your subscription and stop using the service.
               </p>

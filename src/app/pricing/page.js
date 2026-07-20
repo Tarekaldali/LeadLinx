@@ -8,8 +8,9 @@ import Image from 'next/image';
 import PricingClient from '@/components/pricing/PricingClient';
 
 export const metadata = {
-  title: 'Pricing Plans & Credits | LeadLinx',
+  title: 'Pricing Plans & Credits',
   description: 'Choose the perfect LeadLinx plan to automate your Reddit lead generation. Flexible credit pricing for startups, agencies, and enterprise sales teams.',
+  alternates: { canonical: '/pricing' }
 };
 export const revalidate = 3600;
 
