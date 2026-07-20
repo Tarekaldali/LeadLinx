@@ -1,5 +1,8 @@
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+
+export const revalidate = 86400;
 
 export const metadata = {
   title: 'Terms and Conditions',
@@ -112,6 +115,21 @@ export default function TermsPage() {
               <p className="text-on-surface-variant leading-relaxed">
                 We reserve the right to modify these terms at any time. We will notify users of any significant changes via email or through an announcement on the platform dashboard. Your continued use of the service after such modifications constitutes acceptance of the updated terms. If you disagree with the changes, you must cancel your subscription and stop using the service.
               </p>
+            </section>
+            <section className="mt-16 bento-card p-8 text-center space-y-4">
+              <h2 className="font-headline text-xl text-on-surface">Start Generating Leads Today</h2>
+              <p className="text-on-surface-variant text-sm max-w-lg mx-auto">
+                By using LeadLinx, you agree to these terms. Ready to find high-intent Reddit leads for your business?
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                <Link href="/login" className="btn-primary inline-flex items-center gap-2">
+                  Start Free Trial
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </Link>
+                <Link href="/privacy" className="text-sm text-primary hover:underline">
+                  Read our Privacy Policy →
+                </Link>
+              </div>
             </section>
           </div>
         </div>

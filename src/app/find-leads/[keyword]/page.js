@@ -22,7 +22,7 @@ export async function generateMetadata({ params }) {
     description: data?.description || `Stop manually searching Reddit for ${keyword} leads. LeadLinx uses AI to scan thousands of relevant subreddits in real-time, detecting buying intent automatically.`,
     keywords: [`${keyword} leads`, `reddit ${keyword}`, `find ${keyword} customers`, 'reddit lead generation', 'AI lead scoring'],
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_APP_URL || 'https://leadlinx.vercel.app'}/find-leads/${p.keyword}`,
+      canonical: `/find-leads/${p.keyword}`,
     },
   };
 }

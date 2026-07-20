@@ -1,5 +1,8 @@
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+
+export const revalidate = 86400;
 
 export const metadata = {
   title: 'Privacy Policy',
@@ -85,6 +88,21 @@ export default function PrivacyPolicyPage() {
               <p className="text-on-surface-variant leading-relaxed">
                 We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date at the top. You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.
               </p>
+            </section>
+            <section className="mt-16 bento-card p-8 text-center space-y-4">
+              <h2 className="font-headline text-xl text-on-surface">Ready to try LeadLinx?</h2>
+              <p className="text-on-surface-variant text-sm max-w-lg mx-auto">
+                We are committed to protecting your privacy. Start generating leads on Reddit with confidence.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                <Link href="/login" className="btn-primary inline-flex items-center gap-2">
+                  Start Free Trial
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </Link>
+                <Link href="/terms" className="text-sm text-primary hover:underline">
+                  Read our Terms of Service →
+                </Link>
+              </div>
             </section>
           </div>
         </div>
