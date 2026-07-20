@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, Suspense, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Image from 'next/image';
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
@@ -77,8 +76,10 @@ function CheckoutContent() {
     <div className="min-h-screen bg-surface-container-low dark:bg-background flex flex-col font-sans">
       <header className="px-6 py-6 lg:px-12 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.png" alt="LeadLinx Logo" width={32} height={32} className="object-contain" priority />
-          <span className="font-bold text-on-surface dark:text-on-surface text-xl tracking-tight ml-2">LeadLinx</span>
+          <span className="font-extrabold text-2xl tracking-tight flex items-center">
+            <span className="text-[#ff3b30]">Lead</span>
+            <span className="text-black dark:text-white">Linx</span>
+          </span>
         </Link>
         <Link href="/pricing" className="text-sm font-medium text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors flex items-center gap-1">
           <span className="material-symbols-outlined text-[18px]">close</span>
