@@ -1,6 +1,9 @@
 import { getDb } from '@/lib/mongodb';
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+let BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://leadlinx.vercel.app';
+if (!BASE_URL.includes('localhost')) {
+  BASE_URL = BASE_URL.replace('http://', 'https://').replace('https://www.', 'https://');
+}
 
 export default async function sitemap() {
   const staticPages = [

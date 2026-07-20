@@ -12,19 +12,12 @@ export default async function Navbar({ activePage = 'platform' }) {
       <div className="flex justify-between items-center w-full px-6 py-3 max-w-[1920px] mx-auto">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            {/* <img src="/logo-new.png" alt="LeadLinx Logo" className="w-14 h-14 object-contain" /> */}
-            <span className="font-extrabold text-2xl tracking-tight flex items-center">
-              <span className="text-[#ff3b30]">Lead</span>
+            <span className="font-headline font-bold text-2xl tracking-tight flex items-center">
+              <span className="text-primary">Lead</span>
               <span className="text-black dark:text-white">Linx</span>
             </span>
           </Link>
           <div className="hidden md:flex items-center gap-6">
-            <Link
-              className={activePage === 'platform' ? 'text-primary border-b-2 border-primary pb-1 text-sm font-medium' : 'text-on-surface-variant hover:text-primary transition-colors text-sm'}
-              href="/"
-            >
-              Platform
-            </Link>
             <Link
               className={activePage === 'pricing' ? 'text-primary border-b-2 border-primary pb-1 text-sm font-medium' : 'text-on-surface-variant hover:text-primary transition-colors text-sm'}
               href="/pricing"

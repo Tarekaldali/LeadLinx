@@ -79,41 +79,132 @@
   --color-sidebar-hover: rgba(0, 0, 0, 0.04);
   --color-sidebar-active: #ffffff;
   --color-sidebar-border: #e5e5e7;
+
+  /* Landing Page Custom Tokens */
+  --color-status-error: #FF3B30;
+  --color-text-muted: #6B7280;
+  --color-surface-dark: #050505;
+
+  /* Font Families mapped to layout variables */
+  --font-body-md: var(--font-inter);
+  --font-button: var(--font-inter);
+  --font-headline-lg: var(--font-hanken);
+  --font-headline-lg-mobile: var(--font-hanken);
+  --font-display-xl: var(--font-hanken);
+  --font-label-mono: var(--font-jetbrains);
+  --font-body-sm: var(--font-inter);
+  
+  /* Custom Spacing */
+  --spacing-container-max: 1280px;
+  --spacing-margin-desktop: 40px;
+  --spacing-margin-mobile: 16px;
+  --spacing-gutter: 24px;
+
+  /* Custom Typography Sizes */
+  --text-display-xl: 64px;
+  --text-display-xl--line-height: 72px;
+  --text-display-xl--letter-spacing: -0.02em;
+  --text-display-xl--font-weight: 700;
+
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 40px;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-headline-lg-mobile: 24px;
+  --text-headline-lg-mobile--line-height: 32px;
+  --text-headline-lg-mobile--font-weight: 600;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+
+  --text-button: 14px;
+  --text-button--line-height: 20px;
+  --text-button--font-weight: 600;
+
+  --text-label-mono: 12px;
+  --text-label-mono--line-height: 16px;
+  --text-label-mono--letter-spacing: 0.05em;
+  --text-label-mono--font-weight: 500;
 }
 
+/* New Landing Page Utilities */
+.glow-effect {
+  box-shadow: 0 0 20px 0 rgba(195, 192, 255, 0.1);
+}
+.btn-gradient {
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+}
 
 @layer base {
   .dark {
-    --color-background: #111827;
-    --color-surface: #182235;
-    --color-surface-dim: #0f172a;
-    --color-surface-bright: #26344d;
-    --color-surface-container-lowest: #111827;
-    --color-surface-container-low: #172033;
-    --color-surface-container: #1f2a3d;
-    --color-surface-container-high: #2d3a52;
-    --color-surface-container-highest: #3b4a63;
+    --color-background: #00142a;
+    --color-surface: #00142a;
+    --color-surface-dim: #00142a;
+    --color-surface-bright: #233a56;
+    --color-surface-container-lowest: #000f21;
+    --color-surface-container-low: #001c37;
+    --color-surface-container: #04203b;
+    --color-surface-container-high: #122b46;
+    --color-surface-container-highest: #1e3652;
+    --color-surface-variant: #1e3652;
 
-    --color-on-surface: #f8fafc;
-    --color-on-surface-variant: #94a3b8;
-    --color-inverse-surface: #ffffff;
-    --color-inverse-on-surface: #020617;
+    --color-on-surface: #d2e4ff;
+    --color-on-surface-variant: #c7c4d8;
+    --color-inverse-surface: #d2e4ff;
+    --color-inverse-on-surface: #19324d;
+    --color-surface-tint: #c3c0ff;
+
+    --color-primary: #ef4444;
+    --color-on-primary: #ffffff;
+    --color-primary-container: #7f1d1d;
+    --color-on-primary-container: #fef2f2;
+    --color-inverse-primary: #f87171;
+    --color-primary-fixed: #fef2f2;
+    --color-primary-fixed-dim: #fca5a5;
+    --color-on-primary-fixed: #450a0a;
+    --color-on-primary-fixed-variant: #7f1d1d;
+
+    --color-secondary: #fffbff;
+    --color-on-secondary: #313300;
+    --color-secondary-container: #e2e900;
+    --color-on-secondary-container: #646700;
+    --color-secondary-fixed: #e5eb07;
+    --color-secondary-fixed-dim: #c8ce00;
+    --color-on-secondary-fixed: #1c1d00;
+    --color-on-secondary-fixed-variant: #474a00;
+
+    --color-tertiary: #ffb68f;
+    --color-on-tertiary: #542100;
+    --color-tertiary-container: #be5400;
+    --color-on-tertiary-container: #fffaf9;
+    --color-tertiary-fixed: #ffdbca;
+    --color-tertiary-fixed-dim: #ffb68f;
+    --color-on-tertiary-fixed: #331100;
+    --color-on-tertiary-fixed-variant: #773200;
+
+    --color-error: #ffb4ab;
+    --color-on-error: #690005;
+    --color-error-container: #93000a;
+    --color-on-error-container: #ffdad6;
 
     --color-border-glass: rgba(255, 255, 255, 0.1);
-    --color-outline: #475569;
-    --color-outline-variant: #334155;
+    --color-outline: #918fa1;
+    --color-outline-variant: #464555;
 
     /* Sidebar — DARK THEME (Midnight) */
-    --color-sidebar: #111827;
-    --color-sidebar-fg: #f1f3f9;
-    --color-sidebar-muted: #6b7280;
+    --color-sidebar: #000f21;
+    --color-sidebar-fg: #d2e4ff;
+    --color-sidebar-muted: #c7c4d8;
     --color-sidebar-hover: rgba(255, 255, 255, 0.06);
-    --color-sidebar-active: rgba(239, 68, 68, 0.12);
-    --color-sidebar-border: rgba(255, 255, 255, 0.08);
+    --color-sidebar-active: rgba(195, 192, 255, 0.12);
+    --color-sidebar-border: rgba(255, 255, 255, 0.1);
     
-    /* Dark body background */
-    background-color: #111827;
-    color: #f8fafc;
+    background-color: var(--color-background);
+    color: var(--color-on-surface);
   }
 }
 
@@ -130,7 +221,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background: var(--color-background);
   color: var(--color-on-surface);
   min-height: 100vh;
@@ -211,8 +302,12 @@ body {
 }
 
 /* === TYPOGRAPHY TOKENS === */
+h1, h2, h3, h4, h5, h6, .admin-title {
+  font-family: var(--font-hanken);
+}
+
 .font-display {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-hanken);
   font-weight: 800;
   font-size: 48px;
   line-height: 1.1;
@@ -220,7 +315,7 @@ body {
 }
 
 .font-headline {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-hanken);
   font-weight: 700;
   font-size: 24px;
   line-height: 1.3;
@@ -228,7 +323,7 @@ body {
 }
 
 .font-body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   font-weight: 400;
   font-size: 16px;
   line-height: 1.6;

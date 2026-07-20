@@ -60,7 +60,10 @@ export default function LoginPage() {
         {/* Logo & Header */}
         <div className="text-center space-y-2 relative z-10">
           <Link href="/" className="inline-flex items-center gap-2 group">
-            <Image src="/logo-new.png" alt="LeadLinx Logo" width={272} height={192} className="object-contain group-hover:scale-105 transition-transform drop-shadow-xl" priority />
+            <span className="font-headline font-bold text-4xl tracking-tight flex items-center group-hover:scale-105 transition-transform drop-shadow-xl">
+              <span className="text-primary">Lead</span>
+              <span className="text-black dark:text-white">Linx</span>
+            </span>
           </Link>
           <h1 className="text-3xl font-bold text-on-surface mt-6 tracking-tight">Log in / Create Account</h1>
           <p className="text-on-surface-variant">Choose your preferred sign-in method</p>
