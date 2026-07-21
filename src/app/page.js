@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-config';
 import Footer from '@/components/Footer';
+import HeroCTA from '@/components/HeroCTA';
+import NavAuth from '@/components/NavAuth';
 
 export const metadata = {
   title: 'LeadLinx - AI Lead Generation',
@@ -13,8 +13,6 @@ export const metadata = {
 export const revalidate = 3600;
 
 export default async function LandingPage() {
-  const session = await getServerSession(authOptions);
-  const isLoggedIn = !!session;
 
   return (
     <div className="bg-surface dark:bg-surface-dark text-on-surface font-body-md min-h-screen flex flex-col pt-[72px]">
@@ -34,14 +32,7 @@ export default async function LandingPage() {
           </div>
         </div>
         <div className="hidden md:flex items-center gap-4">
-          {isLoggedIn ? (
-            <Link href="/dashboard" className="bg-primary text-white font-button text-button px-4 py-2 rounded btn-gradient hover:opacity-90 transition-opacity">Go to Dashboard</Link>
-          ) : (
-            <>
-              <Link href="/login" className="text-on-surface-variant font-button text-button hover:text-primary transition-colors duration-200">Log in</Link>
-              <Link href="/login" className="bg-primary text-white font-button text-button px-4 py-2 rounded btn-gradient hover:opacity-90 transition-opacity">Start for Free</Link>
-            </>
-          )}
+          <NavAuth />
         </div>
       </nav>
 
@@ -54,11 +45,9 @@ export default async function LandingPage() {
           <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto md:mx-0">
             Stop scrolling. Our AI monitors thousands of subreddits in real-time to deliver high-converting prospects straight to your CRM.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-            <Link href={isLoggedIn ? "/dashboard" : "/login"} className="bg-primary text-on-primary font-button text-button px-6 py-3 rounded btn-gradient flex items-center justify-center gap-2 hover:opacity-90 transition-opacity glow-effect">
-              Generate Free Leads
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </Link>
+          <div className="flex flex-col md:flex-row gap-4 justify-center md:justify-start">
+            <HeroCTA />
+            <Link href="#features" className="bg-transparent border border-outline text-on-surface font-button text-button px-6 py-3 rounded flex items-center justify-center gap-2 hover:bg-surface-variant transition-colors">Learn More</Link>
           </div>
         </div>
         <div className="flex-1 relative w-full aspect-[4/3] rounded-xl border border-white/10 bg-[#0A2540]/40 overflow-hidden glow-effect animate-scale-in">

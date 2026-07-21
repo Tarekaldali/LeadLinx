@@ -6,6 +6,19 @@ import Image from 'next/image';
 
 export const revalidate = 3600;
 
+export async function generateStaticParams() {
+  try {
+    const db = await getDb();
+    const posts = await db.collection('blog').find({ published: true }).project({ slug: 1 }).toArray();
+    return posts.map((post) => ({
+      slug: post.slug,
+    }));
+  } catch (error) {
+    console.error('Failed to generate static params for blog posts:', error);
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }) {
   const p = await params;
   let article = null;

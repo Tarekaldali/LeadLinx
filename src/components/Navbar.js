@@ -1,12 +1,7 @@
 import Link from 'next/link';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-config';
-import LogoutButton from './LogoutButton';
+import NavAuth from './NavAuth';
 
-export default async function Navbar({ activePage = 'platform' }) {
-  const session = await getServerSession(authOptions);
-  const isLoggedIn = !!session;
-
+export default function Navbar({ activePage = 'platform' }) {
   return (
     <nav aria-label="Main navigation" role="navigation" className="bg-surface/80 backdrop-blur-xl border-b border-border-glass w-full top-0 sticky z-50 transition-colors">
       <div className="flex justify-between items-center w-full px-6 py-3 max-w-[1920px] mx-auto">
@@ -39,23 +34,7 @@ export default async function Navbar({ activePage = 'platform' }) {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {isLoggedIn ? (
-            <>
-              <Link href="/dashboard" className="text-on-surface-variant hover:text-on-surface text-sm font-medium transition-colors">
-                Generate Free Leads
-              </Link>
-              <LogoutButton />
-            </>
-          ) : (
-            <>
-              <Link href="/login" className="text-on-surface-variant hover:text-on-surface text-sm font-medium transition-colors">
-                Log in
-              </Link>
-              <Link href="/login" className="btn-primary text-sm py-2 px-6">
-                Get Started
-              </Link>
-            </>
-          )}
+          <NavAuth />
         </div>
       </div>
     </nav>
