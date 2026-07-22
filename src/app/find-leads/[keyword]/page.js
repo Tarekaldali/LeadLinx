@@ -24,6 +24,12 @@ export async function generateMetadata({ params }) {
     alternates: {
       canonical: `/find-leads/${p.keyword}`,
     },
+    openGraph: {
+      type: 'website',
+      url: `/find-leads/${p.keyword}`,
+      title: `Find ${capitalizedKeyword} Leads on Reddit — AI-Powered Lead Generation`,
+      description: data?.description || `Stop manually searching Reddit for ${keyword} leads. LeadLinx uses AI to scan thousands of relevant subreddits in real-time, detecting buying intent automatically.`,
+    }
   };
 }
 

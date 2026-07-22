@@ -7,7 +7,13 @@ import NavAuth from '@/components/NavAuth';
 export const metadata = {
   title: 'LeadLinx | The #1 AI Reddit Lead Generation Software',
   description: 'Maximize your social selling with LeadLinx. Our proprietary AI monitors thousands of subreddits to extract high-intent Reddit leads and deliver them straight to your CRM.',
-  alternates: { canonical: '/' }
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    url: '/',
+    title: 'LeadLinx | The #1 AI Reddit Lead Generation Software',
+    description: 'Maximize your social selling with LeadLinx. Our proprietary AI monitors thousands of subreddits to extract high-intent Reddit leads and deliver them straight to your CRM.',
+  }
 };
 
 export const revalidate = 3600;

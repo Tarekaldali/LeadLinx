@@ -7,7 +7,13 @@ export const revalidate = 86400;
 export const metadata = {
   title: 'Privacy Policy',
   description: 'Read the Privacy Policy for LeadLinx. Learn how we collect, use, and protect your personal data and platform usage metrics.',
-  alternates: { canonical: '/privacy' }
+  alternates: { canonical: '/privacy' },
+  openGraph: {
+    type: 'website',
+    url: '/privacy',
+    title: 'Privacy Policy',
+    description: 'Read the Privacy Policy for LeadLinx. Learn how we collect, use, and protect your personal data and platform usage metrics.',
+  }
 };
 
 export default function PrivacyPolicyPage() {

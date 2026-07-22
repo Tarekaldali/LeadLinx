@@ -88,7 +88,6 @@ export default function PricingClient({ plans }) {
               
               <Link 
                 href={`/checkout?plan=${plan.name.toLowerCase()}&period=${plan.period.replace('/', '')}`}
-                rel="nofollow"
                 className={`w-full py-3.5 rounded-xl font-bold text-sm mb-8 text-center transition-all active:scale-95 flex items-center justify-center ${
                   plan.highlight 
                     ? 'btn-primary' 

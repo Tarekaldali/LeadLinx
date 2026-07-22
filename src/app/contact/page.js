@@ -5,7 +5,13 @@ import ContactForm from '@/components/ContactForm';
 export const metadata = {
   title: 'Contact Support & Sales',
   description: 'Have questions about AI lead generation? Contact the LeadLinx support and sales team for help with your account, custom plans, and API access.',
-  alternates: { canonical: '/contact' }
+  alternates: { canonical: '/contact' },
+  openGraph: {
+    type: 'website',
+    url: '/contact',
+    title: 'Contact Support & Sales',
+    description: 'Have questions about AI lead generation? Contact the LeadLinx support and sales team for help with your account, custom plans, and API access.',
+  }
 };
 
 export default function ContactPage() {

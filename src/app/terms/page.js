@@ -7,7 +7,13 @@ export const revalidate = 86400;
 export const metadata = {
   title: 'Terms and Conditions',
   description: 'Read the comprehensive Terms and Conditions, Refund Policy, and Acceptable Use Policy for LeadLinx platform and services.',
-  alternates: { canonical: '/terms' }
+  alternates: { canonical: '/terms' },
+  openGraph: {
+    type: 'website',
+    url: '/terms',
+    title: 'Terms and Conditions',
+    description: 'Read the comprehensive Terms and Conditions, Refund Policy, and Acceptable Use Policy for LeadLinx platform and services.',
+  }
 };
 
 export default function TermsPage() {

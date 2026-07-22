@@ -8,6 +8,12 @@ export const metadata = {
   title: 'LeadLinx Blog | Insights, Guides & AI Automation Articles',
   description: 'Insights and strategies to scale your B2B operations with advanced automation and intelligent workflows.',
   alternates: { canonical: '/blog' },
+  openGraph: {
+    type: 'website',
+    url: '/blog',
+    title: 'LeadLinx Blog | Insights, Guides & AI Automation Articles',
+    description: 'Insights and strategies to scale your B2B operations with advanced automation and intelligent workflows.',
+  }
 };
 
 export const revalidate = 3600;

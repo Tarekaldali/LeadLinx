@@ -45,7 +45,7 @@ export async function generateMetadata({ params }) {
     title: `${title} | LeadLinx Blog`,
     description,
     alternates: { canonical: `/blog/${slug}` },
-    openGraph: { type: 'article', title, description, images: image ? [{ url: image }] : undefined },
+    openGraph: { type: 'article', title, description, url: `/blog/${slug}`, images: image ? [{ url: image }] : undefined },
   };
 }
 

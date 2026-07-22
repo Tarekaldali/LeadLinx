@@ -5,6 +5,12 @@ export const metadata = {
   description: 'Complete your secure checkout for LeadLinx to start automating your Reddit lead generation today.',
   alternates: {
     canonical: '/checkout',
+  },
+  openGraph: {
+    type: 'website',
+    url: '/checkout',
+    title: 'Checkout — Upgrade your plan',
+    description: 'Complete your secure checkout for LeadLinx to start automating your Reddit lead generation today.',
   }
 };
 
