@@ -160,18 +160,18 @@ async function sendNewPostEmail(title, slug, excerpt) {
     if (subscribers.length === 0) return;
 
     // Check for SMTP configuration
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    if (!process.env.EMAIL_SERVER || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.warn('[Newsletter] SMTP credentials not configured. Skipping email send. Subscribers to notify:', subscribers.length);
       return;
     }
 
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT || 587,
-      secure: process.env.SMTP_PORT == 465,
+      host: process.env.EMAIL_SERVER,
+      port: process.env.EMAIL_PORT || 587,
+      secure: process.env.EMAIL_PORT == 465,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
@@ -193,8 +193,8 @@ async function sendNewPostEmail(title, slug, excerpt) {
     const emails = subscribers.map(s => s.email);
     
     await transporter.sendMail({
-      from: `"LeadLinx Blog" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-      to: process.env.SMTP_FROM || process.env.SMTP_USER, // Send to self
+      from: `"LeadLinx Blog" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_FROM || process.env.EMAIL_USER, // Send to self
       bcc: emails, // BCC all subscribers
       subject: `New Post: ${title}`,
       html: htmlContent,

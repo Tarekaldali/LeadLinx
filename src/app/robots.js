@@ -14,8 +14,6 @@ export default function robots() {
         userAgent: ['Googlebot', 'Bingbot', 'ChatGPT-User', '*'],
         allow: '/',
         disallow: [
-          '/dashboard/',
-          '/admin/',
           '/api/',
           '/verify/',
         ],

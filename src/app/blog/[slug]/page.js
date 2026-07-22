@@ -67,6 +67,7 @@ const getCachedArticle = unstable_cache(
         };
         const related = await db.collection('blog')
           .find({ slug: { $ne: slug }, $or: [{ published: true }, { status: 'Published' }] })
+          .project({ slug: 1, title: 1, seo: 1, category: 1, lastUpdated: 1, date: 1, hero: 1, image: 1 })
           .sort({ lastUpdated: -1 })
           .limit(3)
           .toArray();

@@ -62,7 +62,7 @@ export default function BlockRenderer({ blocks }) {
                   <p className="font-body-md text-secondary">{block.content.description}</p>
                 </div>
                 {block.content.buttonText && block.content.url && (
-                  <Link href={block.content.url} className="shrink-0 bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-label-sm px-8 py-3 rounded-lg transition-colors shadow-sm font-semibold whitespace-nowrap">
+                  <Link href={block.content.url} className="shrink-0 bg-primary hover:bg-on-primary-fixed-variant !text-on-primary !no-underline px-8 py-3 rounded-lg transition-colors shadow-sm font-semibold whitespace-nowrap">
                     {block.content.buttonText}
                   </Link>
                 )}

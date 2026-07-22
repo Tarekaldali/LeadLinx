@@ -24,6 +24,7 @@ const getCachedBlogPosts = unstable_cache(
       const db = await getDb();
       const posts = await db.collection('blog')
         .find({ $or: [{ published: true }, { status: 'Published' }] })
+        .project({ slug: 1, title: 1, seo: 1, excerpt: 1, lastUpdated: 1, date: 1, category: 1, hero: 1, image: 1 })
         .sort({ lastUpdated: -1, date: -1 })
         .toArray();
 
