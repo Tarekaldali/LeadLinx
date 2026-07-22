@@ -17,6 +17,7 @@ export default function AdminBlogPage() {
   const autoSaveTimer = useRef(null);
   const articleRef = useRef(null);
   const heroInputRef = useRef(null);
+  const authorInputRef = useRef(null);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -174,6 +175,25 @@ export default function AdminBlogPage() {
     }
   };
 
+  const handleAuthorImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      showToast('Uploading image...');
+      const res = await fetch('/api/admin/cms/media', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      handleUpdate('author', { ...(article?.author || {}), image: data.url });
+      showToast('✅ Author image uploaded');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      if (authorInputRef.current) authorInputRef.current.value = '';
+    }
+  };
+
   // ─── Computed SEO score ───────────────────────────────────────────
   const seoScore = () => {
     if (!article) return 0;
@@ -221,6 +241,7 @@ export default function AdminBlogPage() {
 
       {/* Hidden hero upload input */}
       <input ref={heroInputRef} type="file" accept="image/*" className="hidden" onChange={handleHeroImageUpload} />
+      <input ref={authorInputRef} type="file" accept="image/*" className="hidden" onChange={handleAuthorImageUpload} />
 
       {/* ── Top Bar ─────────────────────────────────────────────────── */}
       <header className="h-[52px] bg-surface-container-lowest border-b border-[#EEEEEE] px-4 flex items-center justify-between flex-shrink-0 z-40">
@@ -258,7 +279,7 @@ export default function AdminBlogPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={createNewPost}
-            className="bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-label-sm text-[12px] px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+            className="bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-label-sm text-[12px] px-4 py-2 rounded-lg transition-all duration-300 hover:scale-[1.03] active:scale-95 flex items-center gap-1.5 shadow-sm"
           >
             <span className="material-symbols-outlined text-[16px]">add</span>
             New Draft
@@ -534,6 +555,57 @@ export default function AdminBlogPage() {
                     placeholder="Describe the image for SEO…"
                     className="w-full bg-surface border border-[#EEEEEE] rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all text-on-surface"
                   />
+                </div>
+              </div>
+
+              {/* Author Details Card */}
+              <div className="bg-surface-container-lowest border border-[#EEEEEE] rounded-2xl shadow-sm p-5">
+                <span className="font-semibold text-[16px] text-on-surface block mb-4">Author Details</span>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full border border-[#EEEEEE] overflow-hidden relative bg-surface-container flex-shrink-0 group cursor-pointer" onClick={() => authorInputRef.current?.click()}>
+                      {article.author?.image ? (
+                        <img src={article.author.image} alt="Author" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-secondary">
+                          <span className="material-symbols-outlined text-[20px]">person</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="material-symbols-outlined text-white text-[16px]">edit</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-[11px] text-secondary mb-1.5 uppercase tracking-widest font-semibold">Name</label>
+                      <input
+                        type="text"
+                        value={article.author?.name || ''}
+                        onChange={(e) => handleUpdate('author', { ...(article.author || {}), name: e.target.value })}
+                        placeholder="e.g. Sarah Jenkins"
+                        className="w-full bg-surface border border-[#EEEEEE] rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all text-on-surface"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-secondary mb-1.5 uppercase tracking-widest font-semibold">Role</label>
+                    <input
+                      type="text"
+                      value={article.author?.role || ''}
+                      onChange={(e) => handleUpdate('author', { ...(article.author || {}), role: e.target.value })}
+                      placeholder="e.g. Content Strategist"
+                      className="w-full bg-surface border border-[#EEEEEE] rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all text-on-surface"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-secondary mb-1.5 uppercase tracking-widest font-semibold">Bio</label>
+                    <textarea
+                      value={article.author?.bio || ''}
+                      onChange={(e) => handleUpdate('author', { ...(article.author || {}), bio: e.target.value })}
+                      placeholder="Short author biography..."
+                      className="w-full bg-surface border border-[#EEEEEE] rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all text-on-surface resize-none h-[64px]"
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { getDb } from '@/lib/mongodb';
 
 export async function POST(request) {
   const authResult = await requireAdmin(request);
@@ -18,26 +17,17 @@ export async function POST(request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    // Create a unique filename
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const filename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const finalFilename = `${uniqueSuffix}-${filename}`;
+    const mimeType = file.type || 'image/jpeg';
     
-    // Ensure the uploads directory exists
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      await fs.mkdir(uploadDir, { recursive: true });
-    }
+    const db = await getDb();
+    const result = await db.collection('media').insertOne({
+      filename: file.name || 'upload',
+      mimeType,
+      data: buffer,
+      createdAt: new Date(),
+    });
 
-    const filePath = path.join(uploadDir, finalFilename);
-    
-    // Write file to public/uploads
-    await fs.writeFile(filePath, buffer);
-
-    // Return the public URL
-    const fileUrl = `/uploads/${finalFilename}`;
+    const fileUrl = `/api/media/${result.insertedId.toString()}`;
 
     return NextResponse.json({ url: fileUrl, success: true });
   } catch (error) {

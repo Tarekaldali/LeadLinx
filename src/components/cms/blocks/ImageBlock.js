@@ -3,13 +3,22 @@ import { useState, useRef } from 'react';
 
 export default function ImageBlock({ content, onChange, blockId }) {
   const [uploading, setUploading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
   const inputRef = useRef(null);
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check file size (limit to 4.5MB for Vercel functions)
+    if (file.size > 4.5 * 1024 * 1024) {
+      setErrorMsg('File too large (max 4.5MB)');
+      setTimeout(() => setErrorMsg(null), 3000);
+      return;
+    }
+
     setUploading(true);
+    setErrorMsg(null);
     const formData = new FormData();
     formData.append('file', file);
 
@@ -22,7 +31,8 @@ export default function ImageBlock({ content, onChange, blockId }) {
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       onChange({ ...content, url: data.url });
     } catch (err) {
-      alert('Upload failed: ' + err.message);
+      setErrorMsg('Failed to upload media');
+      setTimeout(() => setErrorMsg(null), 3000);
     } finally {
       setUploading(false);
       // Reset input so the same file can be re-selected
@@ -31,7 +41,13 @@ export default function ImageBlock({ content, onChange, blockId }) {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      {errorMsg && (
+        <div className="absolute top-[-40px] left-1/2 -translate-x-1/2 bg-[#dc2626] text-white text-sm font-semibold px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+          <span className="material-symbols-outlined text-[18px]">error</span>
+          {errorMsg}
+        </div>
+      )}
       {!content?.url ? (
         <label className="w-full border-2 border-dashed border-primary/30 rounded-xl p-10 flex flex-col items-center justify-center bg-surface hover:bg-primary/5 transition-colors cursor-pointer group relative">
           <input

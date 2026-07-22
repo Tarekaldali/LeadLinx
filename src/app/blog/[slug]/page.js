@@ -5,9 +5,11 @@ import { getDb } from '@/lib/mongodb';
 import { unstable_cache } from 'next/cache';
 import Image from 'next/image';
 import BlockRenderer from '@/components/cms/BlockRenderer';
+import SubscribeForm from '@/components/blog/SubscribeForm';
+import ShareMenu from '@/components/blog/ShareMenu';
+import ArticleInteractions from '@/components/blog/ArticleInteractions';
 
 export const revalidate = 3600;
-export const dynamic = 'force-static';
 
 export async function generateStaticParams() {
   try {
@@ -24,12 +26,12 @@ const getCachedMeta = unstable_cache(
     try {
       const db = await getDb();
       return await db.collection('blog').findOne({ slug, published: true }, {
-        projection: { title: 1, seo: 1, excerpt: 1, hero: 1, image: 1, lastUpdated: 1 }
+        projection: { title: 1, seo: 1, excerpt: 1, hero: 1, image: 1, lastUpdated: 1, author: 1 }
       });
     } catch { return null; }
   },
   ['blog-meta'],
-  { revalidate: 3600 }
+  { revalidate: 3600, tags: ['blog'] }
 );
 
 export async function generateMetadata({ params }) {
@@ -83,7 +85,7 @@ const getCachedArticle = unstable_cache(
     }
   },
   ['blog-article-v2'],
-  { revalidate: 3600 }
+  { revalidate: 3600, tags: ['blog', 'blog-article-v2'] }
 );
 
 const FALLBACK_IMG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuB84Gij4EdBbaz_cyuIalBLTQQ7wTbi4PXxE9bYFVtO-4Kf6gH7_B5ra07Y2QEGEzN1jquKuxqrtD1p8zFEeWiGxE9Ojus-vgZ3WL-njLjFcSo7hzww_9G1JkcPeeJOI-V4bbZfb0MXK7hXs7I5o1Y-hV7r5rhoN6cWncGF9eYrPXtIw-sezbUds0OFoYquWugjPcJIWQDIX--fj_BHRnzmmGCED_6IBQSZyB-Gx1TC7-ECEsi1ZZMuuA';
@@ -142,6 +144,12 @@ export default async function BlogPostPage({ params }) {
     mainEntity: faqs.map(faq => ({ '@type': 'Question', name: faq.question, acceptedAnswer: { '@type': 'Answer', text: faq.answer } })),
   } : null;
 
+  const authorName = article.author?.name || 'Sarah Jenkins';
+  const authorRole = article.author?.role || 'Content Strategist';
+  const authorBio = article.author?.bio || 'B2B growth and automation specialist at LeadLinx, helping companies scale their pipeline.';
+  const authorImage = article.author?.image || AUTHOR_IMG;
+  const currentUrl = `https://leadlinx.com/blog/${article.slug}`;
+
   return (
     <div className="bg-[#FAFAFA] text-on-surface font-body-md antialiased min-h-screen flex flex-col">
       <Navbar activePage="blog" />
@@ -175,21 +183,16 @@ export default async function BlogPostPage({ params }) {
           {/* Author row */}
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-[#EEEEEE] relative flex-shrink-0">
-                <Image src={AUTHOR_IMG} alt="Sarah Jenkins" fill sizes="44px" className="object-cover" />
+              <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-[#EEEEEE] relative flex-shrink-0 bg-surface-container">
+                <Image src={authorImage} alt={authorName} fill sizes="44px" className="object-cover" />
               </div>
               <div>
-                <div className="text-[14px] font-semibold text-on-surface">Sarah Jenkins</div>
+                <div className="text-[14px] font-semibold text-on-surface">{authorName}</div>
                 <div className="text-[13px] text-secondary">{article.formattedDate} · 8 min read</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#EEEEEE] bg-surface text-secondary hover:border-primary hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-[18px]">share</span>
-              </button>
-              <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#EEEEEE] bg-surface text-secondary hover:border-primary hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-[18px]">bookmark</span>
-              </button>
+              <ShareMenu url={currentUrl} title={article.title} />
             </div>
           </div>
         </div>
@@ -238,15 +241,15 @@ export default async function BlogPostPage({ params }) {
             {/* Author card */}
             <div className="bg-surface rounded-2xl border border-[#EEEEEE] p-5 shadow-sm mt-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden border border-[#EEEEEE] relative flex-shrink-0">
-                  <Image src={AUTHOR_IMG} alt="Sarah Jenkins" fill sizes="40px" className="object-cover" />
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-[#EEEEEE] relative flex-shrink-0 bg-surface-container">
+                  <Image src={authorImage} alt={authorName} fill sizes="40px" className="object-cover" />
                 </div>
                 <div>
-                  <div className="text-[14px] font-bold text-on-surface">Sarah Jenkins</div>
-                  <div className="text-[12px] text-secondary">Content Strategist</div>
+                  <div className="text-[14px] font-bold text-on-surface">{authorName}</div>
+                  <div className="text-[12px] text-secondary">{authorRole}</div>
                 </div>
               </div>
-              <p className="text-[13px] text-secondary leading-relaxed">B2B growth and automation specialist at LeadLinx, helping companies scale their pipeline.</p>
+              <p className="text-[13px] text-secondary leading-relaxed">{authorBio}</p>
             </div>
           </div>
         </aside>
@@ -272,6 +275,9 @@ export default async function BlogPostPage({ params }) {
               ) : (
                 <p className="text-secondary text-center py-12">No content yet.</p>
               )}
+              
+              {/* Interactions (Likes & Comments) */}
+              <ArticleInteractions articleId={article._id.toString()} />
             </div>
           </div>
 
@@ -372,23 +378,7 @@ export default async function BlogPostPage({ params }) {
             )}
 
             {/* Newsletter */}
-            <div className="bg-surface rounded-2xl border border-[#EEEEEE] p-5 shadow-sm">
-              <h4 className="text-[14px] font-bold text-on-surface mb-1">Subscribe</h4>
-              <p className="text-secondary text-[13px] mb-4 leading-relaxed">Get the latest insights on sales automation delivered to your inbox.</p>
-              <form className="space-y-2" action="#" method="post">
-                <input
-                  type="email"
-                  placeholder="Work Email"
-                  className="w-full px-3 py-2.5 rounded-lg border border-[#EEEEEE] text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all"
-                />
-                <button
-                  type="submit"
-                  className="w-full bg-surface-container-high text-on-surface text-sm font-semibold py-2.5 rounded-lg border border-[#EEEEEE] hover:bg-surface-container transition-colors"
-                >
-                  Subscribe
-                </button>
-              </form>
-            </div>
+            <SubscribeForm />
           </div>
         </aside>
       </main>

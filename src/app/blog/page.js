@@ -11,7 +11,6 @@ export const metadata = {
 };
 
 export const revalidate = 3600;
-export const dynamic = 'force-static';
 
 const getCachedBlogPosts = unstable_cache(
   async () => {

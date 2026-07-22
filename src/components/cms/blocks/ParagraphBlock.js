@@ -86,11 +86,21 @@ export default function ParagraphBlock({ content, onChange }) {
         <div className="w-px h-5 bg-[#EEEEEE] mx-1" />
         <ToolbarBtn
           onClick={() => {
-            const url = window.prompt('Enter URL:');
-            if (url) editor.chain().focus().setLink({ href: url }).run();
+            const previousUrl = editor.getAttributes('link').href;
+            const url = window.prompt('Enter URL (leave empty to remove link):', previousUrl || '');
+            if (url === null) return; // user cancelled
+            if (url === '') {
+              editor.chain().focus().extendMarkRange('link').unsetLink().run();
+              return;
+            }
+            let formattedUrl = url;
+            if (!/^https?:\/\//i.test(formattedUrl) && !/^mailto:/i.test(formattedUrl)) {
+              formattedUrl = 'https://' + formattedUrl;
+            }
+            editor.chain().focus().extendMarkRange('link').setLink({ href: formattedUrl }).run();
           }}
           active={editor.isActive('link')}
-          title="Insert Link"
+          title="Insert/Edit Link"
         >
           <span className="material-symbols-outlined text-[16px]">link</span>
         </ToolbarBtn>
@@ -124,6 +134,7 @@ export default function ParagraphBlock({ content, onChange }) {
           height: 0;
           pointer-events: none;
         }
+        .ProseMirror a { color: #1a0dab; text-decoration: underline; cursor: pointer; }
         .ProseMirror:focus { outline: none; }
       `}</style>
     </div>

@@ -57,8 +57,8 @@ export default function BlockManager({ blocks = [], onChange }) {
       content: getInitialContent(type),
     };
     const newBlocks = [...blocks];
-    // afterIndex === -1 means append to end; otherwise insert after that index
-    const insertAt = afterIndex === -1 ? blocks.length : afterIndex + 1;
+    // afterIndex === -1 means prepend to top; otherwise insert after that index
+    const insertAt = afterIndex === -1 ? 0 : afterIndex + 1;
     newBlocks.splice(insertAt, 0, newBlock);
     onChange(newBlocks);
     setAddingAtIndex(null);
@@ -187,7 +187,7 @@ export default function BlockManager({ blocks = [], onChange }) {
             </div>
 
             {blocks.map((block, idx) => (
-              <div key={block.id} className="relative z-10">
+              <div key={block.id} className={`relative ${addingAtIndex === idx ? 'z-30' : 'z-10'}`}>
                 <SortableBlock
                   id={block.id}
                   onDelete={() => deleteBlock(block.id)}

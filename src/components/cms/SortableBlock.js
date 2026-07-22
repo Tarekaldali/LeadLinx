@@ -65,7 +65,7 @@ export default function SortableBlock({ id, children, onDelete, onDuplicate }) {
               <div className="absolute left-full ml-2 top-0 bg-surface-container-lowest border border-[#EEEEEE] shadow-lg rounded-xl w-36 py-1 z-[50]">
                 <button
                   type="button"
-                  onClick={() => { onDuplicate(); setShowMenu(false); }}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDuplicate(); setShowMenu(false); }}
                   className="w-full text-left px-3 py-2 text-sm hover:bg-surface-container-low text-on-surface flex items-center gap-2 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[16px] text-secondary">content_copy</span>
@@ -74,7 +74,7 @@ export default function SortableBlock({ id, children, onDelete, onDuplicate }) {
                 <div className="h-px bg-[#EEEEEE] mx-2 my-1" />
                 <button
                   type="button"
-                  onClick={() => { onDelete(); setShowMenu(false); }}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); setShowMenu(false); }}
                   className="w-full text-left px-3 py-2 text-sm hover:bg-error/5 text-error flex items-center gap-2 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[16px]">delete</span>

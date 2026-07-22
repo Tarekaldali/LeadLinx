@@ -27,7 +27,7 @@ export default function FaqBlock({ content, onChange }) {
         <button 
           type="button"
           onClick={addItem}
-          className="text-primary hover:text-primary/70 font-semibold text-sm flex items-center gap-1 transition-colors"
+          className="text-primary hover:opacity-70 font-semibold text-sm flex items-center gap-1 transition-opacity"
         >
           <span className="material-symbols-outlined text-[18px]">add</span> Add Item
         </button>
