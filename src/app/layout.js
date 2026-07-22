@@ -6,15 +6,15 @@ export const metadata = {
     default: 'LeadLinx — AI-Powered Reddit Lead Generation',
     template: '%s | LeadLinx',
   },
-  description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
-  keywords: ['reddit lead generation', 'b2b leads', 'social selling', 'intent scoring', 'sales automation'],
+  description: 'LeadLinx is the leading AI-powered Reddit lead generation software. Automate your social selling by extracting high-intent leads from Reddit directly into your CRM.',
+  keywords: ['LeadLinx', 'reddit lead generation', 'b2b leads', 'social selling', 'intent scoring', 'sales automation', 'Lead Linx'],
   authors: [{ name: 'LeadLinx Intelligence' }],
   openGraph: {
     type: 'website',
     locale: 'en_US',
     siteName: 'LeadLinx',
     title: 'LeadLinx — AI-Powered Reddit Lead Generation',
-    description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
+    description: 'LeadLinx is the leading AI-powered Reddit lead generation software. Automate your social selling by extracting high-intent leads from Reddit directly into your CRM.',
     images: [
       {
         url: '/logo.png', // Fallback og:image
@@ -27,7 +27,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'LeadLinx — AI-Powered Reddit Lead Generation',
-    description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
+    description: 'LeadLinx is the leading AI-powered Reddit lead generation software. Automate your social selling by extracting high-intent leads from Reddit directly into your CRM.',
     images: ['/logo.png'],
   },
   robots: {
@@ -62,7 +62,7 @@ export default function RootLayout({ children }) {
                 name: 'LeadLinx',
                 applicationCategory: 'BusinessApplication',
                 operatingSystem: 'Web',
-                description: 'Use free Reddit tools to check buyer intent, generate search ideas, score posts, draft safer replies, and plan when to move into Leadline V3.',
+                description: 'LeadLinx is an AI-powered Reddit lead generation platform. It automatically extracts high-intent prospects and syncs them to your CRM.',
                 url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
                 offers: {
                   '@type': 'AggregateOffer',

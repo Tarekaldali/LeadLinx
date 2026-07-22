@@ -171,6 +171,18 @@ export default async function ProgrammaticSEOPage({ params }) {
             </Link>
           </div>
         </section>
+
+        {/* Explore Other Categories */}
+        <section className="space-y-4">
+          <h3 className="font-headline text-lg text-on-surface">Explore Other Lead Categories</h3>
+          <div className="flex flex-wrap gap-3">
+            {Object.keys(keywordData).filter(k => k !== p.keyword).map((k) => (
+              <Link key={k} href={`/find-leads/${k}`} className="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors text-sm font-medium border border-outline/10 text-on-surface">
+                {keywordData[k].title} Leads
+              </Link>
+            ))}
+          </div>
+        </section>
       </main>
 
       <Footer />

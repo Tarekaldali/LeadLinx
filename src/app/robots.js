@@ -17,8 +17,6 @@ export default function robots() {
           '/dashboard/',
           '/admin/',
           '/api/',
-          '/checkout',
-          '/login',
           '/verify/',
         ],
       }

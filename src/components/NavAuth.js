@@ -30,11 +30,11 @@ export default function NavAuth() {
 
   return (
     <>
-      <Link href="/login" className="text-on-surface-variant hover:text-on-surface text-sm font-medium transition-colors">
+      <Link href="/login" rel="nofollow" className="text-on-surface-variant hover:text-on-surface text-sm font-medium transition-colors">
         Log in
       </Link>
-      <Link href="/login" className="btn-primary text-sm py-2 px-6">
-        Get Started
+      <Link href="/login" rel="nofollow" className="btn-primary text-sm py-2 px-6">
+        Sign Up
       </Link>
     </>
   );

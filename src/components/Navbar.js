@@ -23,7 +23,7 @@ export default function Navbar({ activePage = 'platform' }) {
               className={activePage === 'blog' ? 'text-primary border-b-2 border-primary pb-1 text-sm font-medium' : 'text-on-surface-variant hover:text-primary transition-colors text-sm'}
               href="/blog"
             >
-              About LeadLinx
+              Blog
             </Link>
             <Link
               className={activePage === 'contact' ? 'text-primary border-b-2 border-primary pb-1 text-sm font-medium' : 'text-on-surface-variant hover:text-primary transition-colors text-sm'}

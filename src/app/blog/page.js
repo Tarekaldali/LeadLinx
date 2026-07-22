@@ -1,87 +1,60 @@
-import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getDb } from '@/lib/mongodb';
-import Image from 'next/image';
+import { unstable_cache } from 'next/cache';
+import BlogPageClient from './BlogPageClient';
 
 export const metadata = {
-  title: 'Reddit Lead Generation Strategies & AI Growth',
-  description: 'Learn how to leverage AI to extract high-converting B2B leads from Reddit. Expert guides, case studies, and social selling strategies.',
-  alternates: { canonical: '/blog' }
+  title: 'LeadLinx Blog | Insights, Guides & AI Automation Articles',
+  description: 'Insights and strategies to scale your B2B operations with advanced automation and intelligent workflows.',
+  alternates: { canonical: '/blog' },
 };
 
 export const revalidate = 3600;
+export const dynamic = 'force-static';
+
+const getCachedBlogPosts = unstable_cache(
+  async () => {
+    try {
+      const db = await getDb();
+      const posts = await db.collection('blog')
+        .find({ published: true })
+        .sort({ lastUpdated: -1, date: -1 })
+        .toArray();
+
+      return posts.map((p) => ({
+        _id: p._id.toString(),
+        slug: p.slug,
+        title: p.title || p.seo?.metaTitle || 'Untitled',
+        excerpt: p.excerpt || p.seo?.metaDescription || 'Read our latest insights and strategies.',
+        date: p.lastUpdated
+          ? new Date(p.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : p.date
+          ? new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : '',
+        category: p.category || 'General',
+        image: p.hero?.image || p.image || null,
+        author: 'Sarah Jenkins',
+        authorImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBnkcGFpWhmT2KUw6BE9RQKCnAgEWyodTY5vSJjNFZoTdl4HKNyWbCiqsgxLOqHTI5fR10rOpd4COTrQZtCTJwOMXHzr5NhehiHx6nrMqTMe4HU0uNtNbLzmIi64pFhLiRxLgv7iDEHbPemMdkPrQbd1DYNTo9TkaEWefxTJIvDtkFuYZDRW9wf5Y8tYaIqKOlzLO99kA1kgo-HhDR07gcrSze-zAWwUbKuKk240EUa7_EUPl6zUdpV0A',
+      }));
+    } catch (error) {
+      console.error('Failed to fetch blog posts:', error);
+      return [];
+    }
+  },
+  ['blog-posts-list-v2'],
+  { revalidate: 3600, tags: ['blog'] }
+);
 
 export default async function BlogPage() {
-  let posts = [];
-  try {
-    const db = await getDb();
-    posts = await db.collection('blog')
-      .find({ published: true })
-      .sort({ date: -1 })
-      .toArray();
-    // Serialize MongoDB objects
-    posts = posts.map(p => ({
-      slug: p.slug,
-      title: p.title,
-      excerpt: p.excerpt || p.content?.substring(0, 150) + '...',
-      date: p.date ? new Date(p.date).toISOString().split('T')[0] : 'N/A',
-      readTime: p.readTime || '5 min',
-      category: p.category || 'General',
-      image: p.image || null,
-    }));
-  } catch (error) {
-    console.error('Failed to fetch blog posts:', error);
-  }
+  const posts = await getCachedBlogPosts();
 
   return (
-    <div className="bg-background text-on-surface min-h-screen">
+    <div className="bg-surface text-on-surface font-body-md antialiased min-h-screen flex flex-col">
       <Navbar activePage="blog" />
-
-      <main className="max-w-4xl mx-auto px-6 py-16 space-y-12">
-        <header>
-          <h1 className="font-display text-4xl mb-4 text-on-surface">Reddit Lead Generation Strategies</h1>
-          <p className="text-on-surface-variant text-lg">Expert guides on Reddit lead generation and AI-powered prospecting.</p>
-        </header>
-
-        {posts.length === 0 ? (
-          <div className="bento-card p-8 text-center space-y-3">
-            <span className="material-symbols-outlined text-4xl text-on-surface-variant">article</span>
-            <h3 className="font-headline text-lg text-on-surface">No blog posts yet</h3>
-            <p className="text-sm text-on-surface-variant">Check back soon for expert guides on lead generation.</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {posts.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="block bento-card p-6 rounded-2xl hover:border-primary/20 transition-all group">
-                <div className="flex gap-6">
-                  {post.image && (
-                    <div className="hidden md:block w-48 h-32 rounded-xl overflow-hidden bg-surface-container-low shrink-0 relative">
-                      <Image src={post.image} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 0vw, 192px" />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="px-2.5 py-0.5 rounded-lg bg-primary-container/50 text-xs font-data-label text-primary border border-primary/10">{post.category}</span>
-                      <span className="text-xs text-on-surface-variant font-data-label">{post.date}</span>
-                      <span className="text-xs text-on-surface-variant font-data-label">{post.readTime} read</span>
-                    </div>
-                    <h2 className="font-headline text-xl group-hover:text-primary transition-colors mb-2 text-on-surface">{post.title}</h2>
-                    <p className="text-on-surface-variant text-sm line-clamp-2">{post.excerpt}</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-
-        <section className="bento-card p-8 text-center space-y-4">
-          <h3 className="font-headline text-xl text-on-surface">Ready to put these strategies to work?</h3>
-          <p className="text-on-surface-variant text-sm">LeadLinx automates everything you just read about.</p>
-          <Link href="/login" className="btn-primary inline-block">Start Free Trial</Link>
-        </section>
+      <main className="w-full flex-grow pt-[72px]">
+        <BlogPageClient posts={posts} />
       </main>
-
       <Footer />
     </div>
   );

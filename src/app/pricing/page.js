@@ -2,8 +2,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getDb } from '@/lib/mongodb';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-config';
+import { unstable_cache } from 'next/cache';
 import Image from 'next/image';
 import PricingClient from '@/components/pricing/PricingClient';
 
@@ -13,15 +12,25 @@ export const metadata = {
   alternates: { canonical: '/pricing' }
 };
 export const revalidate = 3600;
+export const dynamic = 'force-static';
+
+const getCachedPlans = unstable_cache(
+  async () => {
+    try {
+      const db = await getDb();
+      const plans = await db.collection('plans').find({}).toArray();
+      return plans.map(p => ({ ...p, _id: p._id.toString() }));
+    } catch (error) {
+      console.error('Failed to fetch plans:', error);
+      return [];
+    }
+  },
+  ['pricing-plans'],
+  { revalidate: 3600, tags: ['pricing'] }
+);
 
 export default async function PricingPage() {
-  let plans = [];
-  try {
-    const db = await getDb();
-    plans = await db.collection('plans').find({}).toArray();
-  } catch (error) {
-    console.error('Failed to fetch plans:', error);
-  }
+  const plans = await getCachedPlans();
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col">
@@ -81,7 +90,7 @@ export default async function PricingPage() {
         </div>
 
         {/* Pricing Cards Grid */}
-        <PricingClient plans={plans.map(p => ({ ...p, _id: p._id.toString() }))} />
+        <PricingClient plans={plans} />
         
         {/* Trust/FAQ Section */}
         <div className="max-w-4xl mx-auto px-6 mt-32">
