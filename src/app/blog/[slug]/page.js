@@ -14,7 +14,7 @@ export const revalidate = 3600;
 export async function generateStaticParams() {
   try {
     const db = await getDb();
-    const posts = await db.collection('blog').find({ published: true }).project({ slug: 1 }).toArray();
+    const posts = await db.collection('blog').find({ $or: [{ published: true }, { status: 'Published' }] }).project({ slug: 1 }).toArray();
     return posts.map((post) => ({ slug: post.slug }));
   } catch {
     return [];
@@ -25,7 +25,7 @@ const getCachedMeta = unstable_cache(
   async (slug) => {
     try {
       const db = await getDb();
-      return await db.collection('blog').findOne({ slug, published: true }, {
+      return await db.collection('blog').findOne({ slug, $or: [{ published: true }, { status: 'Published' }] }, {
         projection: { title: 1, seo: 1, excerpt: 1, hero: 1, image: 1, lastUpdated: 1, author: 1 }
       });
     } catch { return null; }
@@ -53,7 +53,7 @@ const getCachedArticle = unstable_cache(
   async (slug) => {
     try {
       const db = await getDb();
-      let article = await db.collection('blog').findOne({ slug, published: true });
+      let article = await db.collection('blog').findOne({ slug, $or: [{ published: true }, { status: 'Published' }] });
       let relatedPosts = [];
       if (article) {
         article = {
@@ -66,7 +66,7 @@ const getCachedArticle = unstable_cache(
             : 'N/A',
         };
         const related = await db.collection('blog')
-          .find({ slug: { $ne: slug }, published: true })
+          .find({ slug: { $ne: slug }, $or: [{ published: true }, { status: 'Published' }] })
           .sort({ lastUpdated: -1 })
           .limit(3)
           .toArray();
