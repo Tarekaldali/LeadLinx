@@ -104,8 +104,7 @@ export default function BlogPageClient({ posts }) {
           <div className="z-10 shrink-0">
             <Link
               href="/login"
-              rel="nofollow"
-              className="inline-flex items-center gap-2 bg-primary text-on-primary font-semibold text-sm px-8 py-3.5 rounded-xl hover:brightness-95 transition-all shadow-md whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary font-semibold px-8 py-3.5 rounded-xl hover:brightness-95 transition-all shadow-md whitespace-nowrap"
             >
               <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
               Try LeadLinx Free

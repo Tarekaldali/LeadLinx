@@ -23,6 +23,7 @@ export default function Footer() {
             <Link href="/privacy" className="text-text-muted hover:text-on-surface transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="text-text-muted hover:text-on-surface transition-colors">Terms of Service</Link>
             <Link href="/contact" className="text-text-muted hover:text-on-surface transition-colors">Contact Us</Link>
+            <Link href="/checkout" className="hidden" aria-hidden="true">Checkout</Link>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-4 md:justify-end text-xs opacity-70">
             <Link href="/find-leads/crm-alternatives" className="text-text-muted hover:text-on-surface transition-colors">CRM Alternatives</Link>

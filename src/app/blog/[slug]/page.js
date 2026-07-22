@@ -338,7 +338,6 @@ export default async function BlogPostPage({ params }) {
               <p className="text-on-primary/80 text-sm mb-5 leading-relaxed">Get started with LeadLinx today and see results in days, not months.</p>
               <Link
                 href="/login"
-                rel="nofollow"
                 className="block w-full bg-white text-primary font-bold py-3 rounded-xl hover:bg-white/90 transition-colors text-sm shadow-md"
               >
                 Start Free Trial
@@ -389,7 +388,7 @@ export default async function BlogPostPage({ params }) {
           <h2 className="text-[32px] font-bold text-on-surface mb-3">Ready to automate? Start free today.</h2>
           <p className="text-secondary text-[17px] mb-8 max-w-lg mx-auto">Join the leading platform for automated B2B pipeline generation. No credit card required.</p>
           <div className="flex flex-col sm:flex-row justify-center gap-3">
-            <Link href="/login" rel="nofollow" className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary font-semibold px-8 py-3.5 rounded-xl hover:brightness-95 transition-all shadow-md">
+            <Link href="/login" className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary font-semibold px-8 py-3.5 rounded-xl hover:brightness-95 transition-all shadow-md">
               <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
               Start Free Trial
             </Link>
