@@ -24,7 +24,7 @@ const getCachedBlogPosts = unstable_cache(
       const db = await getDb();
       const posts = await db.collection('blog')
         .find({ $or: [{ published: true }, { status: 'Published' }] })
-        .project({ slug: 1, title: 1, seo: 1, excerpt: 1, lastUpdated: 1, date: 1, category: 1, hero: 1, image: 1 })
+        .project({ slug: 1, title: 1, seo: 1, excerpt: 1, lastUpdated: 1, date: 1, category: 1, hero: 1, image: 1, readTime: 1 })
         .sort({ lastUpdated: -1, date: -1 })
         .toArray();
 
@@ -39,6 +39,7 @@ const getCachedBlogPosts = unstable_cache(
           ? new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : '',
         category: p.category || 'General',
+        readTime: p.readTime || 8,
         image: p.hero?.image || p.image || null,
         author: 'Sarah Jenkins',
         authorImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBnkcGFpWhmT2KUw6BE9RQKCnAgEWyodTY5vSJjNFZoTdl4HKNyWbCiqsgxLOqHTI5fR10rOpd4COTrQZtCTJwOMXHzr5NhehiHx6nrMqTMe4HU0uNtNbLzmIi64pFhLiRxLgv7iDEHbPemMdkPrQbd1DYNTo9TkaEWefxTJIvDtkFuYZDRW9wf5Y8tYaIqKOlzLO99kA1kgo-HhDR07gcrSze-zAWwUbKuKk240EUa7_EUPl6zUdpV0A',

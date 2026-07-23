@@ -189,7 +189,7 @@ export default async function BlogPostPage({ params }) {
               </div>
               <div>
                 <div className="text-[14px] font-semibold text-on-surface">{authorName}</div>
-                <div className="text-[13px] text-secondary">{article.formattedDate} · 8 min read</div>
+                <div className="text-[13px] text-secondary">{article.formattedDate} · {article.readTime || 8} min read</div>
               </div>
             </div>
             <div className="flex items-center gap-2">

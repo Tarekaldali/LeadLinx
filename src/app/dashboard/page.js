@@ -244,11 +244,7 @@ export default function DashboardPage() {
     }
   }, [searchParams, sendMessage]);
 
-  const handleSuggestionClick = (q) => {
-    // Directly call sendMessage with the prompt as override
-    // Don't set input state first - it causes stale closure issues
-    sendMessage(q);
-  };
+
 
   const handleSaveLead = async (lead) => {
     try {
@@ -284,24 +280,7 @@ export default function DashboardPage() {
             <h1 className="welcome-title">How can I help you today?</h1>
             <p className="welcome-subtitle">Search for leads, ask about business automation, or explore growth strategies.</p>
 
-            <div className="suggestion-grid-minimal">
-              <div className="suggestion-item" onClick={() => handleSuggestionClick("Find real estate agents in New York")}>
-                <div className="suggestion-header">Find Prospects</div>
-                <div className="suggestion-body">"Find real estate agents in New York looking for automation."</div>
-              </div>
-              <div className="suggestion-item" onClick={() => handleSuggestionClick("How can I automate my sales follow-ups?")}>
-                <div className="suggestion-header">Automation Strategy</div>
-                <div className="suggestion-body">"How can I automate my sales follow-ups with LeadLinx?"</div>
-              </div>
-              <div className="suggestion-item" onClick={() => handleSuggestionClick("Analyze r/SaaS for growth hacks")}>
-                <div className="suggestion-header">Market Analysis</div>
-                <div className="suggestion-body">"Analyze r/SaaS for the latest growth hacks and trends."</div>
-              </div>
-              <div className="suggestion-item" onClick={() => handleSuggestionClick("Write a cold email for digital agencies")}>
-                <div className="suggestion-header">Content Creation</div>
-                <div className="suggestion-body">"Write a high-converting cold email for digital agencies."</div>
-              </div>
-            </div>
+
           </div>
         ) : (
           <div className="space-y-2">

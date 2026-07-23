@@ -392,7 +392,7 @@ export default function AdminBlogPage() {
 
               {/* Metadata card */}
               <div className="bg-surface-container-lowest border border-[#EEEEEE] rounded-2xl shadow-sm p-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-[11px] text-secondary mb-1.5 uppercase tracking-widest font-semibold">Slug</label>
                     <input
@@ -414,7 +414,18 @@ export default function AdminBlogPage() {
                       ))}
                     </select>
                   </div>
-                  <div className="col-span-1 md:col-span-2">
+                  <div>
+                    <label className="block text-[11px] text-secondary mb-1.5 uppercase tracking-widest font-semibold">Read Time (mins)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={article.readTime || ''}
+                      onChange={(e) => handleUpdate('readTime', parseInt(e.target.value) || 8)}
+                      placeholder="8"
+                      className="w-full bg-surface border border-[#EEEEEE] rounded-lg px-3 py-2.5 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all text-on-surface"
+                    />
+                  </div>
+                  <div className="col-span-1 md:col-span-3">
                     <label className="block text-[11px] text-secondary mb-1.5 uppercase tracking-widest font-semibold">Tags</label>
                     <div className="flex flex-wrap items-center gap-2 bg-surface border border-[#EEEEEE] rounded-lg px-3 py-2 min-h-[42px] focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all">
                       {(article.tags || []).map((tag, i) => (

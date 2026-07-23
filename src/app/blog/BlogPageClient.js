@@ -160,7 +160,7 @@ export default function BlogPageClient({ posts }) {
                     <div className="flex items-center gap-2 mb-5">
                       <span className="bg-primary/5 text-primary text-xs font-bold uppercase px-2.5 py-1 rounded-full">{featuredPost.category}</span>
                       <span className="text-secondary text-xs flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">schedule</span> 8 min read
+                        <span className="material-symbols-outlined text-[14px]">schedule</span> {featuredPost.readTime} min read
                       </span>
                     </div>
                     <h2 className="text-[24px] md:text-[26px] font-bold leading-[1.25] text-on-background mb-4 group-hover:text-primary transition-colors duration-200">
@@ -227,7 +227,7 @@ export default function BlogPageClient({ posts }) {
                     <div className="mt-auto flex items-center justify-between border-t border-[#EEEEEE] pt-3">
                       <span className="text-secondary text-xs">{post.date}</span>
                       <span className="text-secondary text-xs flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">schedule</span> 8 min
+                        <span className="material-symbols-outlined text-[14px]">schedule</span> {post.readTime} min
                       </span>
                     </div>
                   </div>
