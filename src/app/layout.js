@@ -50,6 +50,7 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetBrainsMono.variable} ${hankenGrotesk.variable}`}>
       <head>
         <link rel="icon" href="/logo.png" />
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2498516666545010" crossOrigin="anonymous"></script>
         {/* Material Symbols Outlined is still external as it's an icon font, but we defer it if possible or keep it if critical */}
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
         <script
